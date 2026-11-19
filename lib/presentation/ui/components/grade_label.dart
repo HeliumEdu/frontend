@@ -65,7 +65,7 @@ class GradeLabel extends StatelessWidget {
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: Responsive.isMobile(context) ? (compact ? 56 : 64) : (compact ? 62 : 70),
+                maxWidth: Responsive.isMobile(context) ? (compact ? 56 : 70) : (compact ? 62 : 78),
               ),
               padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 6, vertical: compact ? 2 : 4),
               decoration: BoxDecoration(

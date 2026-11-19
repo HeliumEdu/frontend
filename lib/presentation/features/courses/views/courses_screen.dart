@@ -116,7 +116,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
   @override
   void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh) {
+    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState)) {
       setState(() {
         _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
       });
@@ -1002,7 +1002,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     if (_selectedGroupId == null || !settingsLoaded) return;
 
     ScreenDropdownFilterHelpers.save(
-      ScreensDropdownFilterPrefKey.coursesGroupId,
+      ScreensDropdownFilterPrefKey.courseGroupId,
       _selectedGroupId!,
       userSettings,
     );
@@ -1010,7 +1010,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
   void _restoreSelectedGroup(UserSettingsModel settings) {
     final savedGroupId = ScreenDropdownFilterHelpers.restore(
-      ScreensDropdownFilterPrefKey.coursesGroupId,
+      ScreensDropdownFilterPrefKey.courseGroupId,
       settings,
     );
     if (savedGroupId == null) return;

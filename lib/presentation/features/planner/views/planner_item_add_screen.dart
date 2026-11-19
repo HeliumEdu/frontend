@@ -197,21 +197,20 @@ class _PlannerItemAddScreenState
     super.dispose();
   }
 
-  /// Registers (or re-registers, after a new-item save mints a real ID or
-  /// the create-flow toggle swaps the entity type) this dialog with the
-  /// dirty-dialog guard so URL-driven dismissals can't silently lose
-  /// unsaved changes.
-  void _registerDirtyGuard() {
+  /// Registers this dialog with the dirty-dialog guard so URL-driven
+  /// dismissals can't silently lose unsaved changes. [fullPath] is the URL
+  /// the dialog is moving to when it re-registers under a new entity path.
+  void _registerDirtyGuard({String? fullPath}) {
     final entityPath = _activeEntityPath;
     final prefix =
         '${widget.shellPath}/$entityPath/${_currentEntityId?.toString() ?? 'new'}';
     final routerPath =
         router.routerDelegate.currentConfiguration.uri.path;
     // Prefer the routerDelegate's settled path if it already matches our
-    // dialog (e.g. after a new-item save); otherwise fall back to the URL
-    // the pageBuilder matched on, which is authoritative for the active
-    // route even when the routerDelegate hasn't caught up yet.
-    final fullPath = DirtyDialogRegistry.isWithin(routerPath, prefix)
+    // dialog; otherwise fall back to the URL the pageBuilder matched on,
+    // which is authoritative for the active route even when the
+    // routerDelegate hasn't caught up yet.
+    fullPath ??= DirtyDialogRegistry.isWithin(routerPath, prefix)
         ? routerPath
         : widget.initialFullPath;
     DirtyDialogRegistry.register(
@@ -233,9 +232,17 @@ class _PlannerItemAddScreenState
 
   void _syncFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, plannerItemHomeworkPath) ||
+          DeepLinkParam.namesSavedEntity(location, plannerItemEventPath)) {
+        reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     // Find our entity segment in the URL — look for either homework or event
@@ -270,26 +277,14 @@ class _PlannerItemAddScreenState
 
   /// Replaces the URL with the other entity-type variant (homework ↔ event)
   /// without changing the step or losing the dialog's extra payload.
-  /// Re-keys the dirty-guard registration so the new URL prefix owns the
-  /// active slot.
   void _swapEntityVariant(bool isEvent) {
     if (!mounted) return;
     final newEntityPath =
         isEvent ? plannerItemEventPath : plannerItemHomeworkPath;
     final id = _currentEntityId?.toString() ?? 'new';
-    final stepName = plannerItemDialogSteps[currentStep];
-    if (_registeredPrefix != null) {
-      DirtyDialogRegistry.unregister(_registeredPrefix!);
-    }
     _currentIsEvent = isEvent;
-    _registerDirtyGuard();
-    router.replace(
-      '${widget.shellPath}/$newEntityPath/$id/$stepName',
-      extra: PlannerItemDialogExtra(
-        initialDate: widget.initialDate,
-        isFromMonthView: widget.isFromMonthView,
-        occurrenceStart: widget.occurrenceStart,
-      ),
+    _replaceEntityRoute(
+      '${widget.shellPath}/$newEntityPath/$id/${plannerItemDialogSteps[currentStep]}',
     );
   }
 
@@ -571,7 +566,7 @@ class _PlannerItemAddScreenState
                 eventId: state.isEvent ? state.entityId : null,
                 homeworkId: !state.isEvent ? state.entityId : null,
               );
-              _replaceUrlForEntity(
+              _useCreatedEntityRoute(
                 isEvent: state.isEvent,
                 entityId: state.entityId,
               );
@@ -641,27 +636,26 @@ class _PlannerItemAddScreenState
     ];
   }
 
-  /// Moves the screen from `/<entity>/new` to the new entity's own path. The
-  /// URL prefix the dirty-dialog guard owns changes with it, so the guard is
-  /// re-registered first.
+  /// Moves the screen to a just-created (or cloned) entity's own path.
   void _useCreatedEntityRoute({required bool isEvent, required int entityId}) {
-    if (_registeredPrefix != null) {
-      DirtyDialogRegistry.unregister(_registeredPrefix!);
-    }
-    _registerDirtyGuard();
-    _replaceUrlForEntity(isEvent: isEvent, entityId: entityId);
-  }
-
-  /// Replaces the URL with the canonical entity path now that a real ID
-  /// exists. Uses `router.replace` so the create URL doesn't accumulate a
-  /// back-history entry.
-  void _replaceUrlForEntity({required bool isEvent, required int entityId}) {
     if (!mounted) return;
     final entityPath =
         isEvent ? plannerItemEventPath : plannerItemHomeworkPath;
-    final stepName = plannerItemDialogSteps[currentStep];
+    _replaceEntityRoute(
+      '${widget.shellPath}/$entityPath/$entityId/${plannerItemDialogSteps[currentStep]}',
+    );
+  }
+
+  /// Replaces the URL with [route], a new path for this dialog, without a
+  /// back-history entry. The dirty-dialog guard is re-keyed to [route] first,
+  /// so a later link elsewhere is guarded against the dialog's actual URL.
+  void _replaceEntityRoute(String route) {
+    if (_registeredPrefix != null) {
+      DirtyDialogRegistry.unregister(_registeredPrefix!);
+    }
+    _registerDirtyGuard(fullPath: route);
     router.replace(
-      '${widget.shellPath}/$entityPath/$entityId/$stepName',
+      route,
       extra: PlannerItemDialogExtra(
         initialDate: widget.initialDate,
         isFromMonthView: widget.isFromMonthView,
@@ -721,8 +715,7 @@ class _PlannerItemAddScreenState
         userSettings: userSettings,
         onNavigateRequested: (route) async {
           if (isDirty && !await confirmDiscardChanges(context)) return;
-          closeWithoutPrompt();
-          WidgetsBinding.instance.addPostFrameCallback((_) => router.go(route));
+          reopenAt(route);
         },
         onIsEventChanged: (isEvent) {
           setState(() {

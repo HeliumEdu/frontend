@@ -90,6 +90,22 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   children: [
                     _buildFeatureItem(
                       context,
+                      icon: Icons.widgets,
+                      title: 'Home Screen Widgets',
+                      description:
+                          'Add Helium to your home screen to see what\'s due this week and check off assignments without opening the app',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
+                      icon: Icons.calculate,
+                      title: 'GPA Tracking',
+                      description:
+                          'Add credits to your classes and pick your school\'s grade scale, then watch your GPA update with every grade',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFeatureItem(
+                      context,
                       icon: Icons.repeat,
                       title: 'Repeating Assignments & Events',
                       description:

@@ -23,7 +23,6 @@ import 'package:heliumapp/domain/repositories/course_schedule_event_repository.d
 import 'package:heliumapp/domain/repositories/event_repository.dart';
 import 'package:heliumapp/domain/repositories/external_calendar_repository.dart';
 import 'package:heliumapp/domain/repositories/homework_repository.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/utils/attachment_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -337,23 +336,6 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     return items;
   }
 
-  /// `exceptionDates` mixes forms: course-schedule exceptions are naive local
-  /// midnight, API EXDATEs are UTC instants, and an all-day series' date-only
-  /// EXDATE can be UTC midnight naming a calendar date.
-  bool _hasDateOnlyExceptions(PlannerItemBaseModel item) =>
-      item.allDay && item is! CourseScheduleEventModel;
-
-  bool _isExceptionOn(PlannerItemBaseModel item, tz.TZDateTime occurrence) {
-    return item.exceptionDates.any((e) {
-      final local = _hasDateOnlyExceptions(item)
-          ? HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone)
-          : HeliumDateTime.wallClockIn(e, userSettings.timeZone);
-      return local.year == occurrence.year &&
-          local.month == occurrence.month &&
-          local.day == occurrence.day;
-    });
-  }
-
   /// Returns items that occur on [day] from the current filtered appointments.
   /// Recurring items are expanded into day-specific occurrences.
   List<PlannerItemBaseModel> getItemsForDay(DateTime day) {
@@ -399,7 +381,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
             continue;
           }
 
-          if (_isExceptionOn(appointment, occurrenceLocal)) {
+          if (PlannerHelper.isExceptionOn(appointment, occurrenceLocal, userSettings.timeZone)) {
             continue;
           }
 
@@ -593,7 +575,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     if (item.exceptionDates.isEmpty) {
       return null;
     }
-    if (_hasDateOnlyExceptions(item)) {
+    if (PlannerHelper.hasDateOnlyExceptions(item)) {
       return item.exceptionDates
           .map((e) => HeliumDateTime.allDayExceptionIn(e, userSettings.timeZone))
           .toList();
@@ -602,24 +584,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   }
 
   Color getColorForItem(PlannerItemBaseModel plannerItem) {
-    if (plannerItem is EventModel) {
-      return userSettings.eventsColor;
-    } else if (plannerItem is HomeworkModel) {
-      if (userSettings.colorByCategory) {
-        final category = categoriesMap?[plannerItem.category.id];
-        if (category != null) {
-          return category.color;
-        }
-      }
-
-      // Get course color, or fallback
-      final course = courses?.firstWhereOrNull(
-        (c) => c.id == plannerItem.course.id,
-      );
-      return course?.color ?? FallbackConstants.fallbackColor;
-    } else {
-      return plannerItem.color ?? FallbackConstants.fallbackColor;
-    }
+    if (plannerItem is! HomeworkModel) return PlannerHelper.itemColor(plannerItem, userSettings);
+    return PlannerHelper.itemColor(
+      plannerItem,
+      userSettings,
+      course: courses?.firstWhereOrNull((c) => c.id == plannerItem.course.id),
+      category: categoriesMap?[plannerItem.category.id],
+    );
   }
 
   String _cacheKey(DateTime from, DateTime to) {
@@ -841,7 +812,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     final copies = <HomeworkModel>[];
     for (final occurrence in occurrences) {
       final start = HeliumDateTime.wallClockIn(occurrence, userSettings.timeZone);
-      if (!_isExceptionOn(homework, start)) {
+      if (!PlannerHelper.isExceptionOn(homework, start, userSettings.timeZone)) {
         copies.add(homework.copyWith(start: start, end: start.add(duration)));
       }
     }
@@ -960,6 +931,17 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     );
     _filterStatuses = statuses;
     _saveFiltersIfEnabled();
+    _applyFiltersAndNotify();
+  }
+
+  /// Shows only [statuses], with every other filter cleared, without changing the filters the user saved.
+  void showOnlyStatuses(Set<String> statuses) {
+    _log.info('Status filter set from a link: ${statuses.join(", ")}');
+    _selectedCourses = {};
+    _filterCategories = [];
+    _filterTypes = [];
+    _filterStatuses = statuses;
+    _selectedExternalCalendarIds = {};
     _applyFiltersAndNotify();
   }
 
@@ -1563,7 +1545,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       }
       if (_filterStatuses.contains(PlannerFilterStatus.overdue.value)) {
         final bool isOverdue =
-            !isCompleted && homework.start.isBefore(DateTime.now());
+            PlannerHelper.isOverdue(completed: isCompleted, start: homework.start, now: DateTime.now());
         matches = matches || isOverdue;
       }
       if (_filterStatuses.contains(PlannerFilterStatus.graded.value)) {

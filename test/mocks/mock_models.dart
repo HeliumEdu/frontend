@@ -85,6 +85,8 @@ class MockModels {
     bool collapseBusyDays = true,
     int atRiskThreshold = 70,
     int onTrackTolerance = 10,
+    double priorCredits = 0,
+    double priorGpa = 0,
     bool showWeekNumbers = false,
     int dateFormat = 0,
     int timeFormat = 0,
@@ -114,6 +116,8 @@ class MockModels {
       collapseBusyDays: collapseBusyDays,
       atRiskThreshold: atRiskThreshold,
       onTrackTolerance: onTrackTolerance,
+      priorCredits: priorCredits,
+      priorGpa: priorGpa,
       showWeekNumbers: showWeekNumbers,
       dateFormat: dateFormat,
       timeFormat: timeFormat,
@@ -350,6 +354,7 @@ class MockModels {
     int numHomeworkCompleted = 15,
     int numHomeworkGraded = 12,
     double? gpa,
+    List<GradeScaleBandModel> gradeScale = const [],
     bool inCumulativeGpa = false,
     bool exampleSchedule = false,
     List<GradeCourseModel> courses = const [],
@@ -359,6 +364,7 @@ class MockModels {
       title: title,
       overallGrade: overallGrade,
       gpa: gpa,
+      gradeScale: gradeScale,
       inCumulativeGpa: inCumulativeGpa,
       exampleSchedule: exampleSchedule,
       trend: null,
@@ -377,7 +383,13 @@ class MockModels {
     final scale = GradeScaleTemplate.scales[2]!;
     final course = createGradeCourse(credits: 3, gradePoint: 2.7, gradeScale: scale);
     final other = createGradeCourse(id: 5, credits: 3, gradePoint: 3.0, gradeScale: scale);
-    return GradeCalculatorGpa(course: course, termCourses: [course, other], termGpa: 2.85);
+    return GradeCalculatorGpa(
+      course: course,
+      termCourses: [course, other],
+      termGpa: 2.85,
+      priorCredits: 0,
+      priorGpa: 0,
+    );
   }
 
   static GradeCourseModel createGradeCourse({
@@ -391,6 +403,8 @@ class MockModels {
     List<HomeworkSeriesItemModel> homeworkSeries = const [],
     double pointsEarned = 0,
     double pointsPossible = 0,
+    int numHomeworkGraded = 0,
+    double? trend,
   }) {
     return GradeCourseModel(
       id: id,
@@ -402,7 +416,8 @@ class MockModels {
       color: Colors.blue,
       numHomework: homeworkSeries.length,
       numHomeworkCompleted: 0,
-      numHomeworkGraded: 0,
+      numHomeworkGraded: numHomeworkGraded,
+      trend: trend,
       pointsEarned: pointsEarned,
       pointsPossible: pointsPossible,
       categories: categories,

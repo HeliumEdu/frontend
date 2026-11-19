@@ -5,6 +5,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -15,6 +16,8 @@ import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 
 class GradeTrendChart {
   static const _overallSeriesName = 'Overall Grade';
+  static const termGpaSeriesName = 'Term GPA';
+  static const termGpaAxisName = 'termGpa';
 
   GradeTrendChart._();
 
@@ -83,6 +86,89 @@ class GradeTrendChart {
         width: 4,
       ),
     );
+  }
+
+  static charts.StepLineSeries<GradeTrendPoint, DateTime> buildTermGpaSeries(
+    BuildContext context,
+    List<HomeworkSeriesItemModel> homeworkSeries, {
+    required double chartAnimationDurationMs,
+  }) {
+    final dataSource = homeworkSeries
+        .where((item) => item.graded && item.gpa != null)
+        .map(
+          (item) => GradeTrendPoint(
+            date: item.start,
+            grade: item.gpa!,
+            homeworkId: item.id,
+            homeworkTitle: item.title,
+            homeworkGrade: item.homeworkGrade,
+            categoryId: item.categoryId,
+          ),
+        )
+        .toList();
+    return charts.StepLineSeries<GradeTrendPoint, DateTime>(
+      name: termGpaSeriesName,
+      dataSource: dataSource,
+      xValueMapper: (point, _) => point.date,
+      yValueMapper: (point, _) => point.grade,
+      yAxisName: termGpaAxisName,
+      color: context.colorScheme.primary,
+      width: 2,
+      animationDuration: chartAnimationDurationMs,
+      enableTooltip: true,
+      onPointTap: (pointDetails) =>
+          _handlePointTap(context, dataSource, pointDetails),
+      markerSettings: const charts.MarkerSettings(
+        isVisible: true,
+        height: 4,
+        width: 4,
+      ),
+    );
+  }
+
+  static List<charts.LineSeries<GpaAcrossTermsPoint, String>>
+  buildGpaAcrossTermsSeries(
+    BuildContext context,
+    List<GpaAcrossTermsPoint> points, {
+    required double chartAnimationDurationMs,
+  }) {
+    return [
+      charts.LineSeries<GpaAcrossTermsPoint, String>(
+        name: termGpaSeriesName,
+        dataSource: points,
+        xValueMapper: (point, _) => point.title,
+        yValueMapper: (point, _) => point.termGpa,
+        color: context.colorScheme.primary,
+        width: 2,
+        animationDuration: chartAnimationDurationMs,
+        markerSettings: const charts.MarkerSettings(
+          isVisible: true,
+          height: 6,
+          width: 6,
+        ),
+      ),
+      charts.LineSeries<GpaAcrossTermsPoint, String>(
+        name: 'All',
+        dataSource: points,
+        xValueMapper: (point, _) => point.title,
+        yValueMapper: (point, _) => point.cumulativeGpa,
+        color: context.colorScheme.onSurface,
+        width: 3,
+        animationDuration: chartAnimationDurationMs,
+        markerSettings: const charts.MarkerSettings(
+          isVisible: true,
+          height: 6,
+          width: 6,
+        ),
+      ),
+    ];
+  }
+
+  static GradeTrendGradeRange gpaAxisRange(
+    List<GradeScaleBandModel> gradeScale,
+  ) {
+    final gradePoints = gradeScale.map((band) => band.gradePoint);
+    return GradeTrendGradeRange(min: gradePoints.min, max: gradePoints.max);
   }
 
   static GradeTrendGradeRange calculateYAxisRange(
@@ -380,7 +466,8 @@ class GradeTrendTooltip extends StatelessWidget {
       graphViewMode: graphViewMode,
     );
     final isOverallSeries = seriesName == GradeTrendChart._overallSeriesName;
-    final isCourseSeries = isTermView && !isOverallSeries;
+    final isTermGpaSeries = seriesName == GradeTrendChart.termGpaSeriesName;
+    final isCourseSeries = isTermView && !isOverallSeries && !isTermGpaSeries;
     final isNonOverallSeries = !isOverallSeries;
     final classGradeAtPoint = HeliumNumber.formatPercent(
       chartPoint.grade,
@@ -436,6 +523,12 @@ class GradeTrendTooltip extends StatelessWidget {
               ],
             ),
           ],
+          if (isTermGpaSeries)
+            Text(
+              '$seriesName • ${GradeHelper.gradePointForDisplay(chartPoint.grade)}',
+              style: AppStyles.standardBodyTextEmphasis(context),
+              overflow: TextOverflow.ellipsis,
+            ),
           if (isCourseSeries)
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -448,7 +541,7 @@ class GradeTrendTooltip extends StatelessWidget {
                 ),
               ],
             ),
-          if (isNonOverallSeries) ...[
+          if (isNonOverallSeries && !isTermGpaSeries) ...[
             const SizedBox(height: 4),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -477,16 +570,28 @@ class GradeTrendTooltip extends StatelessWidget {
 
 class GradeTrendViewMode {
   final int? courseId;
+  final bool isGpaAcrossTerms;
 
-  const GradeTrendViewMode.term() : courseId = null;
+  const GradeTrendViewMode.term() : courseId = null, isGpaAcrossTerms = false;
 
-  const GradeTrendViewMode.course(this.courseId);
+  const GradeTrendViewMode.course(this.courseId) : isGpaAcrossTerms = false;
 
-  bool get isTerm => courseId == null;
+  const GradeTrendViewMode.gpaAcrossTerms()
+    : courseId = null,
+      isGpaAcrossTerms = true;
 
-  String get radioValue => isTerm ? 'term' : courseId.toString();
+  bool get isTerm => courseId == null && !isGpaAcrossTerms;
+
+  String get radioValue => isGpaAcrossTerms
+      ? 'gpa'
+      : isTerm
+      ? 'term'
+      : courseId.toString();
 
   static GradeTrendViewMode fromRadioValue(String value) {
+    if (value == 'gpa') {
+      return const GradeTrendViewMode.gpaAcrossTerms();
+    }
     if (value == 'term') {
       return const GradeTrendViewMode.term();
     }

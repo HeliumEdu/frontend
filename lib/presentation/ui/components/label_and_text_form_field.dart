@@ -59,8 +59,6 @@ class LabelAndTextFormField extends StatefulWidget {
 }
 
 class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
-  static const _fieldBorderRadius = 8.0;
-  static const _fieldContentPadding = 12.0;
   static const _trailingButtonSize = 48.0;
   static const _trailingButtonLabelOffset = 30.0;
   static const _verticalContentPaddingWithAffordance = 15.0;
@@ -98,13 +96,6 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
   }
 
   Widget _buildTextFormField(BuildContext context) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_fieldBorderRadius),
-      borderSide: BorderSide(
-        color: context.colorScheme.outline.withValues(alpha: 0.2),
-        width: AppStyles.formFieldBorderWidth,
-      ),
-    );
     final field = TextFormField(
       key: widget.fieldKey,
       initialValue: widget.initialValue,
@@ -126,7 +117,7 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       scrollPadding: const EdgeInsets.all(
         20,
       ).copyWith(bottom: 20 + MediaQuery.viewInsetsOf(context).bottom),
-      decoration: InputDecoration(
+      decoration: AppStyles.formFieldDecoration(context, readOnly: widget.readOnly).copyWith(
         prefixIcon: widget.prefixIcon != null
             ? Icon(
                 widget.prefixIcon,
@@ -138,22 +129,13 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
         prefixIconConstraints: _iconConstraints,
         suffixIconConstraints: _iconConstraints,
         contentPadding: EdgeInsets.symmetric(
-          horizontal: _fieldContentPadding,
+          horizontal: AppStyles.formFieldContentPadding,
           vertical: widget.maxLines > 1 ? _verticalContentPaddingWithAffordance : 0,
         ),
         hintText: widget.hintText,
         hintStyle: AppStyles.formHint(context),
-        fillColor: widget.readOnly ? context.colorScheme.surfaceContainerHighest : null,
-        border: border,
-        enabledBorder: border,
-        focusedBorder: border,
-        disabledBorder: border,
-        errorBorder: border,
-        focusedErrorBorder: border,
         suffixIcon: widget.suffixIcon,
         errorText: widget.errorText,
-        errorStyle: AppStyles.formErrorStyle(context),
-        errorMaxLines: 3,
       ),
     );
     return widget.label == null

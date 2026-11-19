@@ -15,6 +15,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/api_url.dart';
@@ -173,6 +174,7 @@ class DioClient {
 
             // Don't refresh on login or refresh token endpoints
             if (requestPath == ApiUrl.authTokenUrl ||
+                requestPath == ApiUrl.authTokenOAuthUrl ||
                 requestPath == ApiUrl.authTokenRefreshUrl ||
                 error.requestOptions.extra[_replayedAfterRefreshKey] == true) {
               return handler.next(error);
@@ -410,6 +412,7 @@ class DioClient {
 
   Future<List<void>?> clearStorage() async {
     SentryService().clearUser();
+    unawaited(AgendaWidgetService().clear());
     unawaited(AnalyticsService().setUserId(null));
     await _cacheService.clearAll();
     return _prefService.clear();
@@ -507,6 +510,8 @@ class DioClient {
         SettingsPrefKey.calendarEventLimit.key: p.getBool(SettingsPrefKey.calendarEventLimit.key),
         SettingsPrefKey.atRiskThreshold.key: p.getInt(SettingsPrefKey.atRiskThreshold.key),
         SettingsPrefKey.onTrackTolerance.key: p.getInt(SettingsPrefKey.onTrackTolerance.key),
+        SettingsPrefKey.priorCredits.key: p.getString(SettingsPrefKey.priorCredits.key),
+        SettingsPrefKey.priorGpa.key: p.getString(SettingsPrefKey.priorGpa.key),
         SettingsPrefKey.showWeekNumbers.key: p.getBool(SettingsPrefKey.showWeekNumbers.key),
         SettingsPrefKey.dateFormat.key: p.getInt(SettingsPrefKey.dateFormat.key),
         SettingsPrefKey.timeFormat.key: p.getInt(SettingsPrefKey.timeFormat.key),
@@ -579,6 +584,8 @@ class DioClient {
       ?p.setInt(SettingsPrefKey.setupState.key, settings.setupState.code),
       ?p.setInt(SettingsPrefKey.atRiskThreshold.key, settings.atRiskThreshold),
       ?p.setInt(SettingsPrefKey.onTrackTolerance.key, settings.onTrackTolerance),
+      ?p.setString(SettingsPrefKey.priorCredits.key, settings.priorCredits.toString()),
+      ?p.setString(SettingsPrefKey.priorGpa.key, settings.priorGpa.toString()),
       ?p.setBool(SettingsPrefKey.showWeekNumbers.key, settings.showWeekNumbers),
       ?p.setInt(SettingsPrefKey.dateFormat.key, settings.dateFormat),
       ?p.setInt(SettingsPrefKey.timeFormat.key, settings.timeFormat),

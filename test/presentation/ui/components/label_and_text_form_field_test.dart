@@ -33,9 +33,6 @@ void main() {
     );
   }
 
-  Rect boxOf(WidgetTester tester, Finder field) =>
-      tester.getRect(find.descendant(of: field, matching: find.byType(DecoratedBox)).first);
-
   Rect textFieldOf(WidgetTester tester) => tester.getRect(find.byType(InputDecorator));
 
   Future<List<int>> rowsPainted(WidgetTester tester, Color color, int x) async {
@@ -139,8 +136,12 @@ void main() {
     final text = tester
         .getRect(find.descendant(of: find.byType(LabelAndTextFormField), matching: find.byType(InputDecorator)))
         .height;
-    final spinner = boxOf(tester, find.byType(SpinnerField)).height;
-    final picker = boxOf(tester, find.byType(HeliumDateField)).height;
+    final spinner = tester
+        .getRect(find.descendant(of: find.byType(SpinnerField), matching: find.byType(InputDecorator)))
+        .height;
+    final picker = tester
+        .getRect(find.descendant(of: find.byType(HeliumDateField), matching: find.byType(InputDecorator)))
+        .height;
 
     // THEN
     expect(text, AppStyles.formFieldHeight);

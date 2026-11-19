@@ -7,6 +7,7 @@ import 'package:heliumapp/presentation/features/grades/widgets/grade_category_ta
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_point_label.dart';
+import 'package:heliumapp/presentation/ui/layout/collapsing_row.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
@@ -71,6 +72,135 @@ class GradeCourseCard extends StatelessWidget {
     }
   }
 
+  Widget _buildGradeSummaryRow(BuildContext context) {
+    final letterGrade = GradeHelper.gradeBandFor(
+      course.overallGrade,
+      course.gradeScale,
+    )?.label;
+    return CollapsingRow(
+      steps: 4,
+      children: [
+        CollapsingRowItem(
+          child: GradeLabel(
+            grade: GradeHelper.gradeForDisplay(course.overallGrade),
+            userSettings: userSettings,
+            compact: Responsive.isMobile(context),
+          ),
+        ),
+        if (course.trend != null)
+          CollapsingRowItem(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Icon(
+                course.trend! > 0
+                    ? Icons.trending_up
+                    : course.trend! < 0
+                    ? Icons.trending_down
+                    : Icons.trending_flat,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+                color: course.trend! > 0
+                    ? context.semanticColors.success
+                    : course.trend! < 0
+                    ? context.colorScheme.error
+                    : context.colorScheme.onSurface.withValues(
+                        alpha: 0.5,
+                      ),
+              ),
+            ),
+          ),
+        CollapsingRowItem(
+          through: 2,
+          child: GradePointLabel(
+            gradePoint: course.gradePoint,
+            credits: course.credits,
+            letterGrade: letterGrade,
+          ),
+        ),
+        CollapsingRowItem(
+          from: 3,
+          child: GradePointLabel(
+            gradePoint: null,
+            credits: course.credits,
+            letterGrade: letterGrade,
+          ),
+        ),
+        if (course.categories.any((c) => c.weight > 0))
+          CollapsingRowItem(
+            through: 0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.circle,
+                  size: Responsive.getIconSize(
+                    context,
+                    mobile: 6,
+                    tablet: 7,
+                    desktop: 8,
+                  ),
+                  color: context.colorScheme.onSurface.withValues(
+                    alpha: 0.3,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: 'Weighted grading',
+                  child: Icon(
+                    Icons.balance,
+                    size: Responsive.getIconSize(
+                      context,
+                      mobile: 14,
+                      tablet: 16,
+                      desktop: 18,
+                    ),
+                    color: context.colorScheme.onSurface.withValues(
+                      alpha: 0.6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        CollapsingRowItem(
+          through: 1,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(width: 8),
+              Icon(
+                Icons.circle,
+                size: Responsive.getIconSize(
+                  context,
+                  mobile: 6,
+                  tablet: 7,
+                  desktop: 8,
+                ),
+                color: context.colorScheme.onSurface.withValues(
+                  alpha: 0.3,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${course.numHomeworkGraded} graded',
+                style: AppStyles.standardBodyText(context).copyWith(
+                  color: context.colorScheme.onSurface.withValues(
+                    alpha: 0.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCourseSummaryArea(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -104,99 +234,7 @@ class GradeCourseCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      GradeLabel(
-                        grade: GradeHelper.gradeForDisplay(course.overallGrade),
-                        userSettings: userSettings,
-                        compact: Responsive.isMobile(context),
-                      ),
-                      if (course.trend != null) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          course.trend! > 0
-                              ? Icons.trending_up
-                              : course.trend! < 0
-                              ? Icons.trending_down
-                              : Icons.trending_flat,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 14,
-                            tablet: 16,
-                            desktop: 18,
-                          ),
-                          color: course.trend! > 0
-                              ? context.semanticColors.success
-                              : course.trend! < 0
-                              ? context.colorScheme.error
-                              : context.colorScheme.onSurface.withValues(
-                                  alpha: 0.5,
-                                ),
-                        ),
-                      ],
-                      GradePointLabel(
-                        gradePoint: course.gradePoint,
-                        credits: course.credits,
-                        letterGrade: GradeHelper.gradeBandFor(
-                          course.overallGrade,
-                          course.gradeScale,
-                        )?.label,
-                      ),
-                      if (course.categories.any((c) => c.weight > 0)) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.circle,
-                          size: Responsive.getIconSize(
-                            context,
-                            mobile: 6,
-                            tablet: 7,
-                            desktop: 8,
-                          ),
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.3,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Tooltip(
-                          message: 'Weighted grading',
-                          child: Icon(
-                            Icons.balance,
-                            size: Responsive.getIconSize(
-                              context,
-                              mobile: 14,
-                              tablet: 16,
-                              desktop: 18,
-                            ),
-                            color: context.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.circle,
-                        size: Responsive.getIconSize(
-                          context,
-                          mobile: 6,
-                          tablet: 7,
-                          desktop: 8,
-                        ),
-                        color: context.colorScheme.onSurface.withValues(
-                          alpha: 0.3,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${course.numHomeworkGraded} graded',
-                        style: AppStyles.standardBodyText(context).copyWith(
-                          color: context.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildGradeSummaryRow(context),
                 ],
               ),
             ),

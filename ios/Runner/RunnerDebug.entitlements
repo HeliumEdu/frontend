@@ -6,15 +6,17 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:api.heliumedu.com</string>
 		<string>webcredentials:app.heliumedu.com</string>
-		<string>webcredentials:heliumedu.com</string>
 		<string>webcredentials:www.heliumedu.com</string>
 		<string>applinks:app.heliumedu.com</string>
 	</array>
 	<key>com.apple.developer.applesignin</key>
 	<array>
 		<string>Default</string>
+	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.heliumedu.heliumapp</string>
 	</array>
 </dict>
 </plist>

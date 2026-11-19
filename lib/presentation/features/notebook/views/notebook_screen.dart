@@ -39,6 +39,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_d
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
@@ -424,88 +425,26 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             child: Row(
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: 40,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.surface,
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(alpha: 0.2),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: TextFieldTapRegion(
-                          onTapOutside: Responsive.isMobile(context)
-                              ? (_) => _searchFocusNode.unfocus()
-                              : null,
-                          child: TextField(
-                            focusNode: _searchFocusNode,
-                            controller: _searchController,
-                            style: AppStyles.formText(context),
-                            textAlignVertical: TextAlignVertical.center,
-                            decoration: InputDecoration(
-                              hintText: 'Search ...',
-                              hintStyle: AppStyles.formHint(context),
-                              prefixIcon: _buildSearchPrefixIcon(context),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              suffixIconConstraints: const BoxConstraints(
-                                minWidth: _searchFieldButtonSize,
-                                minHeight: _searchFieldButtonSize,
-                              ),
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _searchController,
-                                builder: (context, value, _) {
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (value.text.isNotEmpty)
-                                        _buildSearchFieldButton(
-                                          context,
-                                          key: const ValueKey('search_clear'),
-                                          icon: Icons.close,
-                                          tooltip: 'Clear',
-                                          borderRadius: const BorderRadius.horizontal(
-                                            left: Radius.circular(8),
-                                          ),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                            _onSearchQueryChanged(null);
-                                          },
-                                        ),
-                                      _buildSearchFieldButton(
-                                        context,
-                                        key: const ValueKey('search_content'),
-                                        icon: Icons.manage_search,
-                                        tooltip: _searchNoteContent
-                                            ? 'Stop searching note content'
-                                            : 'Also search note content',
-                                        borderRadius: const BorderRadius.horizontal(
-                                          right: Radius.circular(8),
-                                        ),
-                                        onPressed: _toggleContentSearch,
-                                        isActive: _searchNoteContent,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            onChanged: (value) {
-                              _onSearchQueryChanged(value.isEmpty ? null : value);
-                            },
-                            onSubmitted: (_) =>
-                                _scheduleContentSearch(immediately: true),
-                          ),
-                        ),
+                  child: TextFieldTapRegion(
+                    onTapOutside: Responsive.isMobile(context)
+                        ? (_) => _searchFocusNode.unfocus()
+                        : null,
+                    child: HeliumSearchField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      onChanged: (value) {
+                        _onSearchQueryChanged(value.isEmpty ? null : value);
+                      },
+                      onSubmitted: (_) =>
+                          _scheduleContentSearch(immediately: true),
+                      prefixIcon: _buildSearchPrefixIcon(context),
+                      trailing: HeliumSearchFieldButton(
+                        icon: Icons.manage_search,
+                        tooltip: _searchNoteContent
+                            ? 'Stop searching note content'
+                            : 'Also search note content',
+                        onPressed: _toggleContentSearch,
+                        isSelected: _searchNoteContent,
                       ),
                     ),
                   ),
@@ -721,51 +660,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       _contentSearchQuery.length >= _contentSearchMinLength &&
       SearchHelper.hasTerms(_contentSearchQuery);
 
-  static const _searchFieldButtonSize = 40.0;
-
-  /// The clear and content-search buttons sit flush against each other and
-  /// the field's edge, so only their outer corners are rounded. Each keeps
-  /// its own element so removing the clear button never morphs it into its
-  /// neighbour's shape.
-  Widget _buildSearchFieldButton(
-    BuildContext context, {
-    required Key key,
-    required IconData icon,
-    required String tooltip,
-    required BorderRadius borderRadius,
-    required VoidCallback onPressed,
-    bool isActive = false,
-  }) {
-    return IconButton(
-      key: key,
-      onPressed: onPressed,
-      isSelected: isActive,
-      padding: EdgeInsets.zero,
-      visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints.tightFor(
-        width: _searchFieldButtonSize,
-        height: _searchFieldButtonSize,
-      ),
-      style: IconButton.styleFrom(
-        backgroundColor: isActive ? context.colorScheme.primary : null,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      ),
-      icon: Icon(
-        icon,
-        size: 20,
-        color: isActive
-            ? context.colorScheme.onPrimary
-            : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
-      ),
-      tooltip: tooltip,
-    );
-  }
-
-  Widget _buildSearchPrefixIcon(BuildContext context) {
-    final color = context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha);
+  Widget? _buildSearchPrefixIcon(BuildContext context) {
     if (_loadingContentSearchQuery == null) {
-      return Icon(Icons.search, color: color);
+      return null;
     }
     return SizedBox(
       width: 48,
@@ -774,7 +671,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         child: LoadingIndicator(
           size: 16,
           strokeWidth: 2,
-          color: color,
+          color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
           expanded: false,
         ),
       ),

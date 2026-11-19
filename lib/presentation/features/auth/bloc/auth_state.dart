@@ -39,7 +39,11 @@ class AuthAccountInactive extends AuthState {
   AuthAccountInactive({required super.message, required this.email});
 }
 
-class AuthLoggedIn extends AuthState {}
+class AuthLoggedIn extends AuthState {
+  final String? linkedProvider;
+
+  AuthLoggedIn({this.linkedProvider});
+}
 
 class AuthLoggedOut extends AuthState {}
 

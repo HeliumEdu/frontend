@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -10,6 +10,7 @@ import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/event_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -217,7 +218,7 @@ class PlannerHelper {
       case 4:
         return PlannerView.agenda;
       default:
-        throw HeliumException(message: '$view is not a valid API view.');
+        return PlannerView.month;
     }
   }
 
@@ -541,6 +542,108 @@ class PlannerHelper {
     return occurrence.allDay
         ? HeliumDateTime.formatDateForTodos(localStart)
         : HeliumDateTime.formatDateAndTimeForTodos(localStart);
+  }
+
+  /// Whether an assignment counts as overdue at [now]: not [completed], and due ([start]) before then. The Planner's
+  /// Overdue filter and the widgets' Overdue section all use this rule.
+  static bool isOverdue({required bool completed, required DateTime start, required DateTime now}) =>
+      !completed && start.isBefore(now);
+
+  /// The assignments an agenda shows at [now]: due from [daysBack] days before today through the end of the day
+  /// [daysAhead] days after today, repeating ones expanded into occurrences in [timeZone]. Completed assignments
+  /// are left out once they are due. Each day's items are in the Planner's own order. [olderOverdueCount] counts
+  /// the incomplete one-time assignments due before that window.
+  static ({List<HomeworkModel> items, int olderOverdueCount}) agendaItems({
+    required List<HomeworkModel> homeworks,
+    required tz.Location timeZone,
+    required DateTime now,
+    required int daysBack,
+    required int daysAhead,
+  }) {
+    final today = HeliumDateTime.midnightIn(now, timeZone);
+    final from = HeliumDateTime.addDays(today, -daysBack);
+    final to = HeliumDateTime.addDays(today, daysAhead + 1);
+    final items = <HomeworkModel>[];
+    var olderOverdueCount = 0;
+
+    for (final homework in homeworks) {
+      if (homework.recurrenceRule == null) {
+        if (homework.completed && homework.start.isBefore(now)) continue;
+        if (homework.start.isBefore(from)) {
+          olderOverdueCount++;
+        } else if (homework.start.isBefore(to)) {
+          items.add(homework);
+        }
+        continue;
+      }
+      for (final start in _agendaOccurrenceStarts(homework, timeZone, from, to)) {
+        if (homework.completed && start.isBefore(now)) continue;
+        final (_, end) = HeliumDateTime.occurrenceBounds(homework.start, homework.end, start,
+            allDay: homework.allDay, timeZone: timeZone);
+        items.add(homework.copyWith(start: start, end: end));
+      }
+    }
+
+    return (items: _inPlannerDayOrder(items, timeZone), olderOverdueCount: olderOverdueCount);
+  }
+
+  static List<HomeworkModel> _inPlannerDayOrder(List<HomeworkModel> items, tz.Location timeZone) {
+    final itemsByDay = <tz.TZDateTime, List<HomeworkModel>>{};
+    for (final item in items) {
+      itemsByDay.putIfAbsent(HeliumDateTime.midnightIn(item.start, timeZone), () => []).add(item);
+    }
+    final ordered = <HomeworkModel>[];
+    for (final day in itemsByDay.keys.toList()..sort()) {
+      final dayItems = itemsByDay[day]!;
+      Sort.byStartThenTitleForDay(dayItems, day);
+      ordered.addAll(dayItems);
+    }
+    return ordered;
+  }
+
+  static Iterable<tz.TZDateTime> _agendaOccurrenceStarts(
+    PlannerItemBaseModel item,
+    tz.Location timeZone,
+    DateTime from,
+    DateTime to,
+  ) sync* {
+    for (final occurrence in occurrencesIn(item.recurrenceRule!, item.start, timeZone, from: from, to: to)) {
+      final start = HeliumDateTime.wallClockIn(occurrence, timeZone);
+      if (!start.isBefore(from) && start.isBefore(to) && !isExceptionOn(item, start, timeZone)) yield start;
+    }
+  }
+
+  /// The color the Planner draws [item] in: events in the events color; assignments in their [category]'s color
+  /// when the user colors by category, otherwise their [course]'s.
+  static Color itemColor(
+    PlannerItemBaseModel item,
+    UserSettingsModel settings, {
+    CourseModel? course,
+    CategoryModel? category,
+  }) {
+    if (item is EventModel) return settings.eventsColor;
+    if (item is HomeworkModel) {
+      if (settings.colorByCategory && category != null) return category.color;
+      return course?.color ?? FallbackConstants.fallbackColor;
+    }
+    return item.color ?? FallbackConstants.fallbackColor;
+  }
+
+  /// `exceptionDates` mixes forms: course-schedule exceptions are naive local
+  /// midnight, API EXDATEs are UTC instants, and an all-day series' date-only
+  /// EXDATE can be UTC midnight naming a calendar date.
+  static bool hasDateOnlyExceptions(PlannerItemBaseModel item) =>
+      item.allDay && item is! CourseScheduleEventModel;
+
+  static bool isExceptionOn(PlannerItemBaseModel item, tz.TZDateTime occurrence, tz.Location timeZone) {
+    return item.exceptionDates.any((e) {
+      final local = hasDateOnlyExceptions(item)
+          ? HeliumDateTime.allDayExceptionIn(e, timeZone)
+          : HeliumDateTime.wallClockIn(e, timeZone);
+      return local.year == occurrence.year &&
+          local.month == occurrence.month &&
+          local.day == occurrence.day;
+    });
   }
 
   /// The end of the meeting starting exactly at [meetingStart] across all

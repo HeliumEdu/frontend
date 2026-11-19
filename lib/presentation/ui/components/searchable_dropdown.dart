@@ -201,7 +201,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     color: isDisabled
                         ? context.theme.scaffoldBackgroundColor
                         : context.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(AppStyles.formFieldBorderRadius),
                   ),
                   child: Semantics(
                     label: widget.label,
@@ -215,7 +215,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       style: AppStyles.formText(context),
                       onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
                       onTapOutside: (_) => focusNode.unfocus(),
-                      decoration: InputDecoration(
+                      decoration: AppStyles.formFieldDecoration(context).copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
                             Icons.keyboard_arrow_down,
@@ -240,25 +240,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                                     focusNode.requestFocus();
                                   }
                                 },
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outline.withValues(
-                              alpha: 0.2,
-                            ),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outline.withValues(
-                              alpha: 0.2,
-                            ),
-                          ),
                         ),
                       ),
                     ),

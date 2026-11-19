@@ -495,8 +495,10 @@ class FcmService with WidgetsBindingObserver {
     _recentMessageIds[notification.id.toString()] = now;
 
     await showLocalNotification(notification);
-    for (final listener in List.of(_reminderReceivedListeners)) {
-      listener(notification.reminder);
+    if (await _dioClient.isAuthenticated()) {
+      for (final listener in List.of(_reminderReceivedListeners)) {
+        listener(notification.reminder);
+      }
     }
     _log.info('Foreground message $messageId notification displayed');
   }
@@ -507,8 +509,9 @@ class FcmService with WidgetsBindingObserver {
   /// AppDelegate and web in the service worker, so this only touches the tray
   /// on those platforms.
   ///
-  /// The reminder is also dropped from the bell's active set. Removal is keyed
-  /// by id, so the echo of the user's own dismiss is a no-op, not a double-count.
+  /// The reminder is also dropped from the bell's active set while someone is
+  /// signed in. Removal is keyed by id, so the echo of the user's own dismiss is
+  /// a no-op, not a double-count.
   Future<void> _handleDismissMessage(RemoteMessage message) async {
     final reminderId = message.data['reminder_id'];
     if (reminderId == null || reminderId.isEmpty) {
@@ -519,7 +522,7 @@ class FcmService with WidgetsBindingObserver {
     _log.info('Dismiss received for reminder $reminderId; clearing notification');
 
     final id = int.tryParse(reminderId);
-    if (id != null) {
+    if (id != null && await _dioClient.isAuthenticated()) {
       for (final listener in List.of(_reminderDismissedListeners)) {
         listener(id);
       }
@@ -541,20 +544,11 @@ class FcmService with WidgetsBindingObserver {
     }
   }
 
-  /// The route a tapped notification is opening, until that route is popped.
-  static String? tappedDestination;
-
-  Future<void> _onNotificationTap(RemoteMessage message) async {
+  void _onNotificationTap(RemoteMessage message) {
     final messageId = message.messageId;
     _log.info('Notification $messageId tapped');
 
-    final route = _routeForMessage(message);
-    tappedDestination = route;
-    try {
-      await router.push(route);
-    } finally {
-      tappedDestination = null;
-    }
+    router.go(_routeForMessage(message));
   }
 
   /// Resolves the deep-link route for a tapped push: the specific entity the
@@ -644,17 +638,13 @@ class FcmService with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _onNotificationTapped(NotificationResponse response) async {
+  void _onNotificationTapped(NotificationResponse response) {
     _log.info('Local notification tapped: ${response.id}');
 
     final payload = response.payload;
-    final route = payload != null && payload.isNotEmpty ? payload : notificationsRoute;
-    tappedDestination = route;
-    try {
-      await router.push(route);
-    } finally {
-      tappedDestination = null;
-    }
+    router.go(
+      payload != null && payload.isNotEmpty ? payload : notificationsRoute,
+    );
   }
 
   Future<void> registerToken({bool force = false}) async {

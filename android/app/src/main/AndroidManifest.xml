@@ -1,12 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.heliumedu.heliumapp">
-    <!-- Internet access for API calls and file downloads -->
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
-
-    <!-- FCM and Notification permissions -->
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Explicitly remove AD_ID permission added by dependencies (not used for advertising) -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
@@ -15,8 +9,7 @@
         android:label="Helium"
         android:name=".HeliumApplication"
         android:icon="@mipmap/ic_launcher"
-        android:networkSecurityConfig="@xml/network_security_config"
-        android:usesCleartextTraffic="false"
+        android:allowBackup="false"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
@@ -45,14 +38,25 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="app.heliumedu.com"/>
             </intent-filter>
-            <!-- Required for Firebase Auth signInWithProvider (Microsoft) Custom Tab callback -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="com.heliumedu.heliumapp"/>
-            </intent-filter>
         </activity>
+        <receiver
+            android:name=".widget.AgendaWidgetReceiver"
+            android:exported="true"
+            android:label="@string/agenda_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/agenda_widget_info"/>
+        </receiver>
+        <!-- Not exported: other apps must not complete assignments with the user's session -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetScheduledUpdateReceiver"
+            android:exported="false"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -61,6 +65,9 @@
         <meta-data
             android:name="google_analytics_automatic_screen_reporting_enabled"
             android:value="false" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="helium" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

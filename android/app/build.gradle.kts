@@ -1,19 +1,18 @@
 import java.util.Properties
-import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.compose")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
 
-// Load keystore properties from key.properties file or environment variables
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -30,23 +29,22 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
-    // applicationId was moved from here into defaultConfig below.
+
+    buildFeatures {
+        compose = true
+    }
 
     defaultConfig {
         applicationId = "com.heliumedu.heliumapp"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Minimum Android version - API 26 (Android 8.0, 2017)
         minSdk = 26
         targetSdk = 36
     }
 
     signingConfigs {
         create("release") {
-            // Try environment variables first (for CI/CD), fallback to key.properties (for local builds)
             keyAlias = System.getenv("SIGNING_KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
             keyPassword = System.getenv("SIGNING_KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
             storeFile = System.getenv("SIGNING_STORE_FILE")?.let { file(it) }
@@ -66,9 +64,7 @@ flutter {
     source = "../.."
 }
 
-dependencies{
-    // Use implementation() for dependencies in KTS
-    implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
-    implementation("com.google.firebase:firebase-analytics")
+dependencies {
+    implementation("androidx.glance:glance-appwidget:1.2.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

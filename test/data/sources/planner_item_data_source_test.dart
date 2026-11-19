@@ -541,6 +541,8 @@ void main() {
           timeFormat: 0,
           numberFormat: 0,
           onTrackTolerance: 10,
+          priorCredits: 0,
+          priorGpa: 0,
           promptForReview: false,
         );
 
@@ -707,6 +709,8 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
     timeFormat: 0,
     numberFormat: 0,
     onTrackTolerance: 10,
+    priorCredits: 0,
+    priorGpa: 0,
     promptForReview: false,
   );
 }

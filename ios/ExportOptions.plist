@@ -4,8 +4,6 @@
 <dict>
 	<key>method</key>
 	<string>app-store-connect</string>
-	<key>uploadBitcode</key>
-	<false/>
 	<key>uploadSymbols</key>
 	<true/>
 	<key>signingStyle</key>

@@ -264,7 +264,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Feeds are Disabled', style: AppStyles.headingText(context)),
+            Text('Feeds are disabled', style: AppStyles.headingText(context)),
             const SizedBox(height: 25),
 
             HeliumElevatedButton(

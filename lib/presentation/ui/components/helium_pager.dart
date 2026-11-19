@@ -152,7 +152,7 @@ class HeliumPager extends StatelessWidget {
 
     if (isMobile) {
       // On mobile: show up to 3 pages centered around current, no ellipsis
-      final maxVisible = Responsive.isNarrowMobile(context) ? 2 : 3;
+      final maxVisible = Responsive.isSlimMobile(context) ? 2 : 3;
       final int start = (currentPage - 1).clamp(
         1,
         (totalPages - maxVisible + 1).clamp(1, totalPages),

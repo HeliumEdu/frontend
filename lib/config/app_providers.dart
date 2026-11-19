@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/repositories/auth_repository_impl.dart';
@@ -10,6 +11,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
+import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -191,6 +193,35 @@ class AppProviders extends StatelessWidget {
             listener: (context, _) => context.read<NotificationCountBloc>().add(
               RefreshNotificationCountEvent(origin: EventOrigin.bloc),
             ),
+          ),
+          BlocListener<PlannerItemBloc, PlannerItemState>(
+            listenWhen: (previous, current) =>
+                current is HomeworkEntityState ||
+                current is EventEntityState ||
+                current is HomeworkDeleted ||
+                current is EventDeleted ||
+                current is AllEventsDeleted,
+            listener: (context, _) => AgendaWidgetService().scheduleRefresh(),
+          ),
+          BlocListener<CourseBloc, CourseState>(
+            listenWhen: (previous, current) =>
+                current is CourseEntityState ||
+                current is CourseDeleted ||
+                current is CourseGroupEntityState ||
+                current is CourseGroupDeleted,
+            listener: (context, _) => AgendaWidgetService().scheduleRefresh(),
+          ),
+          BlocListener<CategoryBloc, CategoryState>(
+            listenWhen: (previous, current) =>
+                current is CategoryEntityState || current is CategoryDeleted,
+            listener: (context, _) => AgendaWidgetService().scheduleRefresh(),
+          ),
+          BlocListener<AuthBloc, AuthState>(
+            listenWhen: (previous, current) =>
+                current is AuthLoggedIn ||
+                current is AuthProfileUpdated ||
+                current is AuthScheduleDataRefreshed,
+            listener: (context, _) => AgendaWidgetService().scheduleRefresh(),
           ),
         ],
         child: child,

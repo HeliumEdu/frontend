@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 /// An account's progress through first-time setup, mirroring the platform's
@@ -46,6 +47,8 @@ class UserSettingsModel {
   final bool collapseBusyDays;
   final int atRiskThreshold;
   final int onTrackTolerance;
+  final double priorCredits;
+  final double priorGpa;
   final bool showWeekNumbers;
   final int dateFormat;
   final int timeFormat;
@@ -75,6 +78,8 @@ class UserSettingsModel {
     required this.collapseBusyDays,
     required this.atRiskThreshold,
     required this.onTrackTolerance,
+    required this.priorCredits,
+    required this.priorGpa,
     required this.showWeekNumbers,
     required this.dateFormat,
     required this.timeFormat,
@@ -112,6 +117,8 @@ class UserSettingsModel {
       collapseBusyDays: json['calendar_event_limit'],
       atRiskThreshold: json['at_risk_threshold'],
       onTrackTolerance: json['on_track_tolerance'],
+      priorCredits: toDouble(json['prior_credits'])!,
+      priorGpa: toDouble(json['prior_gpa'])!,
       showWeekNumbers: json['show_week_numbers'],
       dateFormat: json['date_format'],
       timeFormat: json['time_format'],

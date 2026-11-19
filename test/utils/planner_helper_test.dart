@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
@@ -200,15 +199,13 @@ void main() {
         expect(PlannerHelper.mapApiViewToHeliumView(5), PlannerView.threeDay);
       });
 
-      test('throws HeliumException for invalid view', () {
+      test('falls back to month for a view this app does not know', () {
         expect(
-          () => PlannerHelper.mapApiViewToHeliumView(6),
-          throwsA(isA<HeliumException>()),
+          PlannerHelper.mapApiViewToHeliumView(6),
+          PlannerView.month,
+          reason: 'a newer app may save a view this build does not have',
         );
-        expect(
-          () => PlannerHelper.mapApiViewToHeliumView(-1),
-          throwsA(isA<HeliumException>()),
-        );
+        expect(PlannerHelper.mapApiViewToHeliumView(-1), PlannerView.month);
       });
     });
 

@@ -36,6 +36,7 @@ import 'package:heliumapp/presentation/features/shared/controllers/basic_form_co
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
@@ -335,10 +336,28 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
   void _syncFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, 'notebook')) {
+        _reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
+  }
+
+  void _reopenAt(String location) {
+    final extra = router.routerDelegate.currentConfiguration.extra;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isClosing) return;
+      _closeImmediately();
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => router.go(location, extra: extra),
+      );
+    });
   }
 
   bool get isDirty {
@@ -1626,71 +1645,13 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: SizedBox(
-                    height: 40,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.surface,
-                        border: Border.all(
-                          color: context.colorScheme.outline.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: TextFieldTapRegion(
-                          onTapOutside: Responsive.isMobile(context)
-                              ? (_) => FocusScope.of(context).unfocus()
-                              : null,
-                          child: TextField(
-                            controller: _linkPickerSearchController,
-                            style: AppStyles.formText(context),
-                            textAlignVertical: TextAlignVertical.center,
-                            decoration: InputDecoration(
-                              hintText: 'Search ...',
-                              hintStyle: AppStyles.formHint(context),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: context.colorScheme.onSurface.withValues(
-                                  alpha: 0.4,
-                                ),
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _linkPickerSearchController,
-                                builder: (context, value, _) {
-                                  if (value.text.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return IconButton(
-                                    onPressed: () {
-                                      _linkPickerSearchController.clear();
-                                      setState(() {});
-                                    },
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                      color: context.colorScheme.onSurface
-                                          .withValues(alpha: 0.4),
-                                    ),
-                                    tooltip: 'Clear',
-                                  );
-                                },
-                              ),
-                            ),
-                            onChanged: (_) => setState(() {}),
-                          ),
-                        ),
-                      ),
+                  child: TextFieldTapRegion(
+                    onTapOutside: Responsive.isMobile(context)
+                        ? (_) => FocusScope.of(context).unfocus()
+                        : null,
+                    child: HeliumSearchField(
+                      controller: _linkPickerSearchController,
+                      onChanged: (_) => setState(() {}),
                     ),
                   ),
                 ),

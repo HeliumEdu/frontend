@@ -74,9 +74,8 @@ class _DialogPage<T> extends Page<T> {
       barrierDismissible: barrierDismissible,
       barrierColor: Colors.black54,
       useSafeArea: !fullScreen,
-      // _DialogPageContent reads its data from the route's settings on every
-      // build, so URL-driven Page swaps under a shared page key reach the
-      // dialog content via the modal scope's `changedInternalState` rebuild.
+      // A Page swap under a shared page key does not rebuild this const
+      // content, so dialog screens follow the URL through the router instead.
       builder: (dialogContext) => const _DialogPageContent(),
     );
   }

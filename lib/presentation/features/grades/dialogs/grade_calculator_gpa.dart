@@ -14,6 +14,8 @@ class GradeCalculatorGpa {
   final double? termGpa;
   final List<GradeCourseModel>? cumulativeCourses;
   final double? cumulativeGpa;
+  final double priorCredits;
+  final double priorGpa;
 
   const GradeCalculatorGpa({
     required this.course,
@@ -21,19 +23,24 @@ class GradeCalculatorGpa {
     required this.termGpa,
     this.cumulativeCourses,
     this.cumulativeGpa,
+    required this.priorCredits,
+    required this.priorGpa,
   });
 
   /// GPA for [course] in [courseGroup], with the cumulative GPA included only
-  /// when the group counts toward it alongside another group.
+  /// when the group counts toward it alongside another group or prior credits.
   factory GradeCalculatorGpa.of(
     GradeCourseModel course,
     GradeCourseGroupModel courseGroup,
     List<GradeCourseGroupModel> courseGroups,
-    double? cumulativeGpa,
-  ) {
+    double? cumulativeGpa, {
+    required double priorCredits,
+    required double priorGpa,
+  }) {
     final countsTowardCumulative = courseGroup.inCumulativeGpa &&
         cumulativeGpa != null &&
-        courseGroups.where((group) => group.inCumulativeGpa).length > 1;
+        (courseGroups.where((group) => group.inCumulativeGpa).length > 1 ||
+            priorCredits > 0);
     return GradeCalculatorGpa(
       course: course,
       termCourses: courseGroup.courses,
@@ -45,6 +52,8 @@ class GradeCalculatorGpa {
             ]
           : null,
       cumulativeGpa: countsTowardCumulative ? cumulativeGpa : null,
+      priorCredits: priorCredits,
+      priorGpa: priorGpa,
     );
   }
 
@@ -53,21 +62,26 @@ class GradeCalculatorGpa {
   bool get isHigherBetter => GradeHelper.isHigherGradePointBetter(gradeScale);
 
   double? termGpaWith(double? gradePoint) =>
-      _gpaWith(termCourses, gradePoint);
+      GradeHelper.gpaFor(_classesWith(termCourses, gradePoint));
 
   double? cumulativeGpaWith(double? gradePoint) => cumulativeCourses == null
       ? null
-      : _gpaWith(cumulativeCourses!, gradePoint);
+      : GradeHelper.gpaFor([
+          ..._classesWith(cumulativeCourses!, gradePoint),
+          (credits: priorCredits, gradePoint: priorGpa),
+        ]);
 
   bool holdsOrImproves(double from, double to) =>
       isHigherBetter ? to >= from : to <= from;
 
-  double? _gpaWith(List<GradeCourseModel> courses, double? gradePoint) =>
-      GradeHelper.gpaFor([
-        for (final other in courses)
-          (
-            credits: other.credits,
-            gradePoint: other.id == course.id ? gradePoint : other.gradePoint,
-          ),
-      ]);
+  List<({double credits, double? gradePoint})> _classesWith(
+    List<GradeCourseModel> courses,
+    double? gradePoint,
+  ) => [
+    for (final other in courses)
+      (
+        credits: other.credits,
+        gradePoint: other.id == course.id ? gradePoint : other.gradePoint,
+      ),
+  ];
 }

@@ -193,9 +193,16 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
 
   void _syncStepFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, 'classes')) {
+        reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     final classesIdx = segments.indexOf('classes');
@@ -513,7 +520,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.notifications_outlined,
-      tooltip: 'Schedule Reminders',
+      tooltip: 'Schedule reminders',
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseReminders(
         entityId: _currentCourseId!,

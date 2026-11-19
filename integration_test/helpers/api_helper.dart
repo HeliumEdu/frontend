@@ -23,12 +23,14 @@ final _log = Logger('api_helper');
 /// cached refresh token for a new access token (and falls back to a fresh
 /// username/password login if the refresh itself fails). Tests should
 /// therefore never have to call [invalidateAccessToken] just because time
-/// has passed.
+/// has passed. The tokens are shared by every suite's helper, so a full run
+/// signs in once rather than once per suite, staying under the platform's
+/// per-account sign-in limit.
 class ApiHelper {
   final TestConfig _config = TestConfig();
 
-  String? _cachedAccessToken;
-  String? _cachedRefreshToken;
+  static String? _cachedAccessToken;
+  static String? _cachedRefreshToken;
 
   /// Cleans up the test user if they exist from a previous run.
   ///

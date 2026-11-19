@@ -3,11 +3,13 @@ import Flutter
 import UIKit
 import UniformTypeIdentifiers
 import FirebaseCore
-import FirebaseMessaging
+import home_widget
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private static let nativeChannelName = "com.heliumedu.heliumapp/native"
+
+  private(set) static var hasStartedFlutterEngine = false
 
   override func application(
     _ application: UIApplication,
@@ -15,13 +17,15 @@ import FirebaseMessaging
   ) -> Bool {
     FirebaseApp.configure()
     indexPlannerSearch()
+    if #available(iOS 17, *) {
+      HomeWidgetBackgroundWorker.setPluginRegistrantCallback { registry in
+        GeneratedPluginRegistrant.register(with: registry)
+      }
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  /// Lets home-screen search find Helium by "planner" (for anyone who remembers what it is, not its name): one entry
-  /// that opens the app, which lands signed-in students on the planner. Re-indexing the same id each launch is a
-  /// no-op, and iOS removes it with the app.
   private func indexPlannerSearch() {
     let attributes = CSSearchableItemAttributeSet(contentType: UTType.content)
     attributes.title = "Planner"
@@ -40,6 +44,7 @@ import FirebaseMessaging
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    AppDelegate.hasStartedFlutterEngine = true
     KeyboardFlickerFix.install()
 
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
@@ -53,14 +58,11 @@ import FirebaseMessaging
       case "getDeliveredReminderIdentifiers":
         UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
           let identifiers = notifications.map { $0.request.identifier }
-          result(identifiers)
+          DispatchQueue.main.async { result(identifiers) }
         }
       case "removeDeliveredNotifications":
-        let identifiers = (call.arguments as? [String: Any])?["identifiers"] as? [String] ?? []
-        if !identifiers.isEmpty {
-          UNUserNotificationCenter.current()
-            .removeDeliveredNotifications(withIdentifiers: identifiers)
-        }
+        let identifiers = (call.arguments as! [String: Any])["identifiers"] as! [String]
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiers)
         result(nil)
       case "getSystemProxy":
         result(AppDelegate.systemProxy())
@@ -72,11 +74,11 @@ import FirebaseMessaging
     }
   }
 
-  // Clears a reminder's notification when it is dismissed on another device.
-  // APNs files the notification under "reminder_<id>" (from apns-collapse-id),
-  // so the dismiss push's reminder_id addresses it directly. Handled natively
-  // rather than in the Dart background handler, which is unreliable on iOS when
-  // terminated (flutterfire #7407). FCM swizzling forwards the callback here.
+  /// Clears a reminder's notification when it is dismissed on another device.
+  /// APNs files the notification under "reminder_<id>" (from apns-collapse-id),
+  /// so the dismiss push's reminder_id addresses it directly. Handled natively
+  /// rather than in the Dart background handler, which is unreliable on iOS when
+  /// terminated (flutterfire #7407).
   override func application(
     _ application: UIApplication,
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
@@ -96,7 +98,6 @@ import FirebaseMessaging
     )
   }
 
-  /// Manually configured Wi-Fi proxy, or nil when none is set.
   private static func systemProxy() -> [String: Any]? {
     guard let settings = CFNetworkCopySystemProxySettings()?.takeRetainedValue()
       as? [String: Any],

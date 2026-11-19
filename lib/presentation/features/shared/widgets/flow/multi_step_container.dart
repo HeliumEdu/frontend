@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -194,6 +195,21 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     } else {
       context.go(widget.shellPath);
     }
+  }
+
+  /// Closes this dialog and opens [location] in a fresh one. A URL naming
+  /// another entity updates the dialog's page in place, which keeps the
+  /// loaded entity's state.
+  @protected
+  void reopenAt(String location) {
+    final extra = router.routerDelegate.currentConfiguration.extra;
+    scheduleMicrotask(() {
+      if (!mounted || _isClosing) return;
+      closeWithoutPrompt();
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => router.go(location, extra: extra),
+      );
+    });
   }
 
   Future<void> _attemptDismiss() async {

@@ -117,6 +117,15 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!context.mounted) return;
 
+            final linkedProvider = state.linkedProvider;
+            if (linkedProvider != null) {
+              showSnackBar(
+                context,
+                '$linkedProvider is now linked to your account.',
+                useRootMessenger: true,
+              );
+            }
+
             // Check if account setup is complete. Default to false for OAuth
             // (new users won't have the pref yet, and the setup screen handles
             // the already-complete case by redirecting immediately).

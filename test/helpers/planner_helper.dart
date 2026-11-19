@@ -443,6 +443,7 @@ Map<String, dynamic> givenHomeworkJson({
   List<dynamic>? attachments,
   List<dynamic>? reminders,
   String? recurrenceRule,
+  List<String>? exceptionDates,
 }) {
   return {
     'id': id,
@@ -453,6 +454,7 @@ Map<String, dynamic> givenHomeworkJson({
     'end': end,
     'priority': priority,
     'recurrence_rule': recurrenceRule,
+    'exception_dates': exceptionDates,
     'completed': completed,
     'course': course,
     'course_group': 1,
@@ -590,6 +592,31 @@ Map<String, dynamic> givenGradeCourseGroupJson({
     'num_homework': numHomework,
     'num_homework_completed': numHomeworkCompleted,
     'num_homework_graded': numHomeworkGraded,
+  };
+}
+
+/// Creates JSON data representing one item of a grade `homework_series`.
+Map<String, dynamic> givenHomeworkSeriesItemJson({
+  int id = 1,
+  String title = 'Homework 1',
+  String start = '2025-09-15T14:00:00Z',
+  bool graded = true,
+  double? homeworkGrade = 90.0,
+  double? cumulativeGrade = 90.0,
+  double? gpa = -1,
+}) {
+  return {
+    'id': id,
+    'title': title,
+    'start': start,
+    'category_id': 1,
+    'course_id': 1,
+    'points_possible': 100.0,
+    'graded': graded,
+    'homework_grade': graded ? homeworkGrade : null,
+    'cumulative_grade': graded ? cumulativeGrade : null,
+    'impact_score': null,
+    'gpa': graded ? gpa : null,
   };
 }
 

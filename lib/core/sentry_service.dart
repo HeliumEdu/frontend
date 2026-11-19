@@ -89,61 +89,82 @@ class SentryService {
       return;
     }
 
-    const dist = String.fromEnvironment('SENTRY_DIST');
-
-    await SentryFlutter.init((options) {
-      options.dsn = _dsn;
-
-      options.release = _releaseVersion;
-      options.environment = _resolveEnvironment();
-      if (dist.isNotEmpty) {
-        options.dist = dist;
-      }
-
-      options.sendDefaultPii = false;
-      options.enableLogs = true;
-      options.maxBreadcrumbs = 200;
-      options.tracesSampleRate = 0.1;
-      options.enableAutoPerformanceTracing = true;
-      options.enableUserInteractionTracing = true;
-
-      // Our API traffic all runs through Dio, whose integration already
-      // captures 5xx. Native capture only adds third-party SDK noise (Firebase,
-      // FCM) we don't control and can't act on, so turn it off.
-      options.captureNativeFailedRequests = false;
-
-      // ignoreErrors and beforeSend are both Dart-side filters, applied to the
-      // deserialized SentryEvent. Three things never reach them: onerror events
-      // whose exception.value deserializes to null (prevented at the source, see
-      // _authRedirect in app_router.dart), on web everything the JavaScript SDK
-      // captures through its own global handlers, and native iOS/Android events,
-      // which the SDK delivers on a separate path (getsentry/sentry-dart#3241).
-      // An error or unhandled rejection thrown outside Dart is reported without
-      // passing through here, so the browser entry below only matches when the
-      // same text also surfaces as a Dart error. Noise that never reaches Dart is
-      // consolidated with a server-side fingerprint rule and archived in Sentry.
-      options.ignoreErrors = [
-        '(?i)(status code of|http status error \\[)4\\d\\d',
-        '(?i)dioexception.*bad response.*4\\d\\d',
-        '(?i)bad response.*4\\d\\d',
-        '(?i)goexception.*4\\d\\d',
-        '(?i)dioexception \\[(connection|send|receive) timeout\\]',
-        '(?i)dioexception \\[connection error\\]',
-        '(?i)(handshake|tls)exception',
-        '(?i)database deleted by request of the user',
-        // Browser-level, see above.
-        '(?i)failed to fetch dynamically imported module',
-      ];
-
-      options.ignoreTransactions = [
-        '(?i)/auth/token/refresh/',
-        '(?i)/auth/user/pushtoken/',
-      ];
-
-      options.beforeSend = _beforeSend;
-    }, appRunner: appRunner);
+    await SentryFlutter.init(_configure, appRunner: appRunner);
 
     _log.info('Sentry initialized successfully');
+  }
+
+  /// Runs [body] under a Dart-only Sentry in a background engine, such as a widget's, which shares the process with
+  /// the app's native SDK and so must not start it again.
+  Future<void> runInBackground(Future<void> Function() body) async {
+    if (!isEnabled) {
+      await body();
+      return;
+    }
+
+    await SentryFlutter.init((options) {
+      _configure(options);
+      options.autoInitializeNativeSdk = false;
+    });
+    try {
+      await body();
+    } finally {
+      await Sentry.close();
+    }
+  }
+
+  void _configure(SentryFlutterOptions options) {
+    const dist = String.fromEnvironment('SENTRY_DIST');
+
+    options.dsn = _dsn;
+
+    options.release = _releaseVersion;
+    options.environment = _resolveEnvironment();
+    if (dist.isNotEmpty) {
+      options.dist = dist;
+    }
+
+    options.sendDefaultPii = false;
+    options.enableLogs = true;
+    options.maxBreadcrumbs = 200;
+    options.tracesSampleRate = 0.1;
+    options.enableAutoPerformanceTracing = true;
+    options.enableUserInteractionTracing = true;
+
+    // Our API traffic all runs through Dio, whose integration already
+    // captures 5xx. Native capture only adds third-party SDK noise (Firebase,
+    // FCM) we don't control and can't act on, so turn it off.
+    options.captureNativeFailedRequests = false;
+
+    // ignoreErrors and beforeSend are both Dart-side filters, applied to the
+    // deserialized SentryEvent. Three things never reach them: onerror events
+    // whose exception.value deserializes to null (prevented at the source, see
+    // _authRedirect in app_router.dart), on web everything the JavaScript SDK
+    // captures through its own global handlers, and native iOS/Android events,
+    // which the SDK delivers on a separate path (getsentry/sentry-dart#3241).
+    // An error or unhandled rejection thrown outside Dart is reported without
+    // passing through here, so the browser entry below only matches when the
+    // same text also surfaces as a Dart error. Noise that never reaches Dart is
+    // consolidated with a server-side fingerprint rule and archived in Sentry.
+    options.ignoreErrors = [
+      '(?i)(status code of|http status error \\[)4\\d\\d',
+      '(?i)dioexception.*bad response.*4\\d\\d',
+      '(?i)bad response.*4\\d\\d',
+      '(?i)goexception.*4\\d\\d',
+      '(?i)dioexception \\[(connection|send|receive) timeout\\]',
+      '(?i)dioexception \\[connection error\\]',
+      '(?i)(handshake|tls)exception',
+      '(?i)database deleted by request of the user',
+      // Browser-level, see above.
+      '(?i)failed to fetch dynamically imported module',
+    ];
+
+    options.ignoreTransactions = [
+      '(?i)/auth/token/refresh/',
+      '(?i)/auth/user/pushtoken/',
+    ];
+
+    options.beforeSend = _beforeSend;
   }
 
   void setUser(String? userId) {

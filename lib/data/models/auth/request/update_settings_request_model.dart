@@ -18,6 +18,8 @@ class UpdateSettingsRequestModel {
   final bool? collapseBusyDays;
   final int? atRiskThreshold;
   final int? onTrackTolerance;
+  final String? priorCredits;
+  final String? priorGpa;
   final bool? showWeekNumbers;
   final int? dateFormat;
   final int? timeFormat;
@@ -43,6 +45,8 @@ class UpdateSettingsRequestModel {
     this.collapseBusyDays,
     this.atRiskThreshold,
     this.onTrackTolerance,
+    this.priorCredits,
+    this.priorGpa,
     this.showWeekNumbers,
     this.dateFormat,
     this.timeFormat,
@@ -108,6 +112,12 @@ class UpdateSettingsRequestModel {
     }
     if (onTrackTolerance != null) {
       json['on_track_tolerance'] = onTrackTolerance;
+    }
+    if (priorCredits != null) {
+      json['prior_credits'] = priorCredits;
+    }
+    if (priorGpa != null) {
+      json['prior_gpa'] = priorGpa;
     }
     if (showWeekNumbers != null) {
       json['show_week_numbers'] = showWeekNumbers;

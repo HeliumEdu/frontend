@@ -1,3 +1,5 @@
+import 'package:heliumapp/utils/conversion_helpers.dart';
+
 class HomeworkSeriesItemModel {
   final int id;
   final String title;
@@ -9,6 +11,7 @@ class HomeworkSeriesItemModel {
   final double? homeworkGrade;
   final double? cumulativeGrade;
   final double? impactScore;
+  final double? gpa;
 
   HomeworkSeriesItemModel({
     required this.id,
@@ -21,6 +24,7 @@ class HomeworkSeriesItemModel {
     this.homeworkGrade,
     this.cumulativeGrade,
     this.impactScore,
+    this.gpa,
   });
 
   factory HomeworkSeriesItemModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,7 @@ class HomeworkSeriesItemModel {
       homeworkGrade: (json['homework_grade'] as num?)?.toDouble(),
       cumulativeGrade: (json['cumulative_grade'] as num?)?.toDouble(),
       impactScore: (json['impact_score'] as num?)?.toDouble(),
+      gpa: toGradedDouble(json['gpa']),
     );
   }
 }

@@ -79,6 +79,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/planner_mobile_m
 import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -254,7 +255,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   // until the user stops tapping.
   final Map<int, Timer> _pendingToggleTimers = {};
   final Map<int, bool> _pendingToggleValues = {};
-  static const _toggleDebounceDuration = Duration(milliseconds: 400);
 
   // Completion updates dispatched to the BLoC and awaiting a response, per
   // homework ID. A response is stale while the count is above zero.
@@ -332,9 +332,41 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     return true;
   }
 
+  void _applyViewDeepLink(Uri uri) {
+    final view = PlannerView.values.asNameMap()[uri.queryParameters[DeepLinkParam.view]];
+    final statusNames = PlannerFilterStatus.values.asNameMap();
+    final statuses = (uri.queryParameters[DeepLinkParam.status]?.split(',') ?? const <String>[])
+        .map((name) => statusNames[name.trim()]?.value)
+        .nonNulls
+        .toSet();
+    if (view == null && statuses.isEmpty) return;
+    setState(() {
+      if (view != null) _changeView(view);
+      if (statuses.isNotEmpty) _plannerItemDataSource!.showOnlyStatuses(statuses);
+    });
+  }
+
+  /// Applies a /planner link's query params, then drops them from the URL so
+  /// they apply once and a repeat of the same link applies again.
+  void _consumeDeepLink() {
+    final uri = router.routerDelegate.currentConfiguration.uri;
+    if (uri.path != AppRoute.plannerScreen || uri.queryParameters.isEmpty) return;
+    _applyDateDeepLink();
+    _applyViewDeepLink(uri);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && router.routerDelegate.currentConfiguration.uri == uri) {
+        router.replace(AppRoute.plannerScreen);
+      }
+    });
+  }
+
   void _onRouterChanged() {
     if (!mounted) return;
-    _applyDateDeepLink();
+    if (_plannerItemDataSource == null) {
+      _applyDateDeepLink();
+    } else {
+      _consumeDeepLink();
+    }
   }
 
   @override
@@ -466,6 +498,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
           _plannerItemDataSource!.restoreFiltersIfEnabled();
         });
+        _consumeDeepLink();
 
         unawaited(_refreshExternalCalendarsMap());
       }
@@ -1381,72 +1414,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 ? Row(
                     children: [
                       Expanded(
-                        child: SizedBox(
-                          height: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.surface,
-                              border: Border.all(
-                                color: context.colorScheme.outline.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: TextField(
-                                controller: _searchController,
-                                focusNode: _searchFocusNode,
-                                onChanged: _onSearchTextFieldChanged,
-                                onTapOutside: (_) {},
-                                style: AppStyles.formText(context),
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Search ...',
-                                  hintStyle: AppStyles.formHint(context),
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: context.colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  suffixIcon:
-                                      ValueListenableBuilder<TextEditingValue>(
-                                        valueListenable: _searchController,
-                                        builder: (context, value, _) {
-                                          if (value.text.isEmpty) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return IconButton(
-                                            onPressed: () {
-                                              _searchController.clear();
-                                              _plannerItemDataSource
-                                                  ?.setSearchQuery('');
-                                            },
-                                            icon: Icon(
-                                              Icons.close,
-                                              size: 20,
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.4),
-                                            ),
-                                            tooltip: 'Clear',
-                                          );
-                                        },
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        child: HeliumSearchField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: _onSearchTextFieldChanged,
+                          onTapOutside: (_) {},
                         ),
                       ),
                       if (showCloseButton) ...[
@@ -2566,7 +2538,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     _pendingToggleTimers[homework.id]?.cancel();
     _pendingToggleValues[homework.id] = value;
-    _pendingToggleTimers[homework.id] = Timer(_toggleDebounceDuration, () {
+    _pendingToggleTimers[homework.id] = Timer(AppConstants.completionToggleDebounce, () {
       if (!mounted) return;
       final pendingValue = _pendingToggleValues.remove(homework.id);
       _pendingToggleTimers.remove(homework.id);

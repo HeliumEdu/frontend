@@ -1,11 +1,13 @@
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class GradeCourseGroupModel extends BaseTitledModel {
   final double overallGrade;
   final double? gpa;
+  final List<GradeScaleBandModel> gradeScale;
   final bool inCumulativeGpa;
   final bool exampleSchedule;
   final double? trend;
@@ -20,6 +22,7 @@ class GradeCourseGroupModel extends BaseTitledModel {
     required super.title,
     required this.overallGrade,
     required this.gpa,
+    required this.gradeScale,
     required this.inCumulativeGpa,
     required this.exampleSchedule,
     required this.trend,
@@ -36,6 +39,7 @@ class GradeCourseGroupModel extends BaseTitledModel {
       title: json['title'],
       overallGrade: toDouble(json['overall_grade'])!,
       gpa: toGradedDouble(json['gpa']),
+      gradeScale: GradeScaleBandModel.listFromJson(json['grade_scale']),
       inCumulativeGpa: json['in_cumulative_gpa'],
       exampleSchedule: json['example_schedule'],
       trend: (json['trend'] as num?)?.toDouble(),

@@ -394,8 +394,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         child: SafeArea(
           top: isFullScreen,
           bottom: false,
-          left: false,
-          right: false,
+          left: isFullScreen,
+          right: isFullScreen,
           child: Column(
             children: [
               buildPageHeader(),

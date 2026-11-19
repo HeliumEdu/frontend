@@ -188,9 +188,16 @@ class _ResourceAddScreenState
 
   void _syncStepFromUrl() {
     if (!mounted) return;
-    final path = router.routerDelegate.currentConfiguration.uri.path;
+    final location = router.routerDelegate.currentConfiguration.uri;
+    final path = location.path;
     final prefix = _registeredPrefix;
-    if (prefix == null || !DirtyDialogRegistry.isWithin(path, prefix)) return;
+    if (prefix == null) return;
+    if (!DirtyDialogRegistry.isWithin(path, prefix)) {
+      if (DeepLinkParam.namesSavedEntity(location, 'resources')) {
+        reopenAt(location.toString());
+      }
+      return;
+    }
     DirtyDialogRegistry.updateFullPath(prefix: prefix, fullPath: path);
     final segments = path.split('/').where((s) => s.isNotEmpty).toList();
     final resourcesIdx = segments.indexOf('resources');

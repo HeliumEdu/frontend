@@ -103,7 +103,7 @@ class _ResourcesScreenState
 
   @override
   void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh && _resourceGroups.isNotEmpty) {
+    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState) && _resourceGroups.isNotEmpty) {
       setState(() {
         _selectedGroupId = _resourceGroups.first.id;
       });

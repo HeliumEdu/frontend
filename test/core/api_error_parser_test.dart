@@ -6,15 +6,15 @@ void main() {
     group('parse with Map response data', () {
       test('parses single field error with list value', () {
         final responseData = {
-          'email': ['Sorry, that email is already in use.'],
+          'email': ['That email is already in use.'],
         };
 
         final result = ApiErrorParser.parse(responseData);
 
         expect(result.hasFieldErrors, isTrue);
-        expect(result.fieldErrors['email'], contains('Sorry, that email is already in use.'));
-        expect(result.displayMessage, equals('Sorry, that email is already in use.'));
-        expect(result.getFieldError('email'), equals('Sorry, that email is already in use.'));
+        expect(result.fieldErrors['email'], contains('That email is already in use.'));
+        expect(result.displayMessage, equals('That email is already in use.'));
+        expect(result.getFieldError('email'), equals('That email is already in use.'));
       });
 
       test('parses single field error with string value', () {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -139,6 +140,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
         ),
       );
       _log.info('Updated detected settings from setup flow');
+      AgendaWidgetService().scheduleRefresh();
     } catch (e) {
       _log.warning('Failed to auto-detect or update settings: ${e.runtimeType}');
     }

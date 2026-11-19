@@ -44,7 +44,7 @@ void main() {
       expect(find.text('B+'), findsOneWidget);
     });
 
-    testWidgets('shows only the letter grade on a narrow phone', (tester) async {
+    testWidgets('shows the letter grade and grade point on a narrow phone', (tester) async {
       // GIVEN
       await pumpLabel(
         tester,
@@ -53,19 +53,8 @@ void main() {
       );
 
       // THEN
-      expect(find.text('B+'), findsOneWidget);
-    });
-
-    testWidgets('shows nothing on a narrow phone when the scale has no letters', (tester) async {
-      // GIVEN
-      await pumpLabel(
-        tester,
-        const GradePointLabel(gradePoint: 2.5, credits: 3, letterGrade: ''),
-        width: 375,
-      );
-
-      // THEN
-      expect(find.byType(Text), findsNothing);
+      expect(find.text('B+ • 3.30 GP'), findsOneWidget,
+          reason: 'where the label has to give up the grade point is up to the row it sits in');
     });
 
     testWidgets('shows only the grade point when the scale has no letters', (tester) async {

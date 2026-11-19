@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agenda_widget_label">Agenda</string>
+    <string name="agenda_widget_description">See what\'s due this week, and check off assignments right from your home screen.</string>
+    <string name="agenda_widget_open_planner">Open Planner</string>
+    <string name="agenda_widget_overdue">Overdue</string>
+    <string name="agenda_widget_today">Today</string>
+    <string name="agenda_widget_tomorrow">Tomorrow</string>
+    <string name="agenda_widget_older_overdue">+%d older overdue</string>
+    <string name="agenda_widget_older_overdue_description">%d older overdue</string>
+    <string name="agenda_widget_nothing_upcoming">Nothing due in the next 7 days</string>
+    <string name="agenda_widget_all_caught_up">All caught up</string>
+    <string name="agenda_widget_signed_out">Sign in to Helium</string>
+    <string name="agenda_widget_no_snapshot">Open Helium to see what\'s due</string>
+    <string name="agenda_widget_updated_days_ago">Updated %dd ago</string>
+    <plurals name="agenda_widget_updated_days_ago_description">
+        <item quantity="one">Updated %d day ago</item>
+        <item quantity="other">Updated %d days ago</item>
+    </plurals>
+    <string name="agenda_widget_complete">Complete %s</string>
+    <string name="agenda_widget_uncomplete">Mark %s not done</string>
+    <string name="agenda_widget_completed">Completed</string>
+    <string name="agenda_widget_sample_writing" translatable="false">Creative Writing ✍️</string>
+    <string name="agenda_widget_sample_programming" translatable="false">Fundamentals of Programming 💻</string>
+    <string name="agenda_widget_sample_psychology" translatable="false">Intro to Psychology 🧠</string>
+    <string name="agenda_widget_sample_case_study" translatable="false">Case Study 3</string>
+    <string name="agenda_widget_sample_programming_quiz" translatable="false">Quiz 7</string>
+    <string name="agenda_widget_sample_short_stories" translatable="false">Short Stories 4</string>
+    <string name="agenda_widget_sample_psychology_quiz" translatable="false">Quiz 5</string>
+    <string name="agenda_widget_sample_essay" translatable="false">Essay 7</string>
+    <string name="agenda_widget_sample_homework" translatable="false">Homework 7</string>
+    <string name="agenda_widget_sample_reading" translatable="false">Reading (Chapters 13-16)</string>
+    <string name="agenda_widget_sample_morning" translatable="false">11 AM</string>
+    <string name="agenda_widget_sample_afternoon" translatable="false">1 PM</string>
+    <string name="agenda_widget_sample_all_day" translatable="false">All day</string>
+    <string name="agenda_widget_sample_older_overdue" translatable="false">+2 older overdue</string>
+    <string name="agenda_widget_sample_psychology_detail" translatable="false">1 PM · Intro to Psychology 🧠</string>
+    <string name="agenda_widget_sample_writing_detail" translatable="false">11 AM · Creative Writing ✍️</string>
+</resources>

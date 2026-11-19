@@ -4,8 +4,6 @@ import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
 class DropDown<T> extends StatelessWidget {
-  static const _fieldBorderRadius = 8.0;
-  static const _contentPadding = 12.0;
   static const _iconTextSpacing = 12.0;
   static const _trailingButtonSize = 48.0;
   static const _trailingButtonLabelOffset = 30.0;
@@ -51,29 +49,17 @@ class DropDown<T> extends StatelessWidget {
               color: isDisabled
                   ? context.theme.scaffoldBackgroundColor
                   : context.colorScheme.surface,
-              borderRadius: BorderRadius.circular(_fieldBorderRadius),
+              borderRadius: BorderRadius.circular(AppStyles.formFieldBorderRadius),
             ),
             child: DropdownButtonFormField<DropDownItem<T>>(
             initialValue: initialValue,
-            decoration: InputDecoration(
+            decoration: AppStyles.formFieldDecoration(context).copyWith(
               prefixIcon: prefixIcon != null
                   ? Icon(prefixIcon, color: iconColor)
                   : null,
               contentPadding: EdgeInsets.symmetric(
-                horizontal: _contentPadding,
-                vertical: prefixIcon != null ? _contentPadding : 0,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                borderSide: BorderSide(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(_fieldBorderRadius),
-                borderSide: BorderSide(
-                  color: context.colorScheme.outline.withValues(alpha: 0.2),
-                ),
+                horizontal: AppStyles.formFieldContentPadding,
+                vertical: prefixIcon != null ? AppStyles.formFieldContentPadding : 0,
               ),
             ),
             style: AppStyles.formText(context),
@@ -116,7 +102,7 @@ class DropDown<T> extends StatelessWidget {
         if (helperText != null) ...[
           const SizedBox(height: 4),
           Padding(
-            padding: const EdgeInsets.only(left: _contentPadding),
+            padding: const EdgeInsets.only(left: AppStyles.formFieldContentPadding),
             child: Text(
               helperText!,
               style: AppStyles.smallSecondaryText(context).copyWith(

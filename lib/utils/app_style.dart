@@ -27,6 +27,10 @@ extension AppStyles on BuildContext {
   /// The height inside a single-line form field's border.
   static const double formFieldInnerHeight = formFieldHeight - 2 * formFieldBorderWidth;
 
+  static const double formFieldBorderRadius = 8;
+
+  static const double formFieldContentPadding = 12;
+
   // Fallback font for characters missing from the primary family
   static const fallbackFonts = ['Noto Sans'];
 
@@ -179,6 +183,31 @@ extension AppStyles on BuildContext {
   static TextStyle formErrorStyle(BuildContext context) => formText(
     context,
   ).copyWith(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.9));
+
+  // Used for text fields and spinners. The outline has to live in the
+  // decoration: with InputBorder.none the decorator lays single-line text out
+  // off center.
+  static InputDecoration formFieldDecoration(BuildContext context, {bool readOnly = false}) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(formFieldBorderRadius),
+      borderSide: BorderSide(
+        color: context.colorScheme.outline.withValues(alpha: 0.2),
+        width: formFieldBorderWidth,
+      ),
+    );
+    return InputDecoration(
+      contentPadding: const EdgeInsets.symmetric(horizontal: formFieldContentPadding),
+      fillColor: readOnly ? context.colorScheme.surfaceContainerHighest : null,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border,
+      disabledBorder: border,
+      errorBorder: border,
+      focusedErrorBorder: border,
+      errorStyle: formErrorStyle(context),
+      errorMaxLines: 3,
+    );
+  }
 
   // Used for menu items and popup menu text
   static TextStyle menuItem(BuildContext context) => poppins(

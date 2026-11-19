@@ -136,6 +136,7 @@ void main() {
       late NotificationCountBloc notificationCountBloc;
 
       setUp(() {
+        when(() => mockDioClient.isAuthenticated()).thenAnswer((_) async => true);
         notificationCountBloc = NotificationCountBloc(
           reminderRepository: MockReminderRepository(),
           fcmService: fcmService,
@@ -193,6 +194,35 @@ void main() {
 
         // THEN
         expect(notificationCountBloc.state.count, 3);
+      });
+
+      test('a dismiss while signed out fetches nothing for the bell', () async {
+        // GIVEN
+        await notificationCountBloc.close();
+        when(() => mockDioClient.isAuthenticated()).thenAnswer((_) async => false);
+        final reminderRepository = MockReminderRepository();
+        final signedOutBloc = NotificationCountBloc(
+          reminderRepository: reminderRepository,
+          fcmService: fcmService,
+        );
+        addTearDown(signedOutBloc.close);
+        const message = RemoteMessage(
+          data: {'action': 'dismiss', 'reminder_id': '2'},
+        );
+
+        // WHEN
+        await fcmService.handleDismissMessageForTesting(message);
+        await pumpEventQueue();
+
+        // THEN
+        verifyNever(
+          () => reminderRepository.getRemindersCount(
+            sent: any(named: 'sent'),
+            dismissed: any(named: 'dismissed'),
+            type: any(named: 'type'),
+            startOfRange: any(named: 'startOfRange'),
+          ),
+        );
       });
 
       test('a closed bloc stops listening for dismisses', () async {

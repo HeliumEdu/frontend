@@ -22,7 +22,7 @@ class GradeCategoryTable extends StatelessWidget {
   static const double _contributionColTablet = 120;
   static const double _contributionColDesktop = 170;
   static const double _averageColMobile = 90;
-  static const double _averageColDesktop = 105;
+  static const double _averageColDesktop = 110;
 
   final GradeCourseModel course;
   final UserSettingsModel userSettings;

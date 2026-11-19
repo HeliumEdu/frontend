@@ -73,6 +73,8 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
             courseGroup,
             widget.courseGroups,
             widget.cumulativeGpa,
+            priorCredits: widget.userSettings.priorCredits,
+            priorGpa: widget.userSettings.priorGpa,
           );
     _logScreenView();
   }

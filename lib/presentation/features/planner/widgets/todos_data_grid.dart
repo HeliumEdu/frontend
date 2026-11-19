@@ -52,17 +52,10 @@ enum TodosColumn {
   completed(label: '', mobileWidth: 44, fixedWidth: 48, isCheckbox: true),
   title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
   due(label: 'Due', mobileWidth: 154, slimMobileWidth: 124, desktopWidth: 166),
-  className(label: 'Class', minViewportWidth: 625, fixedWidth: 120),
+  className(label: 'Class', minViewportWidth: 650, fixedWidth: 120),
   category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
   priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
-  grade(
-    label: 'Grade',
-    mobileWidth: 98,
-    tabletWidth: 110,
-    desktopWidth: 113,
-    minViewportWidth: 850,
-    showWhenActionsHidden: true,
-  ),
+  grade(label: 'Grade', mobileWidth: 98, fixedWidth: 106),
   meta(label: '', minViewportWidth: 1050, fixedWidth: 108);
 
   const TodosColumn({
@@ -70,10 +63,8 @@ enum TodosColumn {
     this.fixedWidth,
     this.mobileWidth,
     this.slimMobileWidth,
-    this.tabletWidth,
     this.desktopWidth,
     this.minViewportWidth,
-    this.showWhenActionsHidden = false,
     this.isCheckbox = false,
   });
 
@@ -81,20 +72,16 @@ enum TodosColumn {
   final double? fixedWidth;
   final double? mobileWidth;
   final double? slimMobileWidth;
-  final double? tabletWidth;
   final double? desktopWidth;
   final double? minViewportWidth;
-  final bool showWhenActionsHidden;
   final bool isCheckbox;
 
   double? widthForLayout({
     required bool isMobile,
-    required bool isTablet,
     bool isSlimMobile = false,
   }) {
     if (isSlimMobile && slimMobileWidth != null) return slimMobileWidth;
     if (isMobile && mobileWidth != null) return mobileWidth;
-    if (isTablet && tabletWidth != null) return tabletWidth;
     if (desktopWidth != null) return desktopWidth;
     return fixedWidth;
   }
@@ -196,21 +183,15 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         : (startIndex + effectiveItemsPerPage).clamp(0, totalItems);
 
     final isMobile = Responsive.isMobile(context);
-    final isTablet = Responsive.isTablet(context);
     final isTouchDevice = PlatformBehavior.usesTouchInteractions;
     final isCompact = Responsive.isCompact(context);
     final isCapturing = PrintableArea.capturing.value;
-    final showActions = !(isTouchDevice || isCapturing || isMobile);
+    final showActions = !(isTouchDevice || isCapturing || isCompact);
 
     final headerColor =
         context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
-    final columns = _buildColumns(
-      isMobile,
-      isTablet,
-      showActions,
-      isCompact,
-    );
+    final columns = _buildColumns(isMobile, showActions);
     _dataSource.visibleColumnNames = {
       for (final column in columns) column.columnName,
     };
@@ -464,12 +445,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     _syncPagerAndRefresh(markInitialized: isInitialLoad);
   }
 
-  List<GridColumn> _buildColumns(
-    bool isMobile,
-    bool isTablet,
-    bool showActions,
-    bool isCompact,
-  ) {
+  List<GridColumn> _buildColumns(bool isMobile, bool showActions) {
     final isSlimMobile = Responsive.isSlimMobile(context);
     final columns = <GridColumn>[];
 
@@ -477,14 +453,14 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'completed',
         label: _buildHeaderCell(TodosColumn.completed),
-        width: TodosColumn.completed.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.completed.widthForLayout(isMobile: isMobile)!,
       ));
     }
 
     columns.add(GridColumn(
       columnName: 'title',
       label: _buildHeaderCell(TodosColumn.title),
-      minimumWidth: TodosColumn.title.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+      minimumWidth: TodosColumn.title.widthForLayout(isMobile: isMobile)!,
     ));
 
     columns.add(GridColumn(
@@ -494,48 +470,45 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           ? (isSlimMobile ? 104 : isMobile ? 136 : 146)
           : TodosColumn.due.widthForLayout(
               isMobile: isMobile,
-              isTablet: isTablet,
               isSlimMobile: isSlimMobile,
             )!,
     ));
 
-    if (_shouldShowColumn(TodosColumn.className, showActions)) {
+    if (_shouldShowColumn(TodosColumn.className)) {
       columns.add(GridColumn(
         columnName: 'className',
         label: _buildHeaderCell(TodosColumn.className),
-        minimumWidth: TodosColumn.className.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        minimumWidth: TodosColumn.className.widthForLayout(isMobile: isMobile)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.category, showActions)) {
+    if (_shouldShowColumn(TodosColumn.category)) {
       columns.add(GridColumn(
         columnName: 'category',
         label: _buildHeaderCell(TodosColumn.category),
-        minimumWidth: TodosColumn.category.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        minimumWidth: TodosColumn.category.widthForLayout(isMobile: isMobile)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.priority, showActions)) {
+    if (_shouldShowColumn(TodosColumn.priority)) {
       columns.add(GridColumn(
         columnName: 'priority',
         label: _buildHeaderCell(TodosColumn.priority),
-        width: TodosColumn.priority.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.priority.widthForLayout(isMobile: isMobile)!,
       ));
     }
 
-    if (_shouldShowColumn(TodosColumn.grade, showActions)) {
-      columns.add(GridColumn(
-        columnName: 'grade',
-        label: _buildHeaderCell(TodosColumn.grade),
-        width: TodosColumn.grade.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
-      ));
-    }
+    columns.add(GridColumn(
+      columnName: 'grade',
+      label: _buildHeaderCell(TodosColumn.grade),
+      width: TodosColumn.grade.widthForLayout(isMobile: isMobile)!,
+    ));
 
-    if (_shouldShowColumn(TodosColumn.meta, showActions)) {
+    if (_shouldShowColumn(TodosColumn.meta)) {
       columns.add(GridColumn(
         columnName: 'meta',
         label: const SizedBox.shrink(),
-        width: TodosColumn.meta.widthForLayout(isMobile: isMobile, isTablet: isTablet)!,
+        width: TodosColumn.meta.widthForLayout(isMobile: isMobile)!,
         allowSorting: false,
       ));
     }
@@ -544,7 +517,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       columns.add(GridColumn(
         columnName: 'actions',
         label: const SizedBox.shrink(),
-        width: isCompact ? 42 : 140,
+        width: 140,
         allowSorting: false,
       ));
     }
@@ -826,10 +799,9 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     });
   }
 
-  bool _shouldShowColumn(TodosColumn column, bool showActions) {
+  bool _shouldShowColumn(TodosColumn column) {
     if (column.minViewportWidth == null) return true;
-    return MediaQuery.of(context).size.width >= column.minViewportWidth! ||
-        (column.showWhenActionsHidden && !showActions);
+    return MediaQuery.of(context).size.width >= column.minViewportWidth!;
   }
 
 }
@@ -1079,7 +1051,7 @@ class TodosDataSource extends BaseDataGridSource {
           (c) => c.id == homework.course.id,
           orElse: () => courses.isNotEmpty ? courses.first : _fallbackCourse(),
         );
-        return _buildActionsCell(homework, course, isCompact);
+        return _buildActionsCell(homework, course);
 
       default:
         return const SizedBox.shrink();
@@ -1340,50 +1312,44 @@ class TodosDataSource extends BaseDataGridSource {
     );
   }
 
-  Widget _buildActionsCell(
-    HomeworkModel homework,
-    CourseModel course,
-    bool isCompact,
-  ) {
+  Widget _buildActionsCell(HomeworkModel homework, CourseModel course) {
     final buttons = <Widget>[];
 
-    if (!isCompact) {
-      if (course.teacherEmail.isNotEmpty) {
-        buttons.add(
-          HeliumIconButton(
-            onPressed: () {
-              UrlHelpers.launchMailUrl(course.teacherEmail);
-            },
-            tooltip: 'Email teacher',
-            icon: Icons.email_outlined,
-            color: _context.colorScheme.onSurface,
-          ),
-        );
-      }
+    if (course.teacherEmail.isNotEmpty) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            UrlHelpers.launchMailUrl(course.teacherEmail);
+          },
+          tooltip: 'Email teacher',
+          icon: Icons.email_outlined,
+          color: _context.colorScheme.onSurface,
+        ),
+      );
+    }
 
-      if (course.website != null) {
-        buttons.add(
-          HeliumIconButton(
-            onPressed: () {
-              UrlHelpers.launchWebUrl(course.website.toString());
-            },
-            tooltip: 'Launch class website',
-            icon: Icons.launch_outlined,
-            color: _context.colorScheme.onSurface,
-          ),
-        );
-      }
+    if (course.website != null) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () {
+            UrlHelpers.launchWebUrl(course.website.toString());
+          },
+          tooltip: 'Launch class website',
+          icon: Icons.launch_outlined,
+          color: _context.colorScheme.onSurface,
+        ),
+      );
+    }
 
-      if (PlannerHelper.shouldShowEditButtonForPlannerItem(_context, homework)) {
-        buttons.add(
-          HeliumIconButton(
-            onPressed: () => _onTap(homework),
-            icon: Icons.edit_outlined,
-            semanticLabel: 'Edit',
-            color: _context.colorScheme.onSurface,
-          ),
-        );
-      }
+    if (PlannerHelper.shouldShowEditButtonForPlannerItem(_context, homework)) {
+      buttons.add(
+        HeliumIconButton(
+          onPressed: () => _onTap(homework),
+          icon: Icons.edit_outlined,
+          semanticLabel: 'Edit',
+          color: _context.colorScheme.onSurface,
+        ),
+      );
     }
 
     return Container(
