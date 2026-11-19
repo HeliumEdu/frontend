@@ -1,4 +1,5 @@
 import 'package:heliumapp/core/google_account_store.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 
 abstract class AuthEvent {}
@@ -22,17 +23,29 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.email, required this.password});
 }
 
+/// Asks whether to link the provider the sign-in removed: true to link it now.
+typedef RelinkProviderPrompt = Future<bool> Function(String providerLabel);
+
 class GoogleLoginEvent extends AuthEvent {
   /// Confirms the remembered Google account (iOS only): true to continue as
   /// it, false for a different account, null if dismissed without a choice.
   final Future<bool?> Function(RememberedGoogleAccount)? onChooseAccount;
+  final RelinkProviderPrompt onRelinkProvider;
 
-  GoogleLoginEvent({this.onChooseAccount});
+  GoogleLoginEvent({this.onChooseAccount, required this.onRelinkProvider});
 }
 
-class AppleLoginEvent extends AuthEvent {}
+class AppleLoginEvent extends AuthEvent {
+  final RelinkProviderPrompt onRelinkProvider;
 
-class MicrosoftLoginEvent extends AuthEvent {}
+  AppleLoginEvent({required this.onRelinkProvider});
+}
+
+class MicrosoftLoginEvent extends AuthEvent {
+  final RelinkProviderPrompt onRelinkProvider;
+
+  MicrosoftLoginEvent({required this.onRelinkProvider});
+}
 
 
 class LogoutEvent extends AuthEvent {}
@@ -58,6 +71,12 @@ class DisablePrivateFeedsEvent extends AuthEvent {}
 class CreateApiTokenEvent extends AuthEvent {}
 
 class RevokeApiTokenEvent extends AuthEvent {}
+
+class RemoveOAuthProviderEvent extends AuthEvent {
+  final OAuthProvider provider;
+
+  RemoveOAuthProviderEvent({required this.provider});
+}
 
 class ChangePasswordEvent extends AuthEvent {
   final String? oldPassword;

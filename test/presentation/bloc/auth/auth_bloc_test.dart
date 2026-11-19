@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/token_response_model.dart';
@@ -762,6 +763,312 @@ void main() {
         },
         act: (bloc) => bloc.add(RevokeApiTokenEvent()),
         expect: () => [isA<AuthLoading>(), isA<AuthApiTokenRevoked>()],
+      );
+    });
+
+    group('OAuth sign-in that unlinked a provider', () {
+      late MockOAuthSignInService mockOAuthSignInService;
+
+      setUp(() {
+        mockOAuthSignInService = MockOAuthSignInService();
+        when(
+          () => mockOAuthSignInService.signInWithGoogle(
+            onChooseAccount: any(named: 'onChooseAccount'),
+          ),
+        ).thenAnswer((_) async => 'google-firebase-token');
+        when(
+          () => mockOAuthSignInService.takeLinkedProvider(),
+        ).thenReturn(null);
+      });
+
+      AuthBloc givenGoogleSignInUnlinks(List<String> unlinkedProviders) {
+        when(() => mockAuthRepository.loginWithGoogle(any())).thenAnswer(
+          (_) async => TokenResponseModel(
+            access: 'access',
+            refresh: 'refresh',
+            unlinkedProviders: unlinkedProviders,
+          ),
+        );
+        return AuthBloc(
+          authRepository: mockAuthRepository,
+          dioClient: mockDioClient,
+          oauthSignInService: mockOAuthSignInService,
+        );
+      }
+
+      blocTest<AuthBloc, AuthState>(
+        'links the provider and syncs it when the user chooses to link it',
+        build: () {
+          when(
+            () => mockOAuthSignInService.linkProvider(OAuthProvider.microsoft),
+          ).thenAnswer((_) async => 'linked-firebase-token');
+          when(
+            () => mockAuthRepository.syncOAuthProviders(any()),
+          ).thenAnswer((_) async {});
+          return givenGoogleSignInUnlinks(['microsoft']);
+        },
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>()
+              .having((s) => s.linkedProviders, 'linkedProviders', [
+                'Microsoft',
+              ])
+              .having((s) => s.notLinkedProviders, 'notLinkedProviders', []),
+        ],
+        verify: (_) {
+          verify(
+            () => mockAuthRepository.syncOAuthProviders(
+              'linked-firebase-token',
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'stays signed in without linking when the user declines',
+        build: () => givenGoogleSignInUnlinks(['microsoft']),
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(onRelinkProvider: (provider) async => false),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>().having(
+            (s) => s.notLinkedProviders,
+            'notLinkedProviders',
+            ['Microsoft'],
+          ),
+        ],
+        verify: (_) {
+          verifyNever(() => mockOAuthSignInService.linkProvider(any()));
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'stays signed in when the link is cancelled or fails',
+        build: () {
+          when(
+            () => mockOAuthSignInService.linkProvider(OAuthProvider.microsoft),
+          ).thenAnswer((_) async => null);
+          return givenGoogleSignInUnlinks(['microsoft']);
+        },
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>().having(
+            (s) => s.notLinkedProviders,
+            'notLinkedProviders',
+            ['Microsoft'],
+          ),
+        ],
+        verify: (_) {
+          verifyNever(() => mockAuthRepository.syncOAuthProviders(any()));
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'reports the provider linked when only the sync fails',
+        build: () {
+          when(
+            () => mockOAuthSignInService.linkProvider(OAuthProvider.microsoft),
+          ).thenAnswer((_) async => 'linked-firebase-token');
+          when(
+            () => mockAuthRepository.syncOAuthProviders(any()),
+          ).thenThrow(HeliumException(message: 'Server error'));
+          return givenGoogleSignInUnlinks(['microsoft']);
+        },
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>().having(
+            (s) => s.linkedProviders,
+            'linkedProviders',
+            ['Microsoft'],
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'asks nothing when the sign-in unlinked no provider',
+        build: () => givenGoogleSignInUnlinks([]),
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(
+            onRelinkProvider: (provider) async =>
+                fail('should not ask to link $provider'),
+          ),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>()
+              .having((s) => s.linkedProviders, 'linkedProviders', [])
+              .having((s) => s.notLinkedProviders, 'notLinkedProviders', []),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'asks about each provider the sign-in unlinked, in turn',
+        build: () {
+          when(
+            () => mockOAuthSignInService.linkProvider(OAuthProvider.apple),
+          ).thenAnswer((_) async => 'linked-firebase-token');
+          when(
+            () => mockAuthRepository.syncOAuthProviders(any()),
+          ).thenAnswer((_) async {});
+          return givenGoogleSignInUnlinks(['apple', 'microsoft']);
+        },
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(
+            onRelinkProvider: (provider) async => provider == 'Apple',
+          ),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>()
+              .having((s) => s.linkedProviders, 'linkedProviders', ['Apple'])
+              .having((s) => s.notLinkedProviders, 'notLinkedProviders', [
+                'Microsoft',
+              ]),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'keeps a pending link the same sign-in completed',
+        build: () {
+          when(
+            () => mockOAuthSignInService.takeLinkedProvider(),
+          ).thenReturn('Apple');
+          return givenGoogleSignInUnlinks(['microsoft']);
+        },
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(onRelinkProvider: (provider) async => false),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthLoggedIn>()
+              .having((s) => s.linkedProviders, 'linkedProviders', ['Apple'])
+              .having((s) => s.notLinkedProviders, 'notLinkedProviders', [
+                'Microsoft',
+              ]),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'asks nothing about a provider this app does not know',
+        build: () => givenGoogleSignInUnlinks(['github']),
+        act: (bloc) => bloc.add(
+          GoogleLoginEvent(
+            onRelinkProvider: (provider) async =>
+                fail('should not ask to link $provider'),
+          ),
+        ),
+        expect: () => [isA<AuthLoading>(), isA<AuthLoggedIn>()],
+      );
+    });
+
+    group('RemoveOAuthProviderEvent', () {
+      late MockSharedPreferencesAsync mockLastOAuthPrefs;
+
+      setUp(() {
+        mockLastOAuthPrefs = MockSharedPreferencesAsync();
+        when(() => mockLastOAuthPrefs.remove(any())).thenAnswer((_) async {});
+        LastOAuthProviderStore.setInstanceForTesting(
+          LastOAuthProviderStore.forTesting(prefs: mockLastOAuthPrefs),
+        );
+      });
+
+      blocTest<AuthBloc, AuthState>(
+        'forgets the removed provider as the last one used to sign in',
+        build: () {
+          when(
+            () => mockLastOAuthPrefs.getString(any()),
+          ).thenAnswer((_) async => 'microsoft');
+          when(
+            () => mockAuthRepository.removeOAuthProvider('microsoft'),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.getUser(),
+          ).thenAnswer((_) async => MockModels.createUser());
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          RemoveOAuthProviderEvent(provider: OAuthProvider.microsoft),
+        ),
+        verify: (_) {
+          verify(() => mockLastOAuthPrefs.remove(any())).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'keeps a different provider as the last one used to sign in',
+        build: () {
+          when(
+            () => mockLastOAuthPrefs.getString(any()),
+          ).thenAnswer((_) async => 'google');
+          when(
+            () => mockAuthRepository.removeOAuthProvider('microsoft'),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.getUser(),
+          ).thenAnswer((_) async => MockModels.createUser());
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          RemoveOAuthProviderEvent(provider: OAuthProvider.microsoft),
+        ),
+        verify: (_) {
+          verifyNever(() => mockLastOAuthPrefs.remove(any()));
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthOAuthProviderRemoved] when removing succeeds',
+        build: () {
+          when(
+            () => mockLastOAuthPrefs.getString(any()),
+          ).thenAnswer((_) async => null);
+          when(
+            () => mockAuthRepository.removeOAuthProvider('microsoft'),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.getUser(),
+          ).thenAnswer((_) async => MockModels.createUser());
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          RemoveOAuthProviderEvent(provider: OAuthProvider.microsoft),
+        ),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthOAuthProviderRemoved>().having(
+            (s) => s.provider,
+            'provider',
+            OAuthProvider.microsoft,
+          ),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when removing fails',
+        build: () {
+          when(
+            () => mockAuthRepository.removeOAuthProvider('microsoft'),
+          ).thenThrow(
+            HeliumException(
+              message: "That sign-in method couldn't be removed right now.",
+            ),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(
+          RemoveOAuthProviderEvent(provider: OAuthProvider.microsoft),
+        ),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
       );
     });
 

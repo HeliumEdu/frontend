@@ -14,12 +14,18 @@ final _log = Logger('core.oauth_sign_in');
 typedef _PendingLink = ({String providerName, AuthCredential credential, String email});
 
 enum OAuthProvider {
-  google,
-  apple,
-  microsoft,
+  google('Google'),
+  apple('Apple'),
+  microsoft('Microsoft');
+
+  final String label;
+
+  const OAuthProvider(this.label);
 }
 
 class OAuthSignInService {
+  static const linkRequiredCode = 'oauth_link_required';
+
   static final OAuthSignInService _instance = OAuthSignInService._internal();
 
   factory OAuthSignInService() => _instance;
@@ -78,11 +84,7 @@ class OAuthSignInService {
     OAuthProvider provider, {
     Future<bool?> Function(RememberedGoogleAccount)? onChooseGoogleAccount,
   }) async {
-    final providerName = switch (provider) {
-      OAuthProvider.google => 'Google',
-      OAuthProvider.apple => 'Apple',
-      OAuthProvider.microsoft => 'Microsoft',
-    };
+    final providerName = provider.label;
 
     _linkedProvider = null;
 
@@ -146,6 +148,7 @@ class OAuthSignInService {
         throw HeliumException(
           message:
               'That email is already registered with a different sign-in method. Sign in that way to link $providerName too.',
+          code: linkRequiredCode,
         );
       }
       _log.warning('Firebase Auth exception: ${e.code}');
@@ -318,12 +321,19 @@ class OAuthSignInService {
   Future<UserCredential?> _signInWithFirebaseAuthProvider(
     OAuthProvider provider,
   ) async {
-    final providerName = switch (provider) {
-      OAuthProvider.google => 'Google',
-      OAuthProvider.apple => 'Apple',
-      OAuthProvider.microsoft => 'Microsoft',
-    };
+    final providerName = provider.label;
+    final dynamic authProvider = _authProviderFor(provider);
 
+    if (kIsWeb) {
+      _log.info('Using Firebase Auth popup for $providerName on web');
+      return await _firebaseAuth.signInWithPopup(authProvider);
+    } else {
+      _log.info('Using Firebase Auth for $providerName on mobile');
+      return await _firebaseAuth.signInWithProvider(authProvider);
+    }
+  }
+
+  dynamic _authProviderFor(OAuthProvider provider) {
     final dynamic authProvider = switch (provider) {
       OAuthProvider.google => GoogleAuthProvider(),
       OAuthProvider.apple => AppleAuthProvider(),
@@ -342,12 +352,26 @@ class OAuthSignInService {
       authProvider.addScope('profile');
     }
 
-    if (kIsWeb) {
-      _log.info('Using Firebase Auth popup for $providerName on web');
-      return await _firebaseAuth.signInWithPopup(authProvider);
-    } else {
-      _log.info('Using Firebase Auth for $providerName on mobile');
-      return await _firebaseAuth.signInWithProvider(authProvider);
+    return authProvider;
+  }
+
+  /// Links [provider] to the signed-in Firebase user through its interactive
+  /// sign-in, returning a fresh Firebase ID token, or null if the user
+  /// cancelled or the link failed.
+  Future<String?> linkProvider(OAuthProvider provider) async {
+    final user = _firebaseAuth.currentUser!;
+
+    try {
+      final dynamic authProvider = _authProviderFor(provider);
+      final userCredential = kIsWeb
+          ? await user.linkWithPopup(authProvider)
+          : await user.linkWithProvider(authProvider);
+      _log.info('Linked ${provider.label} to the signed-in account');
+
+      return await userCredential.user!.getIdToken(true);
+    } on FirebaseAuthException catch (e) {
+      _log.warning('Linking ${provider.label} failed - code: ${e.code}');
+      return null;
     }
   }
 

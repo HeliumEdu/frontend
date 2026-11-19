@@ -8,6 +8,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -16,6 +17,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/auth/widgets/google_account_confirmation.dart';
+import 'package:heliumapp/presentation/features/auth/widgets/oauth_relink_prompt.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
@@ -117,14 +119,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             if (!context.mounted) return;
 
-            final linkedProvider = state.linkedProvider;
-            if (linkedProvider != null) {
-              showSnackBar(
-                context,
-                '$linkedProvider is now linked to your account.',
-                useRootMessenger: true,
-              );
-            }
+            showLinkOutcomeSnackBars(context, state);
 
             // Check if account setup is complete. Default to false for OAuth
             // (new users won't have the pref yet, and the setup screen handles
@@ -169,11 +164,13 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 'Suppressing force logout ${state.httpStatusCode} error on login screen',
               );
             } else {
+              final isLinkRequired =
+                  state.code == OAuthSignInService.linkRequiredCode;
               showSnackBar(
                 context,
                 state.message!,
-                type: SnackType.error,
-                seconds: 6,
+                type: isLinkRequired ? SnackType.info : SnackType.error,
+                seconds: isLinkRequired ? 10 : 6,
               );
             }
           }
@@ -328,6 +325,10 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                               account: account,
                             );
                           },
+                          onRelinkProvider: oauthRelinkPrompt(
+                            context,
+                            signedInWith: OAuthProvider.google,
+                          ),
                         ),
                       );
                     },
@@ -354,7 +355,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                         setState(() {
                           _isOAuthLoading = true;
                         });
-                        context.read<AuthBloc>().add(AppleLoginEvent());
+                        context.read<AuthBloc>().add(
+                          AppleLoginEvent(
+                            onRelinkProvider: oauthRelinkPrompt(
+                              context,
+                              signedInWith: OAuthProvider.apple,
+                            ),
+                          ),
+                        );
                       },
                       text: 'Sign in with Apple',
                     ),
@@ -379,7 +387,14 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       setState(() {
                         _isOAuthLoading = true;
                       });
-                      context.read<AuthBloc>().add(MicrosoftLoginEvent());
+                      context.read<AuthBloc>().add(
+                        MicrosoftLoginEvent(
+                          onRelinkProvider: oauthRelinkPrompt(
+                            context,
+                            signedInWith: OAuthProvider.microsoft,
+                          ),
+                        ),
+                      );
                     },
                     text: 'Sign in with Microsoft',
                   ),

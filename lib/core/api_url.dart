@@ -46,6 +46,11 @@ class ApiUrl {
   static String authUserConnectedAppDetailUrl(int connectedAppId) =>
       '/auth/user/connectedapps/$connectedAppId/';
 
+  static const authUserOAuthProvidersSyncUrl = '/auth/user/oauthproviders/sync/';
+
+  static String authUserOAuthProviderDetailUrl(String provider) =>
+      '/auth/user/oauthproviders/$provider/';
+
   // Token
   static const authTokenRefreshUrl = '/auth/token/refresh/';
   static const authTokenBlacklistUrl = '/auth/token/blacklist/';

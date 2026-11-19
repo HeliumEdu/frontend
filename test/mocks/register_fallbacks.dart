@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/request/change_password_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/delete_account_request_model.dart';
 import 'package:heliumapp/data/models/auth/request/forgot_password_request_model.dart';
@@ -38,6 +39,7 @@ void registerFallbackValues() {
   registerFallbackValue(_FakeDeleteAccountRequestModel());
   registerFallbackValue(_FakeUpdateSettingsRequestModel());
   registerFallbackValue(_FakeUserSettingsModel());
+  registerFallbackValue(OAuthProvider.google);
 
   // Planner request models
   registerFallbackValue(_FakeCourseGroupRequestModel());

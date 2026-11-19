@@ -122,6 +122,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> syncOAuthProviders(String firebaseIdToken) async {
+    return remoteDataSource.syncOAuthProviders(firebaseIdToken);
+  }
+
+  @override
+  Future<void> removeOAuthProvider(String provider) async {
+    return remoteDataSource.removeOAuthProvider(provider);
+  }
+
+  @override
   Future<NoContentResponseModel> forgotPassword(
     ForgotPasswordRequestModel request,
   ) async {
