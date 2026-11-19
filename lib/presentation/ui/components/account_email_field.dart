@@ -43,7 +43,7 @@ class AccountEmailField extends StatelessWidget {
         for (final name in oauthProviders)
           if (OAuthProvider.values.asNameMap()[name] case final provider?) ...[
             const SizedBox(width: 6),
-            OAuthProviderBadge(provider: provider),
+            _OAuthProviderBadge(provider: provider),
           ],
       ],
     );
@@ -64,12 +64,10 @@ class AccountEmailField extends StatelessWidget {
   }
 }
 
-/// The mini sign-in button for an OAuth [provider], shown as a badge: it
-/// takes no taps itself.
-class OAuthProviderBadge extends StatelessWidget {
+class _OAuthProviderBadge extends StatelessWidget {
   final OAuthProvider provider;
 
-  const OAuthProviderBadge({super.key, required this.provider});
+  const _OAuthProviderBadge({required this.provider});
 
   @override
   Widget build(BuildContext context) {

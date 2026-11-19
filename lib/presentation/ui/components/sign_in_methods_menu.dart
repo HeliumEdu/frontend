@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
-import 'package:heliumapp/presentation/ui/components/account_email_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -62,7 +62,7 @@ class _SignInMethodsMenuContent extends StatelessWidget {
     return HeliumMenuItemRow.label(
       label: Row(
         children: [
-          OAuthProviderBadge(provider: provider),
+          _buildProviderLogo(context, provider),
           const SizedBox(width: 12),
           Text(provider.label, style: AppStyles.standardBodyText(context)),
         ],
@@ -74,5 +74,26 @@ class _SignInMethodsMenuContent extends StatelessWidget {
         color: context.colorScheme.error,
       ),
     );
+  }
+
+  Widget _buildProviderLogo(BuildContext context, OAuthProvider provider) {
+    return switch (provider) {
+      OAuthProvider.google => Image.asset(
+        'assets/logos/google_light.png',
+        package: 'sign_in_button',
+        width: 20,
+        height: 20,
+      ),
+      OAuthProvider.apple => FaIcon(
+        FontAwesomeIcons.apple,
+        size: 20,
+        color: context.colorScheme.onSurface,
+      ),
+      OAuthProvider.microsoft => FaIcon(
+        FontAwesomeIcons.microsoft,
+        size: 20,
+        color: context.colorScheme.onSurface,
+      ),
+    };
   }
 }
