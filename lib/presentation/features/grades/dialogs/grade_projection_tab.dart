@@ -26,6 +26,7 @@ class GradeProjectionTab extends StatefulWidget {
   final List<HomeworkSeriesItemModel> ungradedAssignments;
   final double pointsEarned;
   final double pointsPossible;
+  final double currentOverallGrade;
   final Color courseColor;
   final UserSettingsModel userSettings;
   final GradeCalculatorMode mode;
@@ -37,6 +38,7 @@ class GradeProjectionTab extends StatefulWidget {
     required this.ungradedAssignments,
     required this.pointsEarned,
     required this.pointsPossible,
+    required this.currentOverallGrade,
     required this.courseColor,
     required this.userSettings,
     this.mode = GradeCalculatorMode.classGrade,
@@ -64,8 +66,10 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     for (final item in widget.ungradedAssignments) {
       final pp = item.pointsPossible ?? 0;
       if (pp <= 0) continue;
-      final category = _categoryFor(item.categoryId);
-      final grade = category?.overallGrade ?? 0;
+      final categoryAverage = _hasWeightedGrading
+          ? _categoryFor(item.categoryId)?.overallGrade ?? -1.0
+          : -1.0;
+      final grade = categoryAverage >= 0 ? categoryAverage : widget.currentOverallGrade;
       result[item.id] = grade >= 0 ? grade.clamp(0, 100) : 100.0;
     }
     return result;

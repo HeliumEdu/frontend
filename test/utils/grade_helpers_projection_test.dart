@@ -98,6 +98,8 @@ void main() {
             grade: 80.0,
             numHomework: 3,
             numHomeworkGraded: 2,
+            pointsEarned: 160,
+            pointsPossible: 200,
           ),
         ];
         final ungraded = [
@@ -115,9 +117,6 @@ void main() {
         );
 
         // THEN:
-        // avgPP = 100, totalGradedPossible = 2 * 100 = 200
-        // earnedFromGraded = 80/100 * 200 = 160
-        // earnedFromUngraded = 100/100 * 100 = 100
         // total = (160 + 100) / (200 + 100) * 100 = 260/300 * 100 ≈ 86.67
         expect(result, closeTo(86.67, 0.01));
       });

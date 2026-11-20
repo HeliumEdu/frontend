@@ -326,9 +326,9 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
     );
   }
 
-  /// Edge to edge on phones, with the safe-area inset as end padding so text
-  /// scrolls under the home indicator; elsewhere a box that runs to the bottom
-  /// of the window.
+  /// Edge to edge on phones; elsewhere a box that runs to the bottom of the
+  /// window, open over a home indicator. Either way the safe-area inset is end
+  /// padding, so text scrolls under the indicator.
   Widget _buildPage(BuildContext context, bool isCompact) {
     final outline = context.colorScheme.outline.withValues(alpha: 0.2);
     final radius = isCompact
@@ -337,9 +337,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
             topLeft: Radius.circular(8),
             topRight: Radius.circular(8),
           );
-    final bottomInset = isCompact
-        ? HeliumFullScreenScrollView.insetOf(context)
-        : 0.0;
+    final bottomInset = HeliumFullScreenScrollView.insetOf(context);
     final canSearch = !Responsive.isPhoneLandscape(context);
     final buttons = isCompact
         ? NotesEditor._pageCompactButtons
@@ -351,6 +349,12 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
           color: context.colorScheme.surface,
           border: isCompact
               ? Border(top: BorderSide(color: outline))
+              : bottomInset > 0
+              ? Border(
+                  top: BorderSide(color: outline),
+                  left: BorderSide(color: outline),
+                  right: BorderSide(color: outline),
+                )
               : Border.all(color: outline),
           borderRadius: isCompact ? null : radius,
         ),
@@ -394,8 +398,11 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                             AppConstants.unboxedContentInset,
                             12 + bottomInset,
                           )
-                        : const EdgeInsets.all(
+                        : EdgeInsets.fromLTRB(
                             AppConstants.containerContentInset,
+                            AppConstants.containerContentInset,
+                            AppConstants.containerContentInset,
+                            AppConstants.containerContentInset + bottomInset,
                           ),
                     autoFocus: false,
                     expands: true,
