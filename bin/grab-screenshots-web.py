@@ -170,8 +170,15 @@ class Browser:
         return Image.open(io.BytesIO(base64.b64decode(data)))
 
 
-def confirm_capture(slug):
+def wants_shot(slug):
     print()
+    if ask(f"  → Next: '{slug}'. Press Enter to open it, 's' to skip, 'q' to quit: ") == "s":
+        print("  ↷ skipped")
+        return False
+    return True
+
+
+def confirm_capture(slug):
     if slug in SETUP_NOTES:
         print(f"    {SETUP_NOTES[slug]}")
     reply = ask(f"  → Navigate to '{slug}'. Press Enter to capture, 's' to skip, 'q' to quit: ")
@@ -206,6 +213,8 @@ def center_crop(image, size):
 
 
 def capture_feature(browser, slug, route, width, crop_x, crop_y):
+    if not wants_shot(slug):
+        return
     size = (width, FEATURE_SIZE[1])
     browser.open(route, size, FEATURE_SCALE)
     if not confirm_capture(slug):
@@ -227,6 +236,8 @@ def frame_laptop(capture):
 
 
 def capture_press(browser, slug, route):
+    if not wants_shot(slug):
+        return
     browser.open(route, PRESS_SIZE, PRESS_SCALE)
     if not confirm_capture(slug):
         return
