@@ -229,7 +229,7 @@ class _NotificationsScreenState
             }
           } else if (state is RemindersFetched &&
               state.origin == EventOrigin.screen) {
-            _populateInitialStateData(state);
+            _populateScreenData(state);
           } else if (state is ReminderUpdated) {
             final reminder = state.reminder;
             final isActive =
@@ -378,7 +378,7 @@ class _NotificationsScreenState
     );
   }
 
-  void _populateInitialStateData(RemindersFetched state) {
+  void _populateScreenData(RemindersFetched state) {
     context.read<NotificationCountBloc>().add(
       SetActiveRemindersEvent(
         origin: EventOrigin.screen,

@@ -51,7 +51,7 @@ class _ExternalCalendarWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _populateInitialStateData(widget.externalCalendar!);
+      _populateScreenData(widget.externalCalendar!);
       isLoading = true;
       context.read<ExternalCalendarBloc>().add(
         FetchExternalCalendarsEvent(
@@ -67,7 +67,7 @@ class _ExternalCalendarWidgetState
     }
   }
 
-  void _populateInitialStateData(ExternalCalendarModel externalCalendar) {
+  void _populateScreenData(ExternalCalendarModel externalCalendar) {
     _formController.titleController.text = externalCalendar.title;
     _formController.urlController.text = externalCalendar.url.toString();
     _formController.selectedColor = externalCalendar.color;
@@ -77,7 +77,7 @@ class _ExternalCalendarWidgetState
 
   @override
   void applyLatest(ExternalCalendarModel latest) {
-    _populateInitialStateData(latest);
+    _populateScreenData(latest);
     _formController.isChanged = false;
     _formController.isUserDirty = false;
   }
@@ -109,7 +109,7 @@ class _ExternalCalendarWidgetState
               if (externalCalendar == null) {
                 errorMessage = 'External calendar not found.';
               }
-              _populateInitialStateData(
+              _populateScreenData(
                 externalCalendar ?? widget.externalCalendar!,
               );
               isLoading = false;

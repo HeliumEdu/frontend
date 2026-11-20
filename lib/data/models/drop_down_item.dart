@@ -4,6 +4,7 @@ import 'package:heliumapp/data/models/base_model.dart';
 class DropDownItem<T> extends BaseModel {
   final T? value;
   final String? _label;
+  final String? suffix;
   final IconData? iconData;
   final Color? iconColor;
   final bool isDivider;
@@ -12,6 +13,7 @@ class DropDownItem<T> extends BaseModel {
     required super.id,
     this.value,
     String? label,
+    this.suffix,
     this.iconData,
     this.iconColor,
     this.isDivider = false,

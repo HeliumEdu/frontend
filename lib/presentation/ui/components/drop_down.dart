@@ -29,6 +29,40 @@ class DropDown<T> extends StatelessWidget {
     this.helperText,
   });
 
+  Widget _buildItemRow(
+    BuildContext context,
+    DropDownItem<T> item,
+    Color iconColor,
+  ) {
+    final isDisabled = onChanged == null;
+    final ownIconColor = item.iconColor;
+    final itemIconColor = ownIconColor == null
+        ? iconColor
+        : isDisabled
+        ? ownIconColor.withValues(alpha: ownIconColor.a * 0.4)
+        : ownIconColor;
+    return Row(
+      children: [
+        if (item.iconData != null) ...[
+          Icon(item.iconData, color: itemIconColor),
+          const SizedBox(width: _iconTextSpacing),
+        ],
+        Flexible(
+          child: Text(
+            item.label,
+            style: isDisabled
+                ? AppStyles.formText(context).copyWith(
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                  )
+                : AppStyles.formText(context),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDisabled = onChanged == null;
@@ -54,6 +88,7 @@ class DropDown<T> extends StatelessWidget {
             child: DropdownButtonFormField<DropDownItem<T>>(
             initialValue: initialValue,
             decoration: AppStyles.formFieldDecoration(context).copyWith(
+              enabled: !isDisabled,
               prefixIcon: prefixIcon != null
                   ? Icon(prefixIcon, color: iconColor)
                   : null,
@@ -75,24 +110,28 @@ class DropDown<T> extends StatelessWidget {
                   child: const Divider()
                 );
               }
+              final suffix = item.suffix;
               return DropdownMenuItem<DropDownItem<T>>(
                 value: item,
-                child: Row(
-                  children: [
-                    if (item.iconData != null) ...[
-                      Icon(item.iconData, color: item.iconColor ?? iconColor),
-                      const SizedBox(width: _iconTextSpacing),
-                    ],
-                    Flexible(
-                      child: Text(
-                        item.label,
-                        style: AppStyles.formText(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                child: suffix == null
+                    ? _buildItemRow(context, item, iconColor)
+                    : Row(
+                        children: [
+                          Expanded(child: _buildItemRow(context, item, iconColor)),
+                          const SizedBox(width: _iconTextSpacing),
+                          Text(
+                            suffix,
+                            style: AppStyles.formText(context).copyWith(
+                              color: context.colorScheme.onSurface.withValues(
+                                alpha: isDisabled
+                                    ? 0.38
+                                    : AppStyles.increasedContrastAlpha(AppStyles.mutedTextAlpha),
+                              ),
+                            ),
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               );
             }).toList(),
             onChanged: onChanged,

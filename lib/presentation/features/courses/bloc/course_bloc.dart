@@ -50,6 +50,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
     on<UpdateCourseScheduleExceptionsEvent>(_onUpdateCourseScheduleExceptions);
     on<FetchHasCourseSchedulesEvent>(_onFetchHasCourseSchedules);
     on<FetchCourseSchedulesEvent>(_onFetchCourseSchedules);
+    on<FetchCourseScheduleScreenDataEvent>(_onFetchCourseScheduleScreenData);
     on<CreateCourseScheduleEvent>(_onCreateCourseSchedule);
     on<DeleteCourseScheduleEvent>(_onDeleteCourseSchedule);
     on<ResetCoursesEvent>(
@@ -209,6 +210,45 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
             forceRefresh: event.forceRefresh,
           );
       emit(CourseSchedulesFetched(origin: event.origin, schedules: schedules));
+    } on HeliumException catch (e) {
+      emit(CoursesError(origin: event.origin, message: e.message));
+    } catch (e) {
+      emit(
+        CoursesError(
+          origin: event.origin,
+          message: HeliumException.unexpectedError,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onFetchCourseScheduleScreenData(
+    FetchCourseScheduleScreenDataEvent event,
+    Emitter<CourseState> emit,
+  ) async {
+    emit(CoursesLoading(origin: event.origin));
+    try {
+      final results = await Future.wait([
+        courseRepository.getCourseGroup(event.courseGroupId),
+        courseRepository.getCourse(
+          event.courseGroupId,
+          event.courseId,
+          forceRefresh: event.forceRefresh,
+        ),
+        courseScheduleRepository.getCourseSchedulesForCourse(
+          event.courseGroupId,
+          event.courseId,
+          forceRefresh: event.forceRefresh,
+        ),
+      ]);
+      emit(
+        CourseScheduleScreenDataFetched(
+          origin: event.origin,
+          courseGroup: results[0] as CourseGroupModel,
+          course: results[1] as CourseModel,
+          schedules: results[2] as List<CourseScheduleModel>,
+        ),
+      );
     } on HeliumException catch (e) {
       emit(CoursesError(origin: event.origin, message: e.message));
     } catch (e) {

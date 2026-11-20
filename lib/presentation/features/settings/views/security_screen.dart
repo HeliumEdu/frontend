@@ -84,7 +84,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ),
           ),
           Expanded(
-            child: _buildCards(),
+            child: _buildBody(),
           ),
         ],
       ),
@@ -142,6 +142,20 @@ class _SecurityScreenState extends State<SecurityScreen> {
       setState(() => _revokingConnectedAppIds.clear());
       SnackBarHelper.show(context, state.message!, type: SnackType.error);
     }
+  }
+
+  Widget _buildBody() {
+    if (_error != null) {
+      return ErrorCard(
+        message: _error!,
+        source: 'security_screen',
+        onReload: _fetchScreenData,
+      );
+    }
+    if (!_connectedAppsLoaded) {
+      return const LoadingIndicator();
+    }
+    return _buildCards();
   }
 
   Widget _buildCards() {
@@ -406,28 +420,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
         onPressed: () =>
             UrlHelpers.launchWebUrl(AppConstants.supportConnectedAppsUrl),
       ),
-      body: BlocBuilder<ConnectedAppBloc, ConnectedAppState>(
-        builder: _buildConnectedAppsBody,
-      ),
+      body: _buildConnectedAppsBody(),
     );
   }
 
-  Widget _buildConnectedAppsBody(
-    BuildContext context,
-    ConnectedAppState state,
-  ) {
-    if (_error != null) {
-      return ErrorCard(
-        message: _error!,
-        source: 'security_screen',
-        expanded: false,
-        onReload: _fetchScreenData,
-      );
-    }
-    if (!_connectedAppsLoaded) {
-      return const LoadingIndicator(expanded: false);
-    }
-
+  Widget _buildConnectedAppsBody() {
     if (_connectedApps.isEmpty) {
       return Text(
         'No apps are connected.',

@@ -31,6 +31,19 @@ class GradeScaleField extends StatelessWidget {
     this.hint,
   });
 
+  static DropDownItem<int> option({
+    required int id,
+    required String label,
+    required List<GradeScaleBandModel> bands,
+  }) {
+    return DropDownItem(
+      id: id,
+      value: id,
+      label: label,
+      suffix: GradeHelper.gradeScaleSummary(bands),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DropDown<int>(

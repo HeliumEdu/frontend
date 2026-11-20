@@ -66,7 +66,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
     final courseGroup = widget.courseGroups
         .where((group) => group.courses.any((c) => c.id == widget.course.id))
         .firstOrNull;
-    _gpa = courseGroup == null || _gpaUnavailableReason != null
+    _gpa = courseGroup == null ||
+            widget.course.gradeScale.isEmpty ||
+            _missingCreditsHint != null
         ? null
         : GradeCalculatorGpa.of(
             widget.course,
@@ -79,15 +81,8 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
     _logScreenView();
   }
 
-  String? get _gpaUnavailableReason {
-    if (widget.course.gradeScale.isEmpty) {
-      return 'Set a grade scale on the group to use GPA.';
-    }
-    if (widget.course.credits <= 0) {
-      return 'Add credits to this class to use GPA.';
-    }
-    return null;
-  }
+  String? get _missingCreditsHint =>
+      widget.course.credits <= 0 ? 'Add credits to this class to use GPA.' : null;
 
   @override
   void dispose() {
@@ -219,7 +214,6 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
 
   Widget _buildCourseHeader(BuildContext context) {
     final course = widget.course;
-    final unavailableReason = _gpaUnavailableReason;
     final modes = [
       DropDownItem(
         id: GradeCalculatorMode.classGrade.index,
@@ -250,15 +244,17 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        DropDown<GradeCalculatorMode>(
-          key: ValueKey(_mode),
-          label: 'Calculate for',
-          initialValue: modes[_mode.index],
-          items: modes,
-          onChanged: _gpa == null ? null : _onModeChanged,
-          helperText: unavailableReason,
-        ),
+        if (course.gradeScale.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          DropDown<GradeCalculatorMode>(
+            key: ValueKey(_mode),
+            label: 'Calculate for',
+            initialValue: modes[_mode.index],
+            items: modes,
+            onChanged: _gpa == null ? null : _onModeChanged,
+            helperText: _missingCreditsHint,
+          ),
+        ],
       ],
     );
   }

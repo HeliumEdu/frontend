@@ -294,6 +294,13 @@ class GradeHelper {
   static String minGradeForDisplay(double minGrade) =>
       '${HeliumNumber.formatPercent(minGrade, trimZeros: true)}+';
 
+  /// The letter range of a grade scale's bands (ordered lowest first), like
+  /// "A+ to F", or null for a scale without letters.
+  static String? gradeScaleSummary(List<GradeScaleBandModel> bands) {
+    if (bands.isEmpty || bands.last.label.isEmpty) return null;
+    return '${bands.last.label} to ${bands.first.label}';
+  }
+
   /// Formats a percentage value for display (e.g., category weights)
   /// Optionally shows 'N/A' for zero values
   static String percentForDisplay(String value, bool? zeroAsNa) {

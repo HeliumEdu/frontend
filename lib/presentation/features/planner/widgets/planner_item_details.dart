@@ -123,6 +123,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   List<CourseScheduleModel> _courseSchedules = [];
   List<CategoryModel> _categories = [];
   List<DropDownItem<CategoryModel>> _categoryItems = [];
+  Set<int> _weightedCourseIds = {};
   List<ResourceModel> _resources = [];
   String? _preferredCategoryName;
   List<String> _preferredResourceNames = [];
@@ -210,7 +211,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       listener: (context, state) {
         if (state is PlannerItemScreenDataFetched &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
-          _populateInitialStateData(state);
+          _populateScreenData(state);
         } else if (state is PlannerItemScreenDataFailed &&
             isLoading &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
@@ -592,6 +593,16 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     );
   }
 
+  bool get _showsGradeField {
+    final category = _categories.firstWhereOrNull(
+      (c) => c.id == formController.selectedCategory,
+    );
+    final isNotGraded = category != null &&
+        category.weight <= 0 &&
+        _weightedCourseIds.contains(category.course);
+    return formController.isCompleted && !isNotGraded;
+  }
+
   Widget _buildCompletionSection(BuildContext context) {
     return Column(
       children: [
@@ -617,7 +628,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              if (formController.isCompleted) ...[
+              if (_showsGradeField) ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: LabelAndTextFormField(
@@ -882,7 +893,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     CourseModel selectedCourse,
   ) {
     String? gradeValue;
-    if (formController.isCompleted) {
+    if (_showsGradeField) {
       final gradeText = GradeHelper.normalizeFraction(formController.gradeController.text);
       gradeValue = gradeText.isEmpty ? '-1/100' : gradeText;
     } else if (!widget.isEdit) {
@@ -967,7 +978,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     _recurrence = _originalRecurrence;
   }
 
-  Future<void> _populateInitialStateData(
+  Future<void> _populateScreenData(
     PlannerItemScreenDataFetched state,
   ) async {
     setState(() {
@@ -1007,7 +1018,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       }
       _courseSchedules = state.courseSchedules;
       _categories = state.categories;
-      final weightedCourseIds = _categories
+      _weightedCourseIds = _categories
           .where((c) => c.weight > 0)
           .map((c) => c.course)
           .toSet();
@@ -1016,7 +1027,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
             (c) => DropDownItem(
               id: c.id,
               value: c,
-              label: weightedCourseIds.contains(c.course)
+              label: _weightedCourseIds.contains(c.course)
                   ? (c.weight > 0
                       ? '${c.title} (${HeliumNumber.formatPercent(c.weight, fractionDigits: 0)})'
                       : '${c.title} (Not Graded)')

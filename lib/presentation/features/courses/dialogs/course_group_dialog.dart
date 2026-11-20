@@ -59,7 +59,7 @@ class _CourseGroupWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _populateInitialStateData(widget.group!);
+      _populateScreenData(widget.group!);
       isLoading = true;
       context.read<CourseBloc>().add(
         FetchCoursesScreenDataEvent(
@@ -93,7 +93,7 @@ class _CourseGroupWidgetState
         : group.gradeScale;
   }
 
-  void _populateInitialStateData(CourseGroupModel group) {
+  void _populateScreenData(CourseGroupModel group) {
     _formController.titleController.text = group.title;
     _formController.startDate = group.startDate;
     _formController.endDate = group.endDate;
@@ -105,7 +105,7 @@ class _CourseGroupWidgetState
 
   @override
   void applyLatest(CourseGroupModel latest) {
-    _populateInitialStateData(latest);
+    _populateScreenData(latest);
     _formController.isChanged = false;
     _formController.isUserDirty = false;
   }
@@ -135,7 +135,7 @@ class _CourseGroupWidgetState
                 .firstWhereOrNull((g) => g.id == widget.group!.id);
             setState(() {
               if (group == null) errorMessage = 'Group not found.';
-              _populateInitialStateData(group ?? widget.group!);
+              _populateScreenData(group ?? widget.group!);
               isLoading = false;
             });
           } else if (state is CourseGroupConflict) {
@@ -265,9 +265,19 @@ class _CourseGroupWidgetState
     final selected = _formController.gradeScaleTemplate;
     return GradeScaleField(
       items: [
-        ...GradeScaleTemplate.items,
+        for (final MapEntry(key: preset, value: label)
+            in GradeScaleTemplate.labels.entries)
+          GradeScaleField.option(
+            id: preset,
+            label: label,
+            bands: GradeScaleTemplate.scales[preset]!,
+          ),
         if (_formController.customGradeScale.isNotEmpty)
-          GradeScaleTemplate.customItem,
+          GradeScaleField.option(
+            id: GradeScaleTemplate.custom,
+            label: GradeScaleTemplate.summaryLabel(GradeScaleTemplate.custom),
+            bands: _formController.customGradeScale,
+          ),
       ],
       selected: selected,
       bands: selected == GradeScaleTemplate.custom

@@ -48,7 +48,7 @@ class _ResourceGroupWidgetState
     super.initState();
 
     if (widget.isEdit) {
-      _populateInitialStateData(widget.group!);
+      _populateScreenData(widget.group!);
       isLoading = true;
       context.read<ResourceBloc>().add(
         FetchResourcesScreenDataEvent(
@@ -64,7 +64,7 @@ class _ResourceGroupWidgetState
     }
   }
 
-  void _populateInitialStateData(ResourceGroupModel group) {
+  void _populateScreenData(ResourceGroupModel group) {
     _formController.titleController.text = group.title;
     _formController.shownOnCalendar = group.shownOnCalendar!;
     trackVersion(group);
@@ -72,7 +72,7 @@ class _ResourceGroupWidgetState
 
   @override
   void applyLatest(ResourceGroupModel latest) {
-    _populateInitialStateData(latest);
+    _populateScreenData(latest);
     _formController.isChanged = false;
     _formController.isUserDirty = false;
   }
@@ -101,7 +101,7 @@ class _ResourceGroupWidgetState
                 .firstWhereOrNull((g) => g.id == widget.group!.id);
             setState(() {
               if (group == null) errorMessage = 'Group not found.';
-              _populateInitialStateData(group ?? widget.group!);
+              _populateScreenData(group ?? widget.group!);
               isLoading = false;
             });
           } else if (state is ResourceGroupConflict) {

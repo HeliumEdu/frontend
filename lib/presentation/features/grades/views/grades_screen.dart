@@ -151,7 +151,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             });
           } else if (state is GradeScreenDataFetched) {
             setState(() => screenError = null);
-            _populateInitialStateData(state);
+            _populateScreenData(state);
           }
         },
       ),
@@ -234,7 +234,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     );
   }
 
-  void _populateInitialStateData(GradeScreenDataFetched state) {
+  void _populateScreenData(GradeScreenDataFetched state) {
     setState(() {
       _courseGroups = state.courseGroups;
       _grades = state.grades;

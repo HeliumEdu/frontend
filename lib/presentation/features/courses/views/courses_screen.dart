@@ -170,7 +170,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           if (state is CoursesError && state.origin == EventOrigin.screen) {
             setState(() { isLoading = false; screenError = state.message; });
           } else if (state is CoursesScreenDataFetched) {
-            _populateInitialStateData(state);
+            _populateScreenData(state);
           } else if (state is CourseGroupCreated) {
             showSnackBar(context, 'Group created.');
 
@@ -507,7 +507,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
     );
   }
 
-  void _populateInitialStateData(CoursesScreenDataFetched state) {
+  void _populateScreenData(CoursesScreenDataFetched state) {
     setState(() {
       _courseGroups = state.courseGroups;
       Sort.byStartDate(_courseGroups);

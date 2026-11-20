@@ -186,6 +186,19 @@ class CourseSchedulesFetched extends CourseState {
   CourseSchedulesFetched({required super.origin, required this.schedules});
 }
 
+class CourseScheduleScreenDataFetched extends CourseState {
+  final CourseGroupModel courseGroup;
+  final CourseModel course;
+  final List<CourseScheduleModel> schedules;
+
+  CourseScheduleScreenDataFetched({
+    required super.origin,
+    required this.courseGroup,
+    required this.course,
+    required this.schedules,
+  });
+}
+
 class CourseScheduleCreated extends CourseState {
   final CourseScheduleModel schedule;
 

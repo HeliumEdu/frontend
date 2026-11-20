@@ -95,12 +95,14 @@ void main() {
       expect(find.text('Term GPA'), findsNothing, reason: 'the disabled drop-down does not open');
     });
 
-    testWidgets('disables Term GPA and says why when the group has no grade scale', (tester) async {
+    testWidgets('hides the Calculate for drop-down when the group has no grade scale', (tester) async {
       // GIVEN
       await pumpContainer(tester, givenCourse(withScale: false));
 
       // THEN
-      expect(find.text('Set a grade scale on the group to use GPA.'), findsOneWidget);
+      expect(find.text('Calculate for'), findsNothing,
+          reason: 'with no grade scale there is no GPA to calculate, as on the Grades page');
+      expect(find.text('Class grade'), findsNothing);
     });
   });
 }

@@ -23,16 +23,21 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
   ) async {
     emit(AttachmentsLoading());
     try {
-      final attachments = await attachmentRepository.getAttachments(
-        eventId: event.eventId,
-        homeworkId: event.homeworkId,
-        courseId: event.courseId,
-        resourceId: event.resourceId,
-        forceRefresh: event.forceRefresh,
-      );
+      final results = await Future.wait([
+        attachmentRepository.getAttachments(
+          eventId: event.eventId,
+          homeworkId: event.homeworkId,
+          courseId: event.courseId,
+          resourceId: event.resourceId,
+          forceRefresh: event.forceRefresh,
+        ),
+        if (event.includeAll)
+          attachmentRepository.getAttachments(forceRefresh: event.forceRefresh),
+      ]);
       emit(
         AttachmentsFetched(
-          attachments: attachments,
+          attachments: results[0],
+          allAttachments: event.includeAll ? results[1] : null,
           eventId: event.eventId,
           homeworkId: event.homeworkId,
           courseId: event.courseId,
