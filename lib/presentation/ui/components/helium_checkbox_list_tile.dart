@@ -53,6 +53,11 @@ class HeliumCheckboxListTile extends StatelessWidget {
     this.autofocus = false,
   });
 
+  Widget? _dimmedWhenDisabled(Widget? child) =>
+      child == null || (onChanged != null && enabled != false)
+      ? child
+      : Opacity(opacity: 0.38, child: child);
+
   @override
   Widget build(BuildContext context) {
     return CheckboxListTile(
@@ -63,8 +68,8 @@ class HeliumCheckboxListTile extends StatelessWidget {
               Feedback.forTap(context);
               onChanged!(newValue);
             },
-      title: title,
-      subtitle: subtitle,
+      title: _dimmedWhenDisabled(title),
+      subtitle: _dimmedWhenDisabled(subtitle),
       secondary: secondary,
       controlAffinity: controlAffinity,
       contentPadding: contentPadding,

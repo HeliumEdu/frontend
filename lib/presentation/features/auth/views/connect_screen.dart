@@ -243,11 +243,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
       const SizedBox(height: 12),
 
-      for (final scope in [
-        ...authorization.scopes.where((s) => s.required),
-        ...authorization.scopes.where((s) => !s.required),
-      ])
-        _buildScope(context, scope),
+      for (final scope in authorization.scopes) _buildScope(context, scope),
 
       const SizedBox(height: 25),
 

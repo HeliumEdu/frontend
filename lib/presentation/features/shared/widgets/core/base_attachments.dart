@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logging/logging.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
@@ -28,8 +27,6 @@ import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:meta/meta.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart'
     show SnackBarHelper, SnackType;
-
-final _log = Logger('presentation.widgets');
 
 abstract class BaseAttachments extends StatelessWidget {
   final int entityId;
@@ -129,7 +126,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     if (widget.isEdit &&
         oldWidget.pulledThroughGroupsFrom == null &&
         widget.pulledThroughGroupsFrom != null) {
-      _loadPulledThroughGroups();
+      _fetchScreenData();
     }
   }
 
@@ -143,25 +140,10 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       isLoading = true;
       _error = null;
     });
-    final fetch = createFetchAttachmentsEvent(forceRefresh: true);
+    final fetch = createFetchAttachmentsEvent(forceRefresh: true)
+      ..includeAll = widget.pulledThroughGroupsFrom != null;
     _pendingFetch = fetch;
     context.read<AttachmentBloc>().add(fetch);
-    _loadPulledThroughGroups();
-  }
-
-  Future<void> _loadPulledThroughGroups() async {
-    final groupsFrom = widget.pulledThroughGroupsFrom;
-    if (groupsFrom == null) return;
-    final repository = context.read<AttachmentBloc>().attachmentRepository;
-    try {
-      final all = await repository.getAttachments(forceRefresh: true);
-      if (!mounted) return;
-      setState(() => _pulledThroughGroups = groupsFrom(all));
-    } on HeliumException catch (e) {
-      _log.warning('Failed to load pulled-through attachments: ${e.code}');
-    } catch (e) {
-      _log.warning('Failed to load pulled-through attachments: ${e.runtimeType}');
-    }
   }
 
   bool _isOwnFetch(AttachmentsFetchIdentity state) => state.matches(
@@ -189,9 +171,14 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             SnackBarHelper.show(context, state.message!, type: SnackType.error, seconds: 4);
           }
         } else if (state is AttachmentsFetched && _isOwnFetch(state)) {
+          final groupsFrom = widget.pulledThroughGroupsFrom;
+          final all = state.allAttachments;
           setState(() {
             attachments = state.attachments;
             Sort.byTitle(attachments);
+            if (groupsFrom != null && all != null) {
+              _pulledThroughGroups = groupsFrom(all);
+            }
             isLoading = false;
             _initialFetchComplete = true;
             _error = null;

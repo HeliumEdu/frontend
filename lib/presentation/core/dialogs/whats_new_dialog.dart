@@ -99,9 +99,9 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     _buildFeatureItem(
                       context,
                       icon: Icons.calculate,
-                      title: 'GPA Tracking',
+                      title: 'Letter Grades & GPA',
                       description:
-                          'Add credits to your classes and pick your school\'s grade scale, then watch your GPA update with every grade',
+                          'Pick your school\'s grade scale to see letter grades, then add credits to your classes to track your GPA',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(

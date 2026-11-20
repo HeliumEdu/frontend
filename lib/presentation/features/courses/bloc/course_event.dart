@@ -38,6 +38,19 @@ class FetchCourseScreenDataEvent extends CourseEvent {
   });
 }
 
+class FetchCourseScheduleScreenDataEvent extends CourseEvent {
+  final int courseGroupId;
+  final int courseId;
+  final bool forceRefresh;
+
+  FetchCourseScheduleScreenDataEvent({
+    required super.origin,
+    required this.courseGroupId,
+    required this.courseId,
+    this.forceRefresh = false,
+  });
+}
+
 class CreateCourseGroupEvent extends CourseEvent {
   final CourseGroupRequestModel request;
 

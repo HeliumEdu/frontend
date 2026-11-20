@@ -66,20 +66,21 @@ class SelectField<T extends BaseTitledModel> extends StatelessWidget {
           const SizedBox(height: 2),
           Align(
             alignment: Alignment.centerLeft,
-            child: AbsorbPointer(
-              absorbing: !enabled,
-              child: Opacity(
-                opacity: enabled ? 1 : 0.5,
-                child: Builder(
-                  builder: (buttonContext) => TextButton.icon(
-                    onPressed: () => _openSelectMenu(buttonContext),
-                    icon: Icon(Icons.add, color: context.colorScheme.primary),
-                    label: Text(
-                      buttonLabel,
-                      style: AppStyles.formLabel(
-                        context,
-                      ).copyWith(color: context.colorScheme.primary),
-                    ),
+            child: Builder(
+              builder: (buttonContext) => TextButton.icon(
+                onPressed: enabled ? () => _openSelectMenu(buttonContext) : null,
+                icon: Icon(
+                  Icons.add,
+                  color: enabled
+                      ? context.colorScheme.primary
+                      : context.colorScheme.primary.withValues(alpha: 0.4),
+                ),
+                label: Text(
+                  buttonLabel,
+                  style: AppStyles.formLabel(context).copyWith(
+                    color: enabled
+                        ? context.colorScheme.primary
+                        : context.colorScheme.onSurface.withValues(alpha: 0.38),
                   ),
                 ),
               ),

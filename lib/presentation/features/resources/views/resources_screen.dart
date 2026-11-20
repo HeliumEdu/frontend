@@ -193,7 +193,7 @@ class _ResourcesScreenState
           if (state is ResourcesError && state.origin == EventOrigin.screen) {
             setState(() { isLoading = false; screenError = state.message; });
           } else if (state is ResourcesScreenDataFetched) {
-            _populateInitialStateData(state);
+            _populateScreenData(state);
           } else if (state is ResourceGroupCreated) {
             showSnackBar(context, 'Group created.');
 
@@ -462,7 +462,7 @@ class _ResourcesScreenState
     }
   }
 
-  void _populateInitialStateData(ResourcesScreenDataFetched state) {
+  void _populateScreenData(ResourcesScreenDataFetched state) {
     setState(() {
       _resourceGroups = state.resourceGroups;
       Sort.byTitle(_resourceGroups);

@@ -109,7 +109,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   void initState() {
     super.initState();
 
-    _populateInitialStateData(widget.user);
+    _populateScreenData(widget.user);
     context.read<CourseBloc>().add(
       FetchHasCourseSchedulesEvent(origin: EventOrigin.subScreen),
     );
@@ -422,7 +422,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               ),
             ),
             Text(
-              'Credits on your transcript from before you started using Helium, counted in your All GPA',
+              'Credits from before you started using Helium, counted in your All GPA',
               style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),
@@ -444,7 +444,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               ),
             ),
             Text(
-              'Your GPA over those prior credits, from your transcript',
+              'Your GPA over those prior credits',
               style: AppStyles.smallSecondaryText(context),
             ),
             const SizedBox(height: 8),
@@ -710,7 +710,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     );
   }
 
-  void _populateInitialStateData(UserModel user) {
+  void _populateScreenData(UserModel user) {
     final settings = user.settings;
     _selectedDefaultView = CalendarConstants.defaultViews[PlannerHelper.mapHeliumViewToApiView(
       PlannerHelper.mapApiViewToHeliumView(settings.defaultView),

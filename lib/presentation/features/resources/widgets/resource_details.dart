@@ -144,7 +144,7 @@ class ResourceDetailsState extends State<ResourceDetails>
               resourceGroupId: widget.resourceGroupId,
               resourceId: widget.resourceId,
             )) {
-          _populateInitialStateData(state);
+          _populateScreenData(state);
         } else if (state is ResourceScreenDataFailed &&
             isLoading &&
             state.matches(
@@ -388,7 +388,7 @@ class ResourceDetailsState extends State<ResourceDetails>
     }
   }
 
-  void _populateInitialStateData(ResourceScreenDataFetched state) {
+  void _populateScreenData(ResourceScreenDataFetched state) {
     _courses = state.courses;
     Sort.byTitle(_courses);
 

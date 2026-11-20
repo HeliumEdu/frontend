@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
@@ -150,7 +149,7 @@ class CourseDetailsState extends State<CourseDetails>
               courseGroupId: widget.courseGroupId,
               courseId: widget.courseId,
             )) {
-          _populateInitialStateData(state);
+          _populateScreenData(state);
         } else if (state is CourseScreenDataFailed &&
             isLoading &&
             state.matches(
@@ -339,7 +338,8 @@ class CourseDetailsState extends State<CourseDetails>
                       ],
                     ),
                   ),
-                  if (_courseGroup case final group?) ...[
+                  if (_courseGroup case final group?
+                      when group.gradeScale.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     _buildGradeScaleField(group),
                   ],
@@ -398,16 +398,16 @@ class CourseDetailsState extends State<CourseDetails>
     ];
     return GradeScaleField(
       items: [
-        DropDownItem(
+        GradeScaleField.option(
           id: _sameAsGroup,
-          value: _sameAsGroup,
           label: 'Same as group ($groupLabel)',
+          bands: group.gradeScale,
         ),
         for (final preset in presets)
-          DropDownItem(
+          GradeScaleField.option(
             id: preset,
-            value: preset,
-            label: GradeScaleTemplate.labels[preset],
+            label: GradeScaleTemplate.labels[preset]!,
+            bands: GradeScaleTemplate.scales[preset]!,
           ),
       ],
       selected: template ?? _sameAsGroup,
@@ -428,9 +428,6 @@ class CourseDetailsState extends State<CourseDetails>
     String groupLabel,
     List<int> presets,
   ) {
-    if (group.gradeScale.isEmpty) {
-      return 'Set a grade scale on the group to choose one for this class.';
-    }
     if (presets.isEmpty) {
       final scale = group.gradeScaleTemplate == null
           ? 'This custom scale'
@@ -518,7 +515,7 @@ class CourseDetailsState extends State<CourseDetails>
     }
   }
 
-  void _populateInitialStateData(CourseScreenDataFetched state) {
+  void _populateScreenData(CourseScreenDataFetched state) {
     setState(() {
       _courseGroup = state.courseGroup;
 

@@ -2,6 +2,7 @@ A smarter way to organize your academic life.
 
 - Smart calendars
 - Live grade tracker & calculator
+- Letter grades & GPA
 - Rich notebook
 - At-a-glance schedules
 - Todos view

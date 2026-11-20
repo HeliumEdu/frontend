@@ -21,15 +21,6 @@ void main() {
       }
     });
 
-    test('offers every preset but not Custom', () {
-      // WHEN
-      final ids = GradeScaleTemplate.items.map((item) => item.id).toList();
-
-      // THEN
-      expect(ids, GradeScaleTemplate.labels.keys.toList());
-      expect(ids, isNot(contains(GradeScaleTemplate.custom)));
-    });
-
     test('summarizes a scale by its preset, or as Custom', () {
       // WHEN/THEN
       for (final MapEntry(key: template, value: label) in GradeScaleTemplate.labels.entries) {

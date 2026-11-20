@@ -60,7 +60,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     return BlocListener<ExternalCalendarBloc, ExternalCalendarState>(
       listener: (context, state) {
         if (state is ExternalCalendarsFetched) {
-          _populateInitialStateData(state);
+          _populateScreenData(state);
         } else if (state is ExternalCalendarCreated) {
           SnackBarHelper.show(context, 'External calendar created.');
           setState(() {
@@ -177,7 +177,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
     );
   }
 
-  void _populateInitialStateData(ExternalCalendarsFetched state) {
+  void _populateScreenData(ExternalCalendarsFetched state) {
     setState(() {
       _externalCalendars = state.externalCalendars;
       Sort.byTitle(_externalCalendars);

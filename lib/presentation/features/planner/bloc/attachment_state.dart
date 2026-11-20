@@ -54,6 +54,7 @@ class AttachmentsFetchFailed extends AttachmentsError
 
 class AttachmentsFetched extends AttachmentState with AttachmentsFetchIdentity {
   final List<AttachmentModel> attachments;
+  final List<AttachmentModel>? allAttachments;
   @override
   final int? eventId;
   @override
@@ -65,6 +66,7 @@ class AttachmentsFetched extends AttachmentState with AttachmentsFetchIdentity {
 
   AttachmentsFetched({
     required this.attachments,
+    this.allAttachments,
     this.eventId,
     this.homeworkId,
     this.courseId,

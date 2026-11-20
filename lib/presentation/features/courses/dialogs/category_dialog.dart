@@ -52,7 +52,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
     super.initState();
 
     if (widget.isEdit) {
-      _populateInitialStateData(widget.category!);
+      _populateScreenData(widget.category!);
       isLoading = true;
       context.read<CategoryBloc>().add(
         FetchCategoriesEvent(
@@ -70,7 +70,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
     }
   }
 
-  void _populateInitialStateData(CategoryModel category) {
+  void _populateScreenData(CategoryModel category) {
     _formController.titleController.text = category.title;
     _formController.weightController.text = category.weight == 0
         ? ''
@@ -81,7 +81,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
 
   @override
   void applyLatest(CategoryModel latest) {
-    _populateInitialStateData(latest);
+    _populateScreenData(latest);
     _formController.isChanged = false;
     _formController.isUserDirty = false;
   }
@@ -110,7 +110,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
                 .firstWhereOrNull((c) => c.id == widget.category!.id);
             setState(() {
               if (category == null) errorMessage = 'Category not found.';
-              _populateInitialStateData(category ?? widget.category!);
+              _populateScreenData(category ?? widget.category!);
               isLoading = false;
             });
           } else if (state is CategoryConflict) {

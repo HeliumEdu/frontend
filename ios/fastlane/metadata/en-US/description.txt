@@ -2,7 +2,7 @@ SMART CALENDARS
 Color-code classes, assignments, and personal events across month, week, 3-day, day, and agenda views — and toggle between Light and Dark mode. Pull in Google, Apple, or any iCal calendar, or push Helium back out.
 
 LIVE GRADE TRACKER & CALCULATOR
-Helium recalculates your grades in real time — by class, by category, and across the term. The dashboard surfaces your overall grade and GPA, At-Risk Classes, Progress vs. Pace, and Pending Impact at a glance. Ask "What Could I Get?" to project your final grade from how the rest of the term goes, or "What Do I Need?" to find out exactly what you need on the Final. Switch to "Term GPA" to see how a class moves your GPA, or what it takes to reach the GPA you want.
+Helium recalculates your grades in real time — by class, by category, and across the term. Pick your school's grade scale to see letter grades for your classes, and add credits to track your GPA. The dashboard surfaces your overall grade and GPA, At-Risk Classes, Progress vs. Pace, and Pending Impact at a glance. Ask "What Could I Get?" to project your final grade from how the rest of the term goes, or "What Do I Need?" to find out exactly what you need on the Final. Switch to "Term GPA" to see how a class moves your GPA, or what it takes to reach the GPA you want.
 
 RICH NOTEBOOK
 Write rich notes, linked directly to items in your Planner, so the context you need is always right where you need it. Or keep standalone notes for anything else, from lecture summaries to paper drafts. Format like a doc, search across everything, print when you need a hard copy.

@@ -2,7 +2,6 @@
 // Written from platform/helium/common/enums.py by:
 //   platform/bin/sync-shared-constants.py
 
-import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 
 class GradeScaleTemplate {
@@ -13,7 +12,7 @@ class GradeScaleTemplate {
   static const int custom = -1;
 
   static const Map<int, String> labels = {
-    0: 'None',
+    0: 'Percentages only',
     1: '4.0',
     2: '4.0 with +/-',
     3: '4.33 with +/-',
@@ -135,12 +134,4 @@ class GradeScaleTemplate {
 
   static String summaryLabel(int template) =>
       template == custom ? 'Custom' : labels[template]!;
-
-  static List<DropDownItem<int>> get items => [
-    for (final entry in labels.entries)
-      DropDownItem(id: entry.key, value: entry.key, label: entry.value),
-  ];
-
-  static DropDownItem<int> get customItem =>
-      DropDownItem(id: custom, value: custom, label: 'Custom');
 }

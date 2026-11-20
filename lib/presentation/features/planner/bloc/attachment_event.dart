@@ -12,6 +12,7 @@ class FetchAttachmentsEvent extends AttachmentEvent {
   int? courseId;
   int? resourceId;
   bool forceRefresh;
+  bool includeAll;
 
   FetchAttachmentsEvent({
     this.eventId,
@@ -19,6 +20,7 @@ class FetchAttachmentsEvent extends AttachmentEvent {
     this.courseId,
     this.resourceId,
     this.forceRefresh = false,
+    this.includeAll = false,
   });
 }
 

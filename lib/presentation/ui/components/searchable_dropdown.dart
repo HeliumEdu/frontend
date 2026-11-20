@@ -212,7 +212,11 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       mouseCursor: isDisabled
                           ? SystemMouseCursors.basic
                           : SystemMouseCursors.click,
-                      style: AppStyles.formText(context),
+                      style: isDisabled
+                          ? AppStyles.formText(context).copyWith(
+                              color: context.colorScheme.onSurface.withValues(alpha: 0.38),
+                            )
+                          : AppStyles.formText(context),
                       onFieldSubmitted: (_) => _commitSingleMatchOrRevert(),
                       onTapOutside: (_) => focusNode.unfocus(),
                       decoration: AppStyles.formFieldDecoration(context).copyWith(

@@ -150,7 +150,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
 
   void _loadSchedule(CourseScheduleModel? schedule) {
     if (schedule != null) {
-      _populateInitialStateData(schedule);
+      _populateScreenData(schedule);
     }
     if (_selectedDays.isEmpty) {
       // A schedule needs at least one day; default to Mon/Wed/Fri.
@@ -196,7 +196,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     super.dispose();
   }
 
-  void _populateInitialStateData(CourseScheduleModel schedule) {
+  void _populateScreenData(CourseScheduleModel schedule) {
     trackVersion(schedule);
     _selectedDays = schedule.getActiveDayIndices();
     _variesByDay = !schedule.allDaysSameTime();

@@ -588,7 +588,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _linkedEntityCompleted = state.linkedEntityCompleted;
             });
             if (state.note != null) {
-              _populateInitialStateData(state.note!);
+              _populateScreenData(state.note!);
             } else {
               // New note - set up document listener and clear loading
               _setupDocumentListener();
@@ -1078,7 +1078,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         linkCourseId: widget.linkCourseId,
       );
 
-  void _populateInitialStateData(NoteModel note) {
+  void _populateScreenData(NoteModel note) {
     _note = note;
     _titleController.text = note.title;
 
