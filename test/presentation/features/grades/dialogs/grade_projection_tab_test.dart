@@ -57,6 +57,7 @@ void main() {
             ungradedAssignments: [assignment],
             pointsEarned: pointsEarned,
             pointsPossible: pointsPossible,
+            currentOverallGrade: pointsPossible > 0 ? pointsEarned / pointsPossible * 100 : -1,
             courseColor: Colors.blue,
             userSettings: MockModels.createUserSettings(timeZone: timeZone),
             mode: mode,
@@ -68,7 +69,7 @@ void main() {
   }
 
   group('GradeProjectionTab', () {
-    testWidgets('in GPA mode, projects the term GPA and its change', (tester) async {
+    testWidgets('in GPA mode, starts the projected term GPA at the current one', (tester) async {
       // GIVEN
       await pumpTab(
         tester,
@@ -84,10 +85,10 @@ void main() {
 
       // THEN
       expect(
-        find.text('Projected GPA: 3.35 (+0.50)'),
+        find.text('Projected GPA: 2.85'),
         findsOneWidget,
-        reason: 'the final starts at its category average (100%): (80 + 100) / 200 = 90%, an A- (3.7); '
-            '(3.7 + 3.0) / 2 = 3.35',
+        reason: 'the final starts at the class\'s current 80%, so the class stays a B- (2.7) and the term GPA '
+            'stays (2.7 + 3.0) / 2 = 2.85, with no change shown',
       );
       expect(
         find.textContaining('Projected grade'),

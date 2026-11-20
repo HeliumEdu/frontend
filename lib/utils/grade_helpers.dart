@@ -76,12 +76,9 @@ class GradeHelper {
         );
 
         if (hasActualGrade) {
-          final avgPP = totalUngradedPossible / catUngraded.length;
-          final totalGradedPossible = category.numHomeworkGraded * avgPP;
-          final earnedFromGraded = category.overallGrade / 100.0 * totalGradedPossible;
-          final totalPossible = totalGradedPossible + totalUngradedPossible;
+          final totalPossible = category.pointsPossible + totalUngradedPossible;
           categoryGrade = totalPossible > 0
-              ? (earnedFromGraded + earnedFromUngraded) / totalPossible * 100
+              ? (category.pointsEarned + earnedFromUngraded) / totalPossible * 100
               : 0;
         } else {
           categoryGrade = totalUngradedPossible > 0

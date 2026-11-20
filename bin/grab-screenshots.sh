@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Captures Helium marketing screenshots directly from the booted iOS Simulator
-# or Android Emulator and frames each via fastlane frameit. The unframed
-# capture is kept in screenshots/raw/, the plain framed PNG goes to
-# screenshots/framed/ (the device mockups and press kit come from there), and a
+# or Android Emulator and frames each via fastlane frameit. The plain framed PNG
+# goes to screenshots/framed/ (the device mockups and press kit come from there), and a
 # captioned copy for the store listing (bin/caption-screenshot.sh) goes into the
 # relevant fastlane directory:
 #
@@ -27,8 +26,8 @@
 #   - adb (Android Platform Tools)    for Android capture
 #   - fastlane frameit                for device framing
 #   - ImageMagick 7+ (magick) or 6 (convert) for Pixel Tablet composite
-#   - flutter, and the "iPhone 15 Pro" / "iPad Pro 13-inch (M5)" simulators and
-#     Pixel_5 / Pixel_Tablet AVDs
+#   - flutter, and the "iPhone 17 Pro" / "iPhone Duo" / "iPad Pro 13-inch (M5)"
+#     simulators and Pixel_5 / Pixel_Tablet AVDs
 
 set -uo pipefail
 
@@ -38,18 +37,16 @@ IOS_DEST="$REPO/ios/fastlane/screenshots/en-US"
 ANDROID_PHONE_DEST="$REPO/android/fastlane/metadata/android/en-US/images/phoneScreenshots"
 ANDROID_TABLET_DEST="$REPO/android/fastlane/metadata/android/en-US/images/tenInchScreenshots"
 FRAMED_ROOT="$REPO/screenshots/framed"
-RAW_ROOT="$REPO/screenshots/raw"
 WORKDIR=$(mktemp -d)
 
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST" \
-  "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet" \
-  "$RAW_ROOT/ios" "$RAW_ROOT/android-phone" "$RAW_ROOT/android-tablet"
+  "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet"
 trap 'stop_device; rm -rf "$WORKDIR"' EXIT
 
 # ─── pre-flight: frameit frames must be downloaded ───────────────────────
 FRAMEIT_DIR="${HOME}/.fastlane/frameit/latest"
-if [[ ! -d "$FRAMEIT_DIR" ]] || [[ -z "$(ls "$FRAMEIT_DIR"/*.png 2>/dev/null)" ]]; then
-  echo "✗ Device frames not found at $FRAMEIT_DIR" >&2
+if [[ ! -f "$FRAMEIT_DIR/Apple iPhone Duo Inner Night Sky.png" ]]; then
+  echo "✗ iPhone Duo frame not found at $FRAMEIT_DIR" >&2
   echo "  Run: make screenshots" >&2
   exit 1
 fi
@@ -63,9 +60,9 @@ DARK_SHOTS=(agenda week-view)
 BELL_SHOT=month-view
 
 # ─── capture helpers ─────────────────────────────────────────────────────
-# Captures from the booted simulator of the step's kind (iPhone or iPad), so an
-# iPhone and an iPad can both stay booted; `simctl io booted` would pick one of
-# them arbitrarily.
+# Captures from the booted simulator of the step's device, so several simulators
+# can stay booted; `simctl io booted` would pick one of them arbitrarily. The
+# Duo has two screens, so its shots come from the inner one.
 capture_ios() {
   local out="$1"
   local device_slug="$2"
@@ -73,24 +70,29 @@ capture_ios() {
     echo "  ✗ xcrun not found; install Xcode Command Line Tools." >&2
     return 1
   fi
-  local kind="iPhone"
-  [[ "$device_slug" == "ipad" ]] && kind="iPad"
+  local name
+  name=$(device_target "$device_slug")
   local udids
-  udids=$(xcrun simctl list devices booted | awk -v kind="$kind" '
-    index($1, kind) == 1 && /\(Booted\)/ {
-      if (match($0, /\([0-9A-F-]{36}\)/)) print substr($0, RSTART + 1, RLENGTH - 2)
+  udids=$(xcrun simctl list devices booted | awk -v name="$name" '
+    { line = $0; sub(/^[ \t]+/, "", line) }
+    index(line, name " (") == 1 && /\(Booted\)/ && match(line, /\([0-9A-F-]{36}\)/) {
+      print substr(line, RSTART + 1, RLENGTH - 2)
     }')
   local count
   count=$(printf '%s' "$udids" | grep -c . || true)
   if [[ "$count" -eq 0 ]]; then
-    echo "  ✗ No booted $kind simulator." >&2
+    echo "  ✗ No booted $name simulator." >&2
     return 1
   fi
   if [[ "$count" -gt 1 ]]; then
-    echo "  ✗ Multiple booted $kind simulators; shut down all but one." >&2
+    echo "  ✗ Multiple booted $name simulators; shut down all but one." >&2
     return 1
   fi
-  xcrun simctl io "$udids" screenshot "$out" >/dev/null 2>&1
+  if [[ "$device_slug" == "duo" ]]; then
+    xcrun simctl io "$udids" screenshot --display=primary-1 "$out" >/dev/null 2>&1
+  else
+    xcrun simctl io "$udids" screenshot "$out" >/dev/null 2>&1
+  fi
 }
 
 # Captures from the connected device of the step's kind (phone or tablet, by
@@ -132,7 +134,8 @@ running_android_serial=""
 
 device_target() {
   case "$1" in
-    iphone)       echo "iPhone 15 Pro" ;;
+    iphone)       echo "iPhone 17 Pro" ;;
+    duo)          echo "iPhone Duo" ;;
     ipad)         echo "iPad Pro 13-inch (M5)" ;;
     pixel-phone)  echo "Pixel_5" ;;
     pixel-tablet) echo "Pixel_Tablet" ;;
@@ -197,7 +200,7 @@ start_device() {
   target=$(device_target "$1")
   echo "  Starting $target ..."
   case "$1" in
-    iphone|ipad) start_ios "$target" ;;
+    iphone|duo|ipad) start_ios "$target" ;;
     *)           start_android "$target" ;;
   esac
 }
@@ -219,15 +222,15 @@ stop_device() {
 # which fastlane version maps the resolution to which device name (the Pixel
 # 5's is also the iPhone 12 mini's).
 write_framefile() {
-  # force_device_type pins to the newest frame available in frameit's catalog
-  # (14 Pro is the latest; 15 Pro frames have not been released upstream).
+  # The iPhone frames have no black; their darkest colors match the other frames.
   cat > "$WORKDIR/Framefile.json" <<'FRAMEFILE'
 {
   "default": {
     "frame": "BLACK"
   },
   "data": [
-    { "filter": "_iphone",      "force_device_type": "iPhone 14 Pro" },
+    { "filter": "_iphone",      "force_device_type": "iPhone 17 Pro", "frame": "DEEP_BLUE" },
+    { "filter": "_duo",         "force_device_type": "iPhone Duo Inner", "frame": "NIGHT_SKY" },
     { "filter": "_ipad",        "force_device_type": "iPad Pro (12.9-inch) (4th generation)" },
     { "filter": "_pixel-phone", "force_device_type": "Google Pixel 5" }
   ]
@@ -241,15 +244,6 @@ device_dir_for() {
     "$ANDROID_PHONE_DEST")  echo "android-phone" ;;
     "$ANDROID_TABLET_DEST") echo "android-tablet" ;;
   esac
-}
-
-# Keeps the unframed capture, so a frame or caption change can be redone from it without capturing again.
-keep_raw() {
-  local raw="$1"
-  local dest="$2"
-  local raw_path
-  raw_path="$RAW_ROOT/$(device_dir_for "$dest")/$(basename "$raw")"
-  copy_if_changed "$raw" "$raw_path" || true
 }
 
 # Keeps the plain framed shot and writes its captioned store copy to dest.
@@ -283,7 +277,6 @@ frame_and_move() {
   local platform=ios
   [[ "$slug" == *_pixel-phone ]] && platform=android
 
-  keep_raw "$raw" "$dest"
   write_framefile
   (
     cd "$WORKDIR"
@@ -314,7 +307,6 @@ composite_pixel_tablet() {
   local dest="$3"
   local framed="$WORKDIR/${slug}_framed.png"
 
-  keep_raw "$raw" "$dest"
   if [[ ! -f "$PIXEL_TABLET_FRAME" ]]; then
     echo "  ✗ Pixel Tablet frame missing at $PIXEL_TABLET_FRAME"
     mv "$raw" "$dest/${slug}.png"
@@ -356,6 +348,9 @@ prompt_and_capture() {
   echo ""
   if $is_dark; then
     echo "  🌙 Switch Helium to dark mode for this shot (Settings, moon icon)."
+  fi
+  if [[ "$shot" == "grades" ]]; then
+    echo "  📊 Show the Grades dashboard with the Grade Calculator closed."
   fi
   read -r -p "  → Navigate to '${shot}'. Press Enter to capture, 's' to skip, 'q' to quit: " reply
   case "$reply" in
@@ -407,6 +402,9 @@ run_device() {
     stop_device
     return 0
   fi
+  if [[ "$slug" == "duo" ]]; then
+    echo "  📱 Unfold the Duo in Device Hub, so Helium is on the inner screen."
+  fi
   read -r -p "  Helium is open on the $label. Sign in if it asks, then press Enter: " _
 
   local i=1
@@ -426,7 +424,8 @@ echo "Pixel phone  → $ANDROID_PHONE_DEST"
 echo "Pixel tablet → $ANDROID_TABLET_DEST"
 echo "Workdir      → $WORKDIR (cleaned on exit)"
 
-run_device "iPhone 15 Pro"    "iphone"       capture_ios     "frameit"      "$IOS_DEST"            "${PHONE_SHOTS[@]}"
+run_device "iPhone 17 Pro"    "iphone"       capture_ios     "frameit"      "$IOS_DEST"            "${PHONE_SHOTS[@]}"
+run_device "iPhone Duo"       "duo"          capture_ios     "frameit"      "$IOS_DEST"            "${PHONE_SHOTS[@]}"
 run_device "iPad Pro 13\" M5" "ipad"         capture_ios     "frameit"      "$IOS_DEST"            "${TABLET_SHOTS[@]}"
 run_device "Pixel 5"          "pixel-phone"  capture_android "frameit"      "$ANDROID_PHONE_DEST"  "${PHONE_SHOTS[@]}"
 run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$ANDROID_TABLET_DEST" "${TABLET_SHOTS[@]}"

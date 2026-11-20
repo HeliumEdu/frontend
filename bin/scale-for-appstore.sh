@@ -13,6 +13,7 @@
 #
 # Targets:
 #   *_iphone_framed.png  →  1320 × 2868  (App Store 6.9")
+#   *_duo_framed.png     →  2007 × 2853  (App Store iPhone Duo inner screen)
 #   *_ipad_framed.png    →  2064 × 2752  (App Store 13")
 #
 # Requires: ImageMagick 7+ (magick) or ImageMagick 6 (convert).
@@ -94,6 +95,20 @@ count=0
 for f in "$DIR"/*_iphone_framed.png; do
   [[ -f "$f" ]] || continue
   if letterbox "$f" 1320 2868; then
+    echo "  ✓ $(basename "$f")"
+    ((count++))
+  else
+    echo "  ⊜ $(basename "$f") unchanged"
+  fi
+done
+echo "  ($count files updated)"
+
+echo ""
+echo "iPhone Duo → 2007 × 2853 (App Store iPhone Duo inner screen)"
+count=0
+for f in "$DIR"/*_duo_framed.png; do
+  [[ -f "$f" ]] || continue
+  if letterbox "$f" 2007 2853; then
     echo "  ✓ $(basename "$f")"
     ((count++))
   else

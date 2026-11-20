@@ -36,10 +36,11 @@ device="${slug##*_}"
 shot="${slug%_*}"
 shot="${shot#*-}"
 
-# Store canvases: App Store 6.9" iPhone and 13" iPad; Play phone at its 2:1
-# aspect limit and a 10" tablet at 10:16.
+# Store canvases: App Store 6.9" iPhone, iPhone Duo inner screen and 13" iPad;
+# Play phone at its 2:1 aspect limit and a 10" tablet at 10:16.
 case "$device" in
   iphone)       width=1320; height=2868; text_scale=64 ;;
+  duo)          width=2007; height=2853; text_scale=46 ;;
   ipad)         width=2064; height=2752; text_scale=46 ;;
   pixel-phone)  width=1290; height=2580; text_scale=64 ;;
   pixel-tablet) width=1800; height=2880; text_scale=50 ;;

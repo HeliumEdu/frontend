@@ -144,7 +144,7 @@ screenshots:
 	@command -v brew >/dev/null || { echo "Error: Homebrew not installed"; exit 1; }
 	@brew list fastlane >/dev/null 2>&1 || brew install fastlane
 	@brew list imagemagick >/dev/null 2>&1 || brew install imagemagick
-	@if [ ! -d "$$HOME/.fastlane/frameit/latest" ] || [ -z "$$(ls $$HOME/.fastlane/frameit/latest/*.png 2>/dev/null)" ]; then \
+	@if [ ! -f "$$HOME/.fastlane/frameit/latest/Apple iPhone Duo Inner Night Sky.png" ]; then \
 		fastlane frameit download_frames; \
 	fi
 	@./bin/grab-screenshots.sh

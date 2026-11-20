@@ -184,6 +184,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             ungradedAssignments: widget.course.ungradedAssignments,
                             pointsEarned: widget.course.pointsEarned,
                             pointsPossible: widget.course.pointsPossible,
+                            currentOverallGrade: widget.course.overallGrade,
                             courseColor: widget.course.color,
                             userSettings: widget.userSettings,
                             mode: _mode,
