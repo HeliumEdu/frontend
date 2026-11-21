@@ -578,6 +578,74 @@ void main() {
     });
   });
 
+  group('agendaDaysOf', () {
+    test('lists only days with items, in date order, with their items as given', () {
+      // GIVEN
+      final lateMeeting = MockModels.createEvent(
+        id: 1,
+        start: DateTime.utc(2026, 11, 20, 20),
+        end: DateTime.utc(2026, 11, 20, 21),
+      );
+      final earlyMeeting = MockModels.createEvent(
+        id: 2,
+        start: DateTime.utc(2026, 11, 20, 14),
+        end: DateTime.utc(2026, 11, 20, 15),
+      );
+      final firstOfMonth = MockModels.createEvent(
+        id: 3,
+        start: DateTime.utc(2026, 11, 1, 14),
+        end: DateTime.utc(2026, 11, 1, 15),
+      );
+      final byDay = {
+        DateTime(2026, 11, 20): [lateMeeting, earlyMeeting],
+        DateTime(2026, 11, 1): [firstOfMonth],
+      };
+
+      // WHEN
+      final days = PlannerHelper.agendaDaysOf(
+        DateTime(2026, 11, 1),
+        DateTime(2026, 11, 30),
+        (day) => byDay[day] ?? [],
+      );
+
+      // THEN
+      expect(days.map((d) => d.date), [DateTime(2026, 11, 1), DateTime(2026, 11, 20)]);
+      expect(days.last.items, [lateMeeting, earlyMeeting],
+          reason: "the data source's day order is kept");
+    });
+
+    test('asks for every day of the range, through its last day, across a month boundary', () {
+      // GIVEN
+      final asked = <DateTime>[];
+
+      // WHEN
+      PlannerHelper.agendaDaysOf(DateTime(2026, 11, 29), DateTime(2026, 12, 5), (day) {
+        asked.add(day);
+        return [];
+      });
+
+      // THEN
+      expect(asked, [
+        for (var day = 29; day <= 35; day++) DateTime(2026, 11, day),
+      ]);
+    });
+
+    test('keeps each day whole across a daylight saving change', () {
+      // GIVEN
+      final asked = <DateTime>[];
+
+      // WHEN
+      PlannerHelper.agendaDaysOf(DateTime(2026, 10, 25), DateTime(2026, 10, 26), (day) {
+        asked.add(day);
+        return [];
+      });
+
+      // THEN
+      expect(asked, [DateTime(2026, 10, 25), DateTime(2026, 10, 26)],
+          reason: 'under TZ=Europe/Amsterdam, which falls back that night, a Duration step would land on 11 PM');
+    });
+  });
+
   group('firstIndexDueOnOrAfter', () {
     final amsterdam = tz.getLocation('Europe/Amsterdam');
     final nowInAmsterdam = tz.TZDateTime(amsterdam, 2025, 9, 4, 10, 0);

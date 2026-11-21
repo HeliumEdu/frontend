@@ -115,6 +115,23 @@ class PlannerHelper {
   /// Kept in sync with the [SizedBox] in `PlannerItemCalendarTile._buildCheckboxWidget`.
   static const double checkboxWidth = 17;
 
+  /// Each day from [firstDay] through [lastDay] that has items, in date order.
+  static List<({DateTime date, List<PlannerItemBaseModel> items})> agendaDaysOf(
+    DateTime firstDay,
+    DateTime lastDay,
+    List<PlannerItemBaseModel> Function(DateTime day) itemsForDay,
+  ) {
+    return [
+      for (
+        var date = DateTime(firstDay.year, firstDay.month, firstDay.day);
+        !date.isAfter(lastDay);
+        date = DateTime(date.year, date.month, date.day + 1)
+      )
+        if (itemsForDay(date) case final items when items.isNotEmpty)
+          (date: date, items: items),
+    ];
+  }
+
   static void _logMissingEntity(
     int reminderId,
     String entityType,

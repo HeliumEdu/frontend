@@ -71,6 +71,7 @@ import 'package:heliumapp/presentation/features/planner/dialogs/course_schedule_
 import 'package:heliumapp/presentation/features/planner/dialogs/external_calendar_event_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/day_popout_dialog.dart';
+import 'package:heliumapp/presentation/features/planner/widgets/planner_agenda_print_list.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_date_navigator.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_filter_menu.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_calendar_tile.dart';
@@ -268,6 +269,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   int _calendarItemsDisplayCount =
       PlannerMonthLayout.monthMinItemDisplayCount;
   PlannerItemDataSource? _plannerItemDataSource;
+  DateTime? _agendaLoadedWeek;
   final Map<int, ExternalCalendarModel> _externalCalendarsById = {};
 
   @override
@@ -519,6 +521,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             // The range cache short-circuits handleLoadMore, so an
             // invalidated Dio cache alone refetches nothing.
             if (state.forceRefresh) {
+              _agendaLoadedWeek = null;
               unawaited(
                 _plannerItemDataSource?.refreshCalendarSources(
                   visibleStart: _visibleDates.isNotEmpty
@@ -1014,6 +1017,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               : null,
           controller: _calendarController,
           headerHeight: 0,
+          selectionDecoration: PrintableArea.capturing.value
+              ? const BoxDecoration()
+              : null,
           showCurrentTimeIndicator: true,
           showWeekNumber:
               _currentView != PlannerView.threeDay &&
@@ -1160,8 +1166,12 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             : calendar;
 
         if (constraints.maxHeight.isInfinite) {
+          if (_currentView == PlannerView.agenda) {
+            return _buildAgendaPrintList(agendaHeight);
+          }
+
           // During capture the OverflowBox removes the height constraint.
-          // Size week/day/agenda to one Portrait Letter content area (720pt ×
+          // Size week/day to one Portrait Letter content area (720pt ×
           // 540pt = 4:3), then subtract the calendar header height so that
           // header + calendar together fill exactly one page.
           // Header breakdown: SizedBox(48) + ShadowContainer(top:4, bottom:4)
@@ -1172,13 +1182,78 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             height:
                 constraints.maxWidth * letterPortraitContentAspect -
                 calendarHeaderHeight,
-            child: plannerCalendar,
+            child: ScrollbarTheme(
+              data: const ScrollbarThemeData(
+                thumbColor: WidgetStatePropertyAll(Colors.transparent),
+                trackColor: WidgetStatePropertyAll(Colors.transparent),
+                trackBorderColor: WidgetStatePropertyAll(Colors.transparent),
+              ),
+              child: plannerCalendar,
+            ),
           );
+        }
+
+        if (_currentView == PlannerView.agenda) {
+          _loadAgendaWeek();
         }
 
         return plannerCalendar;
       },
     );
+  }
+
+  String? _agendaPrintLabel() {
+    if (_currentView != PlannerView.agenda || !PrintableArea.capturing.value) {
+      return null;
+    }
+    final (firstDay, lastDay) = _agendaWeek(_calendarController.displayDate!);
+    return HeliumDateTime.formatDateRange(firstDay, lastDay);
+  }
+
+  Widget _buildAgendaPrintList(double itemHeight) {
+    final (firstDay, lastDay) = _agendaWeek(_calendarController.displayDate!);
+    return PlannerAgendaPrintList(
+      firstDay: firstDay,
+      lastDay: lastDay,
+      today: DateTime.now(),
+      itemHeight: itemHeight,
+      itemsForDay: _plannerItemDataSource!.getItemsForDay,
+      itemBuilder: (item, day, width) => _buildCalendarItemWidget(
+        plannerItem: item,
+        width: width,
+        height: itemHeight,
+        isInAgenda: true,
+        completedOverride: item is HomeworkModel
+            ? _plannerItemDataSource!.completedOverrides[item.id]
+            : null,
+        occurrenceDate: day,
+      ),
+    );
+  }
+
+  (DateTime, DateTime) _agendaWeek(DateTime displayDate) {
+    final firstDay = HeliumDateTime.startOfWeek(
+      displayDate,
+      userSettings.weekStartsOn,
+    );
+    return (
+      firstDay,
+      DateTime(firstDay.year, firstDay.month, firstDay.day + 6),
+    );
+  }
+
+  void _loadAgendaWeek() {
+    final displayDate = _calendarController.displayDate;
+    if (displayDate == null) return;
+
+    final (firstDay, lastDay) = _agendaWeek(displayDate);
+    if (firstDay == _agendaLoadedWeek) return;
+    _agendaLoadedWeek = firstDay;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _plannerItemDataSource?.handleLoadMore(firstDay, lastDay);
+    });
   }
 
   bool _openPlannerItem(
@@ -1291,6 +1366,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                           currentView: _currentView,
                           calendarController: _calendarController,
                           onOpenDatePicker: _openDatePicker,
+                          labelOverride: _agendaPrintLabel(),
                         ),
                       ],
                     ),

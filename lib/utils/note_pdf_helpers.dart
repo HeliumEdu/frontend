@@ -7,27 +7,41 @@ import 'package:pdf/widgets.dart' as pw;
 class NotePdfHelpers {
   NotePdfHelpers._();
 
-  static Future<Uint8List> buildNotePdf(Delta delta) async {
-    final fontData = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
-    final notoSans = pw.Font.ttf(fontData);
+  static Future<Uint8List> buildNotePdf(
+    Delta delta,
+    PdfPageFormat format,
+  ) async {
+    final [regular, bold, italic, boldItalic] = await Future.wait([
+      for (final name in [
+        'NotoSans-Regular',
+        'NotoSans-Bold',
+        'NotoSans-Italic',
+        'NotoSans-BoldItalic',
+      ])
+        _loadFont(name),
+    ]);
 
     final converter = PDFConverter(
-      pageFormat: PDFPageFormat.a4,
+      pageFormat: PDFPageFormat.all(
+        width: format.width,
+        height: format.height,
+        margin: 2 * PDFPageFormat.cm,
+      ),
       document: delta,
-      fallbacks: [notoSans],
+      fallbacks: [regular],
       // ignore: experimental_member_use
       listLeadingBuilder: _buildPdfCheckbox,
       themeData: pw.ThemeData.withFont(
-        base: notoSans,
-        bold: notoSans,
-        italic: notoSans,
-        boldItalic: notoSans,
+        base: regular,
+        bold: bold,
+        italic: italic,
+        boldItalic: boldItalic,
       ),
       onRequestFontFamily: (_) => FontFamilyResponse(
-        fontNormalV: notoSans,
-        boldFontV: notoSans,
-        italicFontV: notoSans,
-        boldItalicFontV: notoSans,
+        fontNormalV: regular,
+        boldFontV: bold,
+        italicFontV: italic,
+        boldItalicFontV: boldItalic,
       ),
     );
 
@@ -35,6 +49,9 @@ class NotePdfHelpers {
     if (document == null) throw Exception('Failed to create PDF.');
     return document.save();
   }
+
+  static Future<pw.Font> _loadFont(String name) async =>
+      pw.Font.ttf(await rootBundle.load('assets/fonts/$name.ttf'));
 
   static pw.Widget? _buildPdfCheckbox(
     String type,

@@ -79,6 +79,23 @@ class RegionalFormatConstants {
 
   static const weekStartsOnSunday = 0;
 
+  static const usLetterPaperRegions = {
+    'BZ',
+    'CA',
+    'CL',
+    'CO',
+    'CR',
+    'GT',
+    'MX',
+    'NI',
+    'PA',
+    'PH',
+    'PR',
+    'SV',
+    'US',
+    'VE',
+  };
+
   static const dateFormats = [dateFormatMonthDayYear, dateFormatDayMonthYear];
   static const timeFormats = [timeFormatTwelveHour, timeFormatTwentyFourHour];
   static const numberFormats = [numberFormatPoint, numberFormatComma];

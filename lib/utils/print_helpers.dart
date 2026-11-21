@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_service.dart';
@@ -108,14 +109,16 @@ Future<void> _sliceImageToPdf(
 
 // ── Public preview entry points ───────────────────────────────────────────────
 
-/// Opens a full-screen PDF preview dialog from pre-built PDF bytes.
+/// Opens a full-screen PDF preview dialog for a PDF built by [buildPdf].
 ///
 /// Use this for natively-generated PDFs (e.g. notebook export) that are built
 /// directly with `pw` rather than via a screenshot capture. For screenshot-
-/// based printing use [showPdfPreview] instead.
+/// based printing use [showPdfPreview] instead. The preview and Share use
+/// [PrintableArea.defaultPageFormat]; native print dialogs rebuild it for the
+/// paper chosen there.
 Future<void> showBuiltPdfPreview(
   BuildContext context, {
-  required Future<Uint8List> pdfBytesFuture,
+  required Future<Uint8List> Function(PdfPageFormat format) buildPdf,
   String title = '',
   String? filename,
 }) async {
@@ -124,8 +127,9 @@ Future<void> showBuiltPdfPreview(
 
   await showDialog(
     context: context,
+    useSafeArea: false,
     builder: (dialogContext) => _BuiltPdfPreviewDialog(
-      pdfBytesFuture: pdfBytesFuture,
+      buildPdf: buildPdf,
       title: title,
       pdfFilename: pdfFilename,
     ),
@@ -133,12 +137,12 @@ Future<void> showBuiltPdfPreview(
 }
 
 class _BuiltPdfPreviewDialog extends StatefulWidget {
-  final Future<Uint8List> pdfBytesFuture;
+  final Future<Uint8List> Function(PdfPageFormat format) buildPdf;
   final String title;
   final String pdfFilename;
 
   const _BuiltPdfPreviewDialog({
-    required this.pdfBytesFuture,
+    required this.buildPdf,
     required this.title,
     required this.pdfFilename,
   });
@@ -154,7 +158,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
   @override
   void initState() {
     super.initState();
-    widget.pdfBytesFuture.then((bytes) {
+    widget.buildPdf(PrintableArea.defaultPageFormat).then((bytes) {
       if (mounted) setState(() => _pdfBytes = bytes);
     }).catchError((Object error) {
       if (mounted) setState(() => _error = error);
@@ -197,7 +201,8 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                       tooltip: 'Print',
                       onPressed: () async {
                         await Printing.layoutPdf(
-                          onLayout: (_) async => _pdfBytes!,
+                          format: PrintableArea.defaultPageFormat,
+                          onLayout: widget.buildPdf,
                           name: widget.title.isNotEmpty
                               ? widget.title
                               : 'Document',
@@ -208,7 +213,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                 ]
               : null,
         ),
-        body: _buildBody(),
+        body: SafeArea(top: false, child: _buildBody()),
       ),
     );
   }
@@ -259,6 +264,7 @@ Future<void> showPdfPreview(
 
   await showDialog(
     context: context,
+    useSafeArea: false,
     builder: (dialogContext) => _PdfPreviewDialog(
       captureImage: captureImage,
       title: title,
@@ -284,6 +290,7 @@ class _PdfPreviewDialog extends StatefulWidget {
 
 class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
   _CaptureResult? _capture;
+  PdfPageFormat _pageFormat = PrintableArea.defaultPageFormat;
 
   /// Called by [PdfPreview] on first load and whenever the user changes format
   /// or orientation. Capture is performed once and cached; subsequent calls
@@ -324,7 +331,7 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
               icon: Icon(Icons.share, color: context.colorScheme.primary),
               tooltip: 'Share',
               onPressed: () async {
-                final bytes = await _buildPdf(PrintableArea.pageFormat);
+                final bytes = await _buildPdf(_pageFormat);
                 await Printing.sharePdf(
                   bytes: bytes,
                   filename: widget.pdfFilename,
@@ -337,7 +344,8 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
                 tooltip: 'Print',
                 onPressed: () async {
                   await Printing.layoutPdf(
-                    onLayout: (_) => _buildPdf(PrintableArea.pageFormat),
+                    format: _pageFormat,
+                    onLayout: _buildPdf,
                     name: widget.title.isNotEmpty ? widget.title : 'Document',
                   );
                 },
@@ -345,16 +353,20 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
             ),
           ],
         ),
-        body: PdfPreview(
-          build: _buildPdf,
-          useActions: true,
-          allowPrinting: false,
-          allowSharing: false,
-          canChangeOrientation: true,
-          canChangePageFormat: true,
-          canDebug: false,
-          initialPageFormat: PrintableArea.pageFormat,
-          pdfFileName: widget.pdfFilename,
+        body: SafeArea(
+          top: false,
+          child: PdfPreview(
+            build: _buildPdf,
+            useActions: true,
+            allowPrinting: false,
+            allowSharing: false,
+            canChangeOrientation: true,
+            canChangePageFormat: true,
+            canDebug: false,
+            initialPageFormat: PrintableArea.defaultPageFormat,
+            onPageFormatChanged: (format) => _pageFormat = format,
+            pdfFileName: widget.pdfFilename,
+          ),
         ),
       ),
     );
@@ -533,9 +545,14 @@ class PrintableArea extends StatefulWidget {
   /// Page margin in inches, applied to all four sides.
   static const double marginInches = 0.5;
 
-  /// Base page format. Letter rather than A4: A4 (11.69") is taller than
-  /// Letter (11"), causing the OS to clip the bottom on US Letter printers.
-  static const PdfPageFormat pageFormat = PdfPageFormat.letter;
+  /// The paper the preview, Share, and print dialog start on, from the
+  /// device's region.
+  static PdfPageFormat get defaultPageFormat =>
+      RegionalFormatConstants.usLetterPaperRegions.contains(
+            WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+          )
+          ? PdfPageFormat.letter
+          : PdfPageFormat.a4;
 
   // ── Timing configuration ───────────────────────────────────────────────────
 

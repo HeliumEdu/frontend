@@ -16,12 +16,14 @@ class PlannerDateNavigator extends StatelessWidget {
   final PlannerView currentView;
   final CalendarController calendarController;
   final VoidCallback onOpenDatePicker;
+  final String? labelOverride;
 
   const PlannerDateNavigator({
     super.key,
     required this.currentView,
     required this.calendarController,
     required this.onOpenDatePicker,
+    this.labelOverride,
   });
 
   /// Shared height for the calendar header controls: 40 normally, 36 on slim
@@ -51,7 +53,7 @@ class PlannerDateNavigator extends StatelessWidget {
       );
     }
 
-    final String headerText = _buildHeaderDate(context);
+    final String headerText = labelOverride ?? _buildHeaderDate(context);
 
     final showNavButtons =
         currentView != PlannerView.agenda &&
