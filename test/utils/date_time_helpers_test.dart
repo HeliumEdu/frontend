@@ -690,6 +690,40 @@ void main() {
     });
   });
 
+  group('startOfWeek', () {
+    test('a Sunday-start week begins on the Sunday before a Wednesday', () {
+      // WHEN
+      final start = HeliumDateTime.startOfWeek(DateTime(2026, 11, 18), 0);
+
+      // THEN
+      expect(start, DateTime(2026, 11, 15));
+    });
+
+    test('a Monday-start week puts Sunday at its end', () {
+      // WHEN
+      final start = HeliumDateTime.startOfWeek(DateTime(2026, 11, 22), 1);
+
+      // THEN
+      expect(start, DateTime(2026, 11, 16));
+    });
+
+    test('a day that starts the week is its own start', () {
+      // WHEN
+      final start = HeliumDateTime.startOfWeek(DateTime(2026, 11, 21), 6);
+
+      // THEN
+      expect(start, DateTime(2026, 11, 21), reason: 'Nov 21, 2026 is a Saturday');
+    });
+
+    test('a week can start in the previous month', () {
+      // WHEN
+      final start = HeliumDateTime.startOfWeek(DateTime(2026, 12, 2), 0);
+
+      // THEN
+      expect(start, DateTime(2026, 11, 29));
+    });
+  });
+
   group('occursWithin', () {
     late tz.Location chicago;
     late tz.TZDateTime rangeStart;

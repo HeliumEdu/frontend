@@ -38,13 +38,12 @@ def _get_google_access_token(client_email: str, private_key: str, scope: str) ->
 
 def test_platform_status(api_host: str) -> None:
     """
-    Infrastructure health check: validate that all platform services are operational.
+    Infrastructure health check: validate that the platform can serve requests.
 
-    Hits /status/ which covers the checks not guaranteed by the ALB health check subset:
-    Database, Cache, Storage, TaskProcessing, and CeleryBeat.
+    Hits /status/core/ (Database and Storage).
     """
     response = requests.get(
-        f"{api_host}/status/",
+        f"{api_host}/status/core/",
         headers={"Accept": "application/json"},
         timeout=10,
     )

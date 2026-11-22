@@ -258,7 +258,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     _titleController.addListener(_onContentChanged);
     _printHandler = _printNote;
-    PrintService().register(_printHandler!);
+    PrintService().register(_printHandler!, isOverlay: true);
 
     _registerDirtyGuard();
     router.routerDelegate.addListener(_syncFromUrl);
@@ -1292,7 +1292,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
 
     await showBuiltPdfPreview(
       context,
-      pdfBytesFuture: NotePdfHelpers.buildNotePdf(delta),
+      buildPdf: (format) => NotePdfHelpers.buildNotePdf(delta, format),
       title: title.isNotEmpty ? title : 'Note Preview',
       filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
     );

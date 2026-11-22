@@ -462,6 +462,16 @@ class HeliumDateTime {
     return '$dateDisplay • ${formatTimeRange(startDate, endDate, showEndTime)}';
   }
 
+  /// The first day of [day]'s week, as a date, when weeks start on
+  /// [weekStartsOn] (0 for Sunday through 6 for Saturday).
+  static DateTime startOfWeek(DateTime day, int weekStartsOn) {
+    return DateTime(
+      day.year,
+      day.month,
+      day.day - (day.weekday % 7 - weekStartsOn) % 7,
+    );
+  }
+
   /// [startDate] to [endDate] as dates, or just the date when both fall on
   /// the same day.
   static String formatDateRange(DateTime startDate, DateTime endDate) {

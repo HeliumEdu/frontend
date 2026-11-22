@@ -327,9 +327,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
   }
 
   ({Uint8List bytes, String filename}) buildExportCsv() {
-    final homeworks = List<HomeworkModel>.from(
-      widget.dataSource.filteredHomeworks,
-    )..sort((a, b) => a.start.compareTo(b.start));
+    final homeworks = _dataSource.homeworksInSortOrder;
     final courses = widget.dataSource.courses ?? [];
     final categoriesMap = widget.dataSource.categoriesMap ?? {};
     final userSettings = widget.dataSource.userSettings;
@@ -906,6 +904,10 @@ class TodosDataSource extends BaseDataGridSource {
     _rebuildRows();
     notifyListeners();
   }
+
+  List<HomeworkModel> get homeworksInSortOrder => [
+    for (final row in dataGridRows) ?getHomeworkFromRow(row),
+  ];
 
   HomeworkModel? getHomeworkFromRow(DataGridRow row) {
     final index = row

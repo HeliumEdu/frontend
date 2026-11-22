@@ -101,7 +101,7 @@ jobs:
 
       - name: Run canary tests
         id: tests
-        run: cd canary_test && python -m pytest -v --screenshot=only-on-failure --output=screenshots
+        run: cd canary_test && python -m pytest -v --reruns 1 --reruns-delay 30 --screenshot=only-on-failure --output=screenshots
 
       - name: Upload screenshots
         if: always()

@@ -3,9 +3,11 @@ typedef PrintHandler = Future<void> Function();
 /// Singleton that allows screens to register a print handler invoked when
 /// the user triggers the platform print shortcut (Cmd+P / Ctrl+P).
 ///
-/// Handlers are managed as a stack so dialogs/overlays can push their own
+/// Handlers are managed as stacks so dialogs/overlays can push their own
 /// handler on top and pop it on dispose, automatically restoring the
-/// underlying screen's handler.
+/// underlying screen's handler. Overlay handlers always win over screen
+/// handlers, whichever registered last: a screen that finishes loading
+/// behind an open overlay must not take over its shortcut.
 class PrintService {
   static final PrintService _instance = PrintService._internal();
 
@@ -13,28 +15,34 @@ class PrintService {
 
   PrintService._internal();
 
-  final List<PrintHandler> _stack = [];
+  final List<PrintHandler> _screenStack = [];
+  final List<PrintHandler> _overlayStack = [];
 
-  bool get hasHandler => _stack.isNotEmpty;
+  bool get hasHandler => _screenStack.isNotEmpty || _overlayStack.isNotEmpty;
 
-  void register(PrintHandler handler) {
-    _stack.add(handler);
+  void register(PrintHandler handler, {bool isOverlay = false}) {
+    (isOverlay ? _overlayStack : _screenStack).add(handler);
   }
 
-  /// Removes [handler] from the stack by identity. If [handler] is null,
-  /// removes the most recently registered handler.
+  /// Removes [handler] from the stacks by identity. If [handler] is null,
+  /// removes the most recently registered overlay handler, or else screen
+  /// handler.
   void unregister([PrintHandler? handler]) {
     if (handler != null) {
-      _stack.removeWhere((h) => identical(h, handler));
-    } else if (_stack.isNotEmpty) {
-      _stack.removeLast();
+      _overlayStack.removeWhere((h) => identical(h, handler));
+      _screenStack.removeWhere((h) => identical(h, handler));
+    } else if (_overlayStack.isNotEmpty) {
+      _overlayStack.removeLast();
+    } else if (_screenStack.isNotEmpty) {
+      _screenStack.removeLast();
     }
   }
 
   /// Returns true if a handler was registered and invoked, false otherwise
   Future<bool> printCurrent() async {
-    if (_stack.isEmpty) return false;
-    await _stack.last.call();
+    final handler = _overlayStack.lastOrNull ?? _screenStack.lastOrNull;
+    if (handler == null) return false;
+    await handler.call();
     return true;
   }
 }
