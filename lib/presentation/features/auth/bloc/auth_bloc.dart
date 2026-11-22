@@ -424,6 +424,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
+      await _oauthSignInService.signOut();
       await authRepository.logout();
       emit(AuthLoggedOut());
     } on HeliumException catch (e) {
@@ -440,7 +441,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _onForcedLogoutSignal() => add(ForcedLogoutEvent());
 
-  void _onForcedLogout(ForcedLogoutEvent event, Emitter<AuthState> emit) {
+  Future<void> _onForcedLogout(
+    ForcedLogoutEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    await _oauthSignInService.signOut();
     emit(AuthLoggedOut());
   }
 
@@ -696,6 +701,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final request = DeleteAccountRequestModel(password: event.password);
       await authRepository.deleteAccount(request);
+      await _oauthSignInService.signOut();
 
       emit(AuthAccountDeleted());
     } on HeliumException catch (e) {
