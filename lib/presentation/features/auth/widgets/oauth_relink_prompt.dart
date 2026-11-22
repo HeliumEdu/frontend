@@ -6,20 +6,23 @@ import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 /// Asks, after signing in with [signedInWith], whether to link a provider
-/// that sign-in removed. Can't be dismissed without choosing.
+/// that sign-in removed, or one it couldn't link on its own. Can't be
+/// dismissed without choosing.
 RelinkProviderPrompt oauthRelinkPrompt(
   BuildContext context, {
   required OAuthProvider signedInWith,
 }) {
-  return (provider) async {
+  return (provider, {required removed}) async {
     if (!context.mounted) return false;
 
     return showConfirmActionDialog(
       context: context,
       title: 'Link $provider?',
-      message:
-          'Signing in with ${signedInWith.label} removed $provider from your '
-          'account. Link it so both keep working?',
+      message: removed
+          ? 'Signing in with ${signedInWith.label} removed $provider from your '
+              'account. Link it so both keep working?'
+          : '$provider still needs to be linked to your account. Link it so '
+              'both keep working?',
       actionText: 'Link $provider',
       cancelText: "Don't link",
       style: ConfirmActionStyle.neutral,
@@ -55,5 +58,4 @@ void showLinkOutcomeSnackBars(BuildContext context, AuthLoggedIn state) {
 }
 
 String providerNotLinkedMessage(String provider) =>
-    "$provider wasn't linked. Sign in with $provider any time to link it "
-    'again.';
+    "$provider wasn't linked. Sign in with $provider any time to link it.";

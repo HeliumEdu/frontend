@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core.oauth_sign_in');
 
-typedef _PendingLink = ({String providerName, AuthCredential credential, String email});
+typedef _PendingLink = ({OAuthProvider provider, AuthCredential credential, String email});
 
 enum OAuthProvider {
   google('Google'),
@@ -39,6 +39,7 @@ class OAuthSignInService {
   bool _initialized = false;
   _PendingLink? _pendingLink;
   String? _linkedProvider;
+  OAuthProvider? _failedLinkProvider;
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
@@ -87,6 +88,7 @@ class OAuthSignInService {
     final providerName = provider.label;
 
     _linkedProvider = null;
+    _failedLinkProvider = null;
 
     try {
       _log.info(
@@ -144,7 +146,7 @@ class OAuthSignInService {
             message: 'That email is already registered with a different sign-in method. Sign in that way instead.',
           );
         }
-        _pendingLink = (providerName: providerName, credential: credential, email: email);
+        _pendingLink = (provider: provider, credential: credential, email: email);
         throw HeliumException(
           message:
               'That email is already registered with a different sign-in method. Sign in that way to link $providerName too.',
@@ -311,10 +313,11 @@ class OAuthSignInService {
 
     try {
       await user.linkWithCredential(pendingLink.credential);
-      _linkedProvider = pendingLink.providerName;
-      _log.info('Linked ${pendingLink.providerName} to the signed-in account');
+      _linkedProvider = pendingLink.provider.label;
+      _log.info('Linked ${pendingLink.provider.label} to the signed-in account');
     } on FirebaseAuthException catch (e) {
-      _log.warning('Linking ${pendingLink.providerName} failed - code: ${e.code}');
+      _failedLinkProvider = pendingLink.provider;
+      _log.warning('Linking ${pendingLink.provider.label} failed - code: ${e.code}');
     }
   }
 
@@ -379,6 +382,12 @@ class OAuthSignInService {
     final linkedProvider = _linkedProvider;
     _linkedProvider = null;
     return linkedProvider;
+  }
+
+  OAuthProvider? takeFailedLinkProvider() {
+    final failedLinkProvider = _failedLinkProvider;
+    _failedLinkProvider = null;
+    return failedLinkProvider;
   }
 
   Future<void> signOut() async {

@@ -9,8 +9,7 @@ void main() {
     // THEN
     expect(
       message,
-      "Microsoft wasn't linked. Sign in with Microsoft any time to link it "
-      'again.',
+      "Microsoft wasn't linked. Sign in with Microsoft any time to link it.",
     );
   });
 }

@@ -808,7 +808,7 @@ void main() {
           return givenGoogleSignInUnlinks(['microsoft']);
         },
         act: (bloc) => bloc.add(
-          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+          GoogleLoginEvent(onRelinkProvider: (provider, {required removed}) async => true),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -831,7 +831,7 @@ void main() {
         'stays signed in without linking when the user declines',
         build: () => givenGoogleSignInUnlinks(['microsoft']),
         act: (bloc) => bloc.add(
-          GoogleLoginEvent(onRelinkProvider: (provider) async => false),
+          GoogleLoginEvent(onRelinkProvider: (provider, {required removed}) async => false),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -855,7 +855,7 @@ void main() {
           return givenGoogleSignInUnlinks(['microsoft']);
         },
         act: (bloc) => bloc.add(
-          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+          GoogleLoginEvent(onRelinkProvider: (provider, {required removed}) async => true),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -882,7 +882,7 @@ void main() {
           return givenGoogleSignInUnlinks(['microsoft']);
         },
         act: (bloc) => bloc.add(
-          GoogleLoginEvent(onRelinkProvider: (provider) async => true),
+          GoogleLoginEvent(onRelinkProvider: (provider, {required removed}) async => true),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -899,7 +899,7 @@ void main() {
         build: () => givenGoogleSignInUnlinks([]),
         act: (bloc) => bloc.add(
           GoogleLoginEvent(
-            onRelinkProvider: (provider) async =>
+            onRelinkProvider: (provider, {required removed}) async =>
                 fail('should not ask to link $provider'),
           ),
         ),
@@ -924,7 +924,7 @@ void main() {
         },
         act: (bloc) => bloc.add(
           GoogleLoginEvent(
-            onRelinkProvider: (provider) async => provider == 'Apple',
+            onRelinkProvider: (provider, {required removed}) async => provider == 'Apple',
           ),
         ),
         expect: () => [
@@ -946,7 +946,7 @@ void main() {
           return givenGoogleSignInUnlinks(['microsoft']);
         },
         act: (bloc) => bloc.add(
-          GoogleLoginEvent(onRelinkProvider: (provider) async => false),
+          GoogleLoginEvent(onRelinkProvider: (provider, {required removed}) async => false),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -963,7 +963,7 @@ void main() {
         build: () => givenGoogleSignInUnlinks(['github']),
         act: (bloc) => bloc.add(
           GoogleLoginEvent(
-            onRelinkProvider: (provider) async =>
+            onRelinkProvider: (provider, {required removed}) async =>
                 fail('should not ask to link $provider'),
           ),
         ),

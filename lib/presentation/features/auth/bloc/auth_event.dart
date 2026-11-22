@@ -24,7 +24,7 @@ class LoginEvent extends AuthEvent {
 }
 
 /// Asks whether to link the provider the sign-in removed: true to link it now.
-typedef RelinkProviderPrompt = Future<bool> Function(String providerLabel);
+typedef RelinkProviderPrompt = Future<bool> Function(String providerLabel, {required bool removed});
 
 class GoogleLoginEvent extends AuthEvent {
   /// Confirms the remembered Google account (iOS only): true to continue as
