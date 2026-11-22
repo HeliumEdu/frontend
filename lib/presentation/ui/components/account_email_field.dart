@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
-import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
@@ -100,11 +99,18 @@ class AccountEmailField extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Manage sign-in methods',
-      child: HoverTapTarget(
-        onTap: onManageProviders,
-        color: context.colorScheme.primary,
-        tooltip: 'Manage sign-in methods',
-        child: badges,
+      child: Tooltip(
+        message: 'Manage sign-in methods',
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Builder(
+            builder: (anchorContext) => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onManageProviders(anchorContext),
+              child: badges,
+            ),
+          ),
+        ),
       ),
     );
   }

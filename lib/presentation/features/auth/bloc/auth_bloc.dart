@@ -316,14 +316,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final linkedProviders = [?_oauthSignInService.takeLinkedProvider()];
       final notLinkedProviders = <String>[];
-      for (final name in loginResponse.unlinkedProviders) {
-        final unlinked = OAuthProvider.values.asNameMap()[name];
-        if (unlinked == null) continue;
-
-        if (await _relinkProvider(unlinked, onRelinkProvider)) {
-          linkedProviders.add(unlinked.label);
+      final failedLinkProvider = _oauthSignInService.takeFailedLinkProvider();
+      final providersToLink = [
+        if (failedLinkProvider != null) (provider: failedLinkProvider, removed: false),
+        for (final name in loginResponse.unlinkedProviders)
+          if (OAuthProvider.values.asNameMap()[name] case final unlinked?) (provider: unlinked, removed: true),
+      ];
+      for (final (:provider, :removed) in providersToLink) {
+        if (await _relinkProvider(provider, removed, onRelinkProvider)) {
+          linkedProviders.add(provider.label);
         } else {
-          notLinkedProviders.add(unlinked.label);
+          notLinkedProviders.add(provider.label);
         }
       }
 
@@ -352,9 +355,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<bool> _relinkProvider(
     OAuthProvider provider,
+    bool removed,
     RelinkProviderPrompt onRelinkProvider,
   ) async {
-    if (!await onRelinkProvider(provider.label)) {
+    if (!await onRelinkProvider(provider.label, removed: removed)) {
       _log.info('${provider.label} re-link declined');
       return false;
     }
@@ -420,6 +424,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
+      await _oauthSignInService.signOut();
       await authRepository.logout();
       emit(AuthLoggedOut());
     } on HeliumException catch (e) {
@@ -436,7 +441,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _onForcedLogoutSignal() => add(ForcedLogoutEvent());
 
-  void _onForcedLogout(ForcedLogoutEvent event, Emitter<AuthState> emit) {
+  Future<void> _onForcedLogout(
+    ForcedLogoutEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    await _oauthSignInService.signOut();
     emit(AuthLoggedOut());
   }
 
@@ -692,6 +701,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final request = DeleteAccountRequestModel(password: event.password);
       await authRepository.deleteAccount(request);
+      await _oauthSignInService.signOut();
 
       emit(AuthAccountDeleted());
     } on HeliumException catch (e) {
