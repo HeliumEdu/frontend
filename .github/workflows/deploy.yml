@@ -1,18 +1,19 @@
 name: "Deploy"
 
-run-name: "Deploy `${{ inputs.version_type == 'latest' && 'latest' || inputs.specific_version }}` (`${{ inputs.platforms }}`)"
+run-name: "Deploy `${{ inputs.version_type == 'latest' && 'latest' || inputs.version_type == 'release_candidate' && 'latest release candidate' || inputs.specific_version }}` (`${{ inputs.platforms }}`)"
 
 on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: 'Version to deploy'
+        description: 'Version to deploy (release_candidate: the latest develop build that passed CI, web only)'
         required: true
         type: choice
         default: latest
         options:
           - latest
           - specific
+          - release_candidate
       specific_version:
         description: 'Specific version tag (only used if version_type is "specific", ex: 1.2.3)'
         required: false
@@ -106,9 +107,9 @@ jobs:
     name: Resolve Build
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.resolve.outputs.version }}
-      run_id: ${{ steps.resolve.outputs.build-run-id }}
-      ref: ${{ steps.resolve.outputs.ref }}
+      version: ${{ steps.candidate.outputs.version || steps.resolve.outputs.version }}
+      run_id: ${{ steps.candidate.outputs.build-run-id || steps.resolve.outputs.build-run-id }}
+      ref: ${{ steps.candidate.outputs.ref || steps.resolve.outputs.ref }}
 
     steps:
       - name: Generate GitHub App token
@@ -120,8 +121,43 @@ jobs:
           owner: HeliumEdu
           skip-token-revoke: true
 
+      - name: Find the latest release candidate
+        id: candidate
+        if: inputs.version_type == 'release_candidate'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          if [ "$PLATFORMS" != "web" ]; then
+            echo "::error::Release candidates deploy to web only."
+            exit 1
+          fi
+
+          RUNS=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs?branch=develop&event=push&status=success&per_page=20" \
+            --jq '.workflow_runs[] | "\(.id) \(.head_sha)"')
+          while read -r RUN_ID SHA; do
+            [ -n "$RUN_ID" ] || continue
+            ARTIFACT=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts" \
+              --jq '[.artifacts[] | select((.expired | not) and (.name | test("^helium-.+-web$")))][0].name // empty')
+            if [ -n "$ARTIFACT" ]; then
+              VERSION="${ARTIFACT#helium-}"
+              VERSION="${VERSION%-web}"
+              {
+                echo "version=${VERSION}"
+                echo "build-run-id=${RUN_ID}"
+                echo "ref=${SHA}"
+              } >> "$GITHUB_OUTPUT"
+              echo "Latest release candidate: ${VERSION} (Build run ${RUN_ID}, ${SHA})"
+              exit 0
+            fi
+          done <<< "$RUNS"
+
+          echo "::error::No successful develop build has a web release candidate."
+          exit 1
+
       - name: Find the release's build run
         id: resolve
+        if: inputs.version_type != 'release_candidate'
         uses: alexdlaird/shipshape/resolve-release@v1
         with:
           token: ${{ steps.app-token.outputs.token }}
