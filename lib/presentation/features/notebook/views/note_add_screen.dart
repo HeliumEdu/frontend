@@ -1293,6 +1293,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     await showBuiltPdfPreview(
       context,
       buildPdf: (format) => NotePdfHelpers.buildNotePdf(delta, format),
+      source: 'note',
       title: title.isNotEmpty ? title : 'Note Preview',
       filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
     );

@@ -16,6 +16,7 @@ import 'package:heliumapp/core/sentry_service.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/update_gate_activity_reporter.dart';
+import 'package:heliumapp/presentation/ui/layout/helium_pointer_behavior.dart';
 import 'package:heliumapp/update_required_app.dart';
 import 'package:heliumapp/utils/material_localizations_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -138,31 +139,22 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
     if (!isPrint) return false;
     if (PrintService().hasHandler) {
       FocusManager.instance.primaryFocus?.unfocus();
-      _handlePrint();
+      unawaited(PrintService().printCurrent());
     } else if (kIsWeb) {
       // Call synchronously within the key event to satisfy the browser's
       // user-activation requirement; async delay would cause it to be blocked.
       unawaited(
         AnalyticsService().logEvent(
           name: AnalyticsEvent.printPreview,
-          parameters: {'category': AnalyticsCategory.featureInteraction.value},
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'source': 'browser',
+          },
         ),
       );
       triggerBrowserPrint();
     }
     return true;
-  }
-
-  Future<void> _handlePrint() async {
-    final printed = await PrintService().printCurrent();
-    if (printed) {
-      unawaited(
-        AnalyticsService().logEvent(
-          name: AnalyticsEvent.printPreview,
-          parameters: {'category': AnalyticsCategory.featureInteraction.value},
-        ),
-      );
-    }
   }
 
   @override
@@ -196,11 +188,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
         child: MediaQuery.removePadding(
           context: context,
           removeTop: !PlatformBehavior.reservesStatusBarSpace,
-          child: GestureDetector(
-            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            behavior: HitTestBehavior.opaque,
-            child: child,
-          ),
+          child: HeliumPointerBehavior(child: child),
         ),
       ),
     );

@@ -557,6 +557,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       Expanded(
         child: PrintableArea(
           title: printTitle,
+          source:
+              router.routerDelegate.currentConfiguration.uri.pathSegments.first,
           flexColumn: enablePrintFlexColumn,
           header: screenError != null
               ? (_) => const SizedBox.shrink()
