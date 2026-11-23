@@ -182,6 +182,58 @@ void main() {
               .having((s) => s.categories, 'categories', isEmpty),
         ],
       );
+
+      blocTest<PlannerBloc, PlannerState>(
+        'a background fetch shows no loading state and keeps its flag on the result',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
+          when(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).thenAnswer((_) async => MockModels.createCourses(count: 2));
+          when(
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(() => mockAttachmentRepository.getAttachments()).thenAnswer((_) async => []);
+          return calendarBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchPlannerScreenDataEvent(origin: EventOrigin.screen, background: true),
+        ),
+        expect: () => [
+          isA<PlannerScreenDataFetched>().having((s) => s.background, 'background', isTrue),
+        ],
+      );
+
+      blocTest<PlannerBloc, PlannerState>(
+        'a failed background fetch is flagged so the screen keeps what it shows',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroups(shownOnCalendar: true),
+          ).thenThrow(NetworkException(message: 'Offline'));
+          when(
+            () => mockCourseRepository.getCourses(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(
+            () => mockCategoryRepository.getCategories(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(
+            () => mockResourceRepository.getResources(shownOnCalendar: true),
+          ).thenAnswer((_) async => []);
+          when(() => mockAttachmentRepository.getAttachments()).thenAnswer((_) async => []);
+          return calendarBloc;
+        },
+        act: (bloc) => bloc.add(
+          FetchPlannerScreenDataEvent(origin: EventOrigin.screen, background: true),
+        ),
+        expect: () => [
+          isA<PlannerError>().having((s) => s.background, 'background', isTrue),
+        ],
+      );
     });
 
     group('SkipCourseScheduleOccurrenceEvent', () {

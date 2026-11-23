@@ -59,18 +59,32 @@ enum ScreensDropdownFilterPrefKey {
   static Iterable<String> get allKeys => values.map((v) => v.key);
 }
 
+/// Everything "Remember filter selections" keeps, with
+/// [ScreensDropdownFilterPrefKey]; turning it off clears all of [allKeys].
+enum FilterStatePrefKey {
+  plannerFilters('saved_filter_state'),
+  rowsPerPage('saved_rows_per_page'),
+  notebookFilters('saved_notebook_filter_state'),
+  gradesGraph('saved_grades_graph_settings');
+
+  const FilterStatePrefKey(this.key);
+
+  final String key;
+
+  static Iterable<String> get allKeys => [
+    ...values.map((v) => v.key),
+    ...ScreensDropdownFilterPrefKey.allKeys,
+  ];
+}
+
 /// Every key `PrefService`'s shared-prefs side manages, so `clear()` can't
 /// reach keys owned by other storage (e.g. `GoogleAccountStore`) that
 /// happens to share the same underlying storage on web. New ad-hoc
 /// `PrefService().set*` keys must be added here or they'll throw on first use.
 Set<String> get _sharedPrefsAllowList => {
   ...SettingsPrefKey.allKeys,
-  ...ScreensDropdownFilterPrefKey.allKeys,
-  'saved_filter_state',
-  'saved_rows_per_page',
+  ...FilterStatePrefKey.allKeys,
   'mobile_web_continue',
-  'saved_grades_graph_settings',
-  'saved_notebook_filter_state',
   'saved_notebook_toolbar_state',
   'feedback_session_ended_clean',
   'feedback_clean_session_count',

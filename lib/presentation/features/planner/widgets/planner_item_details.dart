@@ -538,40 +538,42 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   }
 
   Widget _buildPrioritySlider(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Priority', style: AppStyles.formLabel(context)),
-        const SizedBox(height: 9),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: HeliumColors.getColorForPriority(
-              formController.priorityValue,
+    return MergeSemantics(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Priority', style: AppStyles.formLabel(context)),
+          const SizedBox(height: 9),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: HeliumColors.getColorForPriority(
+                formController.priorityValue,
+              ),
+              thumbColor: HeliumColors.getColorForPriority(
+                formController.priorityValue,
+              ),
+              overlayColor: HeliumColors.getColorForPriority(
+                formController.priorityValue,
+              ).withValues(alpha: 0.2),
+              valueIndicatorTextStyle: AppStyles.buttonText(context),
             ),
-            thumbColor: HeliumColors.getColorForPriority(
-              formController.priorityValue,
+            child: Slider(
+              value: formController.priorityValue,
+              min: 0,
+              max: 100,
+              divisions: 10,
+              label: '${(formController.priorityValue / 10).round()}',
+              onChanged: (value) {
+                formController.markChanged();
+                Feedback.forTap(context);
+                setState(() {
+                  formController.priorityValue = value;
+                });
+              },
             ),
-            overlayColor: HeliumColors.getColorForPriority(
-              formController.priorityValue,
-            ).withValues(alpha: 0.2),
-            valueIndicatorTextStyle: AppStyles.buttonText(context),
           ),
-          child: Slider(
-            value: formController.priorityValue,
-            min: 0,
-            max: 100,
-            divisions: 10,
-            label: '${(formController.priorityValue / 10).round()}',
-            onChanged: (value) {
-              formController.markChanged();
-              Feedback.forTap(context);
-              setState(() {
-                formController.priorityValue = value;
-              });
-            },
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -585,7 +587,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         trailing: HeliumIconButton(
           icon: Icons.school,
           backgroundColor: context.colorScheme.onSurfaceVariant,
-          tooltip: 'Add a class',
+          label: 'Add a class',
           onPressed: () =>
               widget.onNavigateRequested?.call(AppRoute.coursesScreen),
         ),

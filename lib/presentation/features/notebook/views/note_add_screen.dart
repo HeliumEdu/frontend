@@ -399,7 +399,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         enabled: !isSubmitting,
         onPressed: _onDelete,
         icon: Icons.delete_outline,
-        semanticLabel: 'Delete',
+        showTooltip: false,
+        label: 'Delete',
         color: context.colorScheme.error,
       ),
     ];
@@ -1293,6 +1294,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     await showBuiltPdfPreview(
       context,
       buildPdf: (format) => NotePdfHelpers.buildNotePdf(delta, format),
+      source: 'note',
       title: title.isNotEmpty ? title : 'Note Preview',
       filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
     );

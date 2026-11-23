@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/widgets.dart';
+import 'package:heliumapp/core/day_change_service.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core');
@@ -23,12 +24,20 @@ class CacheService with WidgetsBindingObserver {
   /// If app is backgrounded longer than this, cache is invalidated on resume
   static const inactivityThreshold = Duration(minutes: 10);
 
+  static const inPlaceRefreshInterval = Duration(minutes: 1);
+
+  final DateTime Function() _now;
   DateTime? _pausedAt;
+  bool _wasAway = false;
+  late DateTime _lastRefreshAt;
   Future<void> Function()? onInactivityResume;
   final _inactivityResume = _ResumeListeners();
+  final _inPlaceRefresh = _ResumeListeners();
   final _quickResume = _ResumeListeners();
 
-  CacheService() {
+  CacheService({@visibleForTesting DateTime Function()? now})
+    : _now = now ?? DateTime.now {
+    _lastRefreshAt = _now();
     _store = MemCacheStore();
     _options = CacheOptions(
       store: _store,
@@ -91,30 +100,65 @@ class CacheService with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
+      _wasAway = true;
       if (_pausedAt == null) {
-        _pausedAt = DateTime.now();
+        _pausedAt = _now();
         _log.fine('App hidden, recording timestamp for cache invalidation check');
       }
-    } else if (state == AppLifecycleState.resumed && _pausedAt != null) {
-      final inactiveDuration = DateTime.now().difference(_pausedAt!);
-      if (inactiveDuration > inactivityThreshold) {
-        _log.info(
-          'App resumed after ${inactiveDuration.inMinutes} minutes, invalidating cache',
-        );
-        final resume = onInactivityResume;
-        if (resume != null) {
-          resume().whenComplete(_notifyInactivityResume);
-        } else {
-          invalidateAll();
-          _notifyInactivityResume();
-        }
-      } else {
-        // A push may have arrived while backgrounded; refresh cheap state
-        // without the heavy invalidate/refetch path.
-        _notifyQuickResume();
+    } else if (state == AppLifecycleState.inactive) {
+      _wasAway = true;
+    } else if (state == AppLifecycleState.resumed && _wasAway) {
+      DayChangeService().scheduleRefresh();
+      final now = _now();
+      final hiddenFor = _pausedAt == null ? null : now.difference(_pausedAt!);
+      switch (_resumeRefreshFor(
+        hiddenFor: hiddenFor,
+        sinceLastRefresh: now.difference(_lastRefreshAt),
+      )) {
+        case ResumeRefresh.full:
+          _log.info(
+            'App resumed after ${hiddenFor!.inMinutes} minutes, invalidating cache',
+          );
+          _lastRefreshAt = now;
+          final resume = onInactivityResume;
+          if (resume != null) {
+            resume().whenComplete(_notifyInactivityResume);
+          } else {
+            invalidateAll();
+            _notifyInactivityResume();
+          }
+        case ResumeRefresh.inPlace:
+          refreshInPlace(reason: hiddenFor == null ? 'refocus' : 'return');
+        case ResumeRefresh.quick:
+          // A push may have arrived while backgrounded; refresh cheap state
+          // without the heavy invalidate/refetch path.
+          _notifyQuickResume();
+        case ResumeRefresh.none:
+          break;
       }
       _pausedAt = null;
+      _wasAway = false;
     }
+  }
+
+  static ResumeRefresh _resumeRefreshFor({
+    required Duration? hiddenFor,
+    required Duration sinceLastRefresh,
+  }) {
+    if (hiddenFor != null && hiddenFor > inactivityThreshold) {
+      return ResumeRefresh.full;
+    }
+    if (sinceLastRefresh >= inPlaceRefreshInterval) return ResumeRefresh.inPlace;
+    return hiddenFor != null ? ResumeRefresh.quick : ResumeRefresh.none;
+  }
+
+  /// Refreshes open screens' data without moving them, for changes made on
+  /// another device or a new day. [reason] names the trigger in the log.
+  void refreshInPlace({required String reason}) {
+    _log.info('Refreshing open screens in place: $reason');
+    _lastRefreshAt = _now();
+    _inPlaceRefresh.notify();
+    _notifyQuickResume();
   }
 
   /// Fires only after the [inactivityThreshold] resume (heavy path: runs after
@@ -124,6 +168,14 @@ class CacheService with WidgetsBindingObserver {
 
   void removeInactivityResumeListener(VoidCallback callback) =>
       _inactivityResume.remove(callback);
+
+  /// Fires on [refreshInPlace]: a return after [inPlaceRefreshInterval] and a
+  /// new day. Listeners refresh their data without moving the user's place.
+  void addInPlaceRefreshListener(VoidCallback callback) =>
+      _inPlaceRefresh.add(callback);
+
+  void removeInPlaceRefreshListener(VoidCallback callback) =>
+      _inPlaceRefresh.remove(callback);
 
   /// Fires on every resume from background (including the inactivity resume).
   /// For cheap refreshes like the notification count.
@@ -136,6 +188,7 @@ class CacheService with WidgetsBindingObserver {
   /// Invalidates the cache and reloads screens as after a long inactivity, for changes made outside this isolate.
   Future<void> reloadAfterExternalChange() async {
     await invalidateAll();
+    _lastRefreshAt = _now();
     _notifyInactivityResume();
   }
 
@@ -194,6 +247,8 @@ class CacheService with WidgetsBindingObserver {
   /// Alias for invalidateAll() for API consistency with DioClient.clearStorage().
   Future<void> clearAll() => invalidateAll();
 }
+
+enum ResumeRefresh { none, quick, inPlace, full }
 
 /// A registerable set of resume callbacks, iterated over a copy so a listener
 /// can add/remove during notification.

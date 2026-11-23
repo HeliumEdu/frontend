@@ -116,7 +116,8 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                 onEdit!(item);
               },
               icon: Icons.edit_outlined,
-              semanticLabel: 'Edit',
+              showTooltip: false,
+              label: 'Edit',
             ),
             const SizedBox(width: 8),
           ];

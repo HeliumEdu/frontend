@@ -210,7 +210,8 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
                 HeliumIconButton(
                   onPressed: _onAdd,
                   icon: Icons.add,
-                  semanticLabel: 'Add schedule',
+                  showTooltip: false,
+                  label: 'Add schedule',
                 ),
               ],
             ),

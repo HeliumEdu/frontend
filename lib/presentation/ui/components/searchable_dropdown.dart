@@ -224,6 +224,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                           icon: Icon(
                             Icons.keyboard_arrow_down,
                             color: iconColor,
+                            semanticLabel: 'Show options',
                           ),
                           mouseCursor: SystemMouseCursors.basic,
                           hoverColor: Colors.transparent,

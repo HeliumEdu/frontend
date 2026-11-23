@@ -420,39 +420,43 @@ class _GettingStartedDialogWidgetState
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_cards.length, (index) {
                 final isActive = index == _currentPage;
-                return MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      Feedback.forTap(context);
-                      if (MotionService().reduceMotion) {
-                        _pageController.jumpToPage(index);
-                      } else {
-                        _pageController.animateToPage(
-                          index,
-                          duration: AppConstants.uiAnimationDuration,
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    },
-                    child: SizedBox(
-                      width: 24,
-                      height: 36,
-                      child: Center(
-                        child: AnimatedContainer(
-                          duration: MotionService().effectiveDuration(
-                            const Duration(milliseconds: 200),
-                          ),
-                          width: isActive ? _activeDotSize : _dotSize,
-                          height: isActive ? _activeDotSize : _dotSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isActive
-                                ? context.colorScheme.primary
-                                : context.colorScheme.onSurface.withValues(
-                                    alpha: 0.25,
-                                  ),
+                return Semantics(
+                  button: true,
+                  label: 'Go to page ${index + 1}',
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        Feedback.forTap(context);
+                        if (MotionService().reduceMotion) {
+                          _pageController.jumpToPage(index);
+                        } else {
+                          _pageController.animateToPage(
+                            index,
+                            duration: AppConstants.uiAnimationDuration,
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                      child: SizedBox(
+                        width: 24,
+                        height: 36,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: MotionService().effectiveDuration(
+                              const Duration(milliseconds: 200),
+                            ),
+                            width: isActive ? _activeDotSize : _dotSize,
+                            height: isActive ? _activeDotSize : _dotSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isActive
+                                  ? context.colorScheme.primary
+                                  : context.colorScheme.onSurface.withValues(
+                                      alpha: 0.25,
+                                    ),
+                            ),
                           ),
                         ),
                       ),

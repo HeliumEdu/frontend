@@ -102,8 +102,11 @@ class _ResourcesScreenState
   );
 
   @override
-  void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState) && _resourceGroups.isNotEmpty) {
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    if (forceRefresh &&
+        !keepPlace &&
+        !(settingsLoaded && userSettings.rememberFilterState) &&
+        _resourceGroups.isNotEmpty) {
       setState(() {
         _selectedGroupId = _resourceGroups.first.id;
       });
@@ -113,6 +116,7 @@ class _ResourcesScreenState
         origin: EventOrigin.screen,
         forceRefresh: forceRefresh,
         passive: forceRefresh,
+        background: keepPlace,
       ),
     );
   }
@@ -190,7 +194,9 @@ class _ResourcesScreenState
       ),
       BlocListener<ResourceBloc, ResourceState>(
         listener: (context, state) {
-          if (state is ResourcesError && state.origin == EventOrigin.screen) {
+          if (state is ResourcesError &&
+              state.origin == EventOrigin.screen &&
+              !state.background) {
             setState(() { isLoading = false; screenError = state.message; });
           } else if (state is ResourcesScreenDataFetched) {
             _populateScreenData(state);
@@ -532,7 +538,7 @@ class _ResourcesScreenState
                           UrlHelpers.launchWebUrl(resource.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        tooltip: "Launch resource's website",
+                        label: "Launch resource's website",
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -543,7 +549,8 @@ class _ResourcesScreenState
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(resource),
                         icon: Icons.edit_outlined,
-                        semanticLabel: 'Edit',
+                        showTooltip: false,
+                        label: 'Edit',
                       ),
                     ),
                   ],

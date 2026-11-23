@@ -166,25 +166,27 @@ class _ExternalCalendarWidgetState
                 });
               },
             ),
-            Row(
-              children: [
-                Text(
-                  Responsive.isNarrowMobile(context) ? 'Show' : 'Show on calendar',
-                  style: AppStyles.formLabel(context),
-                ),
-                const SizedBox(width: 4),
-                Switch.adaptive(
-                  value: _formController.shownOnCalendar,
-                  activeTrackColor: context.colorScheme.primary,
-                  onChanged: (value) {
-                    _formController.markChanged();
-                    Feedback.forTap(context);
-                    setState(() {
-                      _formController.shownOnCalendar = value;
-                    });
-                  },
-                ),
-              ],
+            MergeSemantics(
+              child: Row(
+                children: [
+                  Text(
+                    Responsive.isNarrowMobile(context) ? 'Show' : 'Show on calendar',
+                    style: AppStyles.formLabel(context),
+                  ),
+                  const SizedBox(width: 4),
+                  Switch.adaptive(
+                    value: _formController.shownOnCalendar,
+                    activeTrackColor: context.colorScheme.primary,
+                    onChanged: (value) {
+                      _formController.markChanged();
+                      Feedback.forTap(context);
+                      setState(() {
+                        _formController.shownOnCalendar = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),

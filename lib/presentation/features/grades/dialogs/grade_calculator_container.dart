@@ -148,6 +148,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                       icon: Icon(
                         Icons.close,
                         color: context.colorScheme.secondary,
+                        semanticLabel: 'Close',
                       ),
                     ),
                   ],

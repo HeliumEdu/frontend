@@ -69,6 +69,7 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
                         icon: Icon(
                           Icons.close,
                           color: context.colorScheme.secondary,
+                          semanticLabel: 'Close',
                         ),
                       ),
                     ],

@@ -197,7 +197,8 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 );
               },
               icon: Icons.add,
-              semanticLabel: 'Add reminder',
+              showTooltip: false,
+              label: 'Add reminder',
             ),
           ],
         ),
@@ -295,7 +296,8 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 HeliumIconButton(
                   onPressed: () => _onEdit(reminder),
                   icon: Icons.edit_outlined,
-                  semanticLabel: 'Edit',
+                  showTooltip: false,
+                  label: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
@@ -316,7 +318,8 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   );
                 },
                 icon: Icons.delete_outline,
-                semanticLabel: 'Delete',
+                showTooltip: false,
+                label: 'Delete',
                 color: context.colorScheme.error,
               ),
             ],

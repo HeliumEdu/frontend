@@ -30,7 +30,7 @@ class NoteSyncStatusIcon extends StatelessWidget {
         icon: Icons.cloud_off_outlined,
         color: context.semanticColors.warning,
         filled: false,
-        tooltip: saveStatus == NoteSaveStatus.error && willRetrySave
+        label: saveStatus == NoteSaveStatus.error && willRetrySave
             ? 'Auto-save paused, will retry'
             : 'Auto-save paused',
       );

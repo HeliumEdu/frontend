@@ -171,7 +171,8 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                 );
               },
               icon: Icons.add,
-              semanticLabel: 'Add category',
+              showTooltip: false,
+              label: 'Add category',
             ),
           ],
         ),
@@ -305,7 +306,8 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                 HeliumIconButton(
                   onPressed: () => _onEdit(category),
                   icon: Icons.edit_outlined,
-                  semanticLabel: 'Edit',
+                  showTooltip: false,
+                  label: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
@@ -331,7 +333,8 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                   );
                 },
                 icon: Icons.delete_outline,
-                semanticLabel: 'Delete',
+                showTooltip: false,
+                label: 'Delete',
                 color: context.colorScheme.error,
               ),
             ],

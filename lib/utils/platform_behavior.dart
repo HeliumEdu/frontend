@@ -81,6 +81,12 @@ class PlatformBehavior {
   /// Printing is triggered by the Cmd+P / Ctrl+P shortcut.
   static bool get supportsPrintShortcut => kIsWeb || isDesktopHost;
 
+  /// The iPad build on a Mac gets a palm brushing the trackpad as a click at
+  /// the pointer.
+  static bool get rejectsTrackpadTapsWhileTyping =>
+      hostPlatform == TargetPlatform.macOS &&
+      defaultTargetPlatform == TargetPlatform.iOS;
+
   /// Links to the native apps, offered to pointer users of the web build.
   static bool get showsAppStoreLinks => kIsWeb && !support.hasTouchInput;
 }

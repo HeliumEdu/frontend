@@ -14,6 +14,7 @@ import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/app_version_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
+import 'package:heliumapp/core/day_change_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/feedback_service.dart';
@@ -128,6 +129,7 @@ Future<void> _bootstrap() async {
 
   await AgendaWidgetService().init();
   AgendaWidgetService().scheduleRefresh();
+  DayChangeService().scheduleRefresh();
 
   await AppVersionService().init();
 

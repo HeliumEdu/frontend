@@ -348,7 +348,8 @@ class _PlannerItemAddScreenState
         enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
-        semanticLabel: 'Delete',
+        showTooltip: false,
+        label: 'Delete',
         color: context.colorScheme.error,
       ),
       const SizedBox(width: 8),
@@ -356,7 +357,7 @@ class _PlannerItemAddScreenState
         enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onClone(),
         icon: Icons.copy_outlined,
-        tooltip: _itemRepeats ? 'Clone this occurrence' : 'Clone',
+        label: _itemRepeats ? 'Clone this occurrence' : 'Clone',
       ),
     ];
   }

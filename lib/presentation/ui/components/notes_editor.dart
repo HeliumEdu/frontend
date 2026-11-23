@@ -159,6 +159,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
   final _editorKey = GlobalKey();
   bool _pendingScrollOnKeyboard = false;
   bool _showSearch = false;
+  double? _embeddedHeight;
 
   bool get _isEmbedded => widget.layout == NotesEditorLayout.embedded;
 
@@ -171,6 +172,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     widget.focusNode?.addListener(_onFocusChange);
+    widget.controller.addListener(_onContentChange);
   }
 
   @override
@@ -180,12 +182,17 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
       oldWidget.focusNode?.removeListener(_onFocusChange);
       widget.focusNode?.addListener(_onFocusChange);
     }
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onContentChange);
+      widget.controller.addListener(_onContentChange);
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     widget.focusNode?.removeListener(_onFocusChange);
+    widget.controller.removeListener(_onContentChange);
     super.dispose();
   }
 
@@ -223,6 +230,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
 
   void _onFocusChange() {
     if (_isEmbedded && (widget.focusNode?.hasFocus ?? false)) {
+      _embeddedHeight = _editorKey.currentContext!.size!.height;
       final viewInsets = WidgetsBinding
           .instance.platformDispatcher.views.first.viewInsets.bottom;
 
@@ -234,6 +242,24 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
         _pendingScrollOnKeyboard = true;
       }
     }
+  }
+
+  void _onContentChange() {
+    if (!_isEmbedded || !(widget.focusNode?.hasFocus ?? false)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _editorKey.currentContext!;
+      final height = ctx.size!.height;
+      final grew = height > _embeddedHeight!;
+      _embeddedHeight = height;
+      if (!grew) return;
+      Scrollable.ensureVisible(
+        ctx,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        duration: MotionService().effectiveDuration(const Duration(milliseconds: 200)),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override

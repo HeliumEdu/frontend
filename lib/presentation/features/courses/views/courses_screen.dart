@@ -115,8 +115,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
   }
 
   @override
-  void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState)) {
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    if (forceRefresh &&
+        !keepPlace &&
+        !(settingsLoaded && userSettings.rememberFilterState)) {
       setState(() {
         _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
       });
@@ -126,6 +128,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
         origin: EventOrigin.screen,
         forceRefresh: forceRefresh,
         passive: forceRefresh,
+        background: keepPlace,
       ),
     );
   }
@@ -167,7 +170,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       ),
       BlocListener<CourseBloc, CourseState>(
         listener: (context, state) {
-          if (state is CoursesError && state.origin == EventOrigin.screen) {
+          if (state is CoursesError &&
+              state.origin == EventOrigin.screen &&
+              !state.background) {
             setState(() { isLoading = false; screenError = state.message; });
           } else if (state is CoursesScreenDataFetched) {
             _populateScreenData(state);
@@ -607,7 +612,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchMailUrl(course.teacherEmail);
                         },
                         icon: Icons.email_outlined,
-                        tooltip: 'Email teacher',
+                        label: 'Email teacher',
                         color: context.semanticColors.info,
                       ),
                     ),
@@ -620,7 +625,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchWebUrl(course.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        tooltip: 'Launch class website',
+                        label: 'Launch class website',
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -631,6 +636,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),
                         icon: Icons.edit_outlined,
+                        showTooltip: false,
+                        label: 'Edit',
                       ),
                     ),
                   ],

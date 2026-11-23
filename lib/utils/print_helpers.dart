@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -107,6 +110,18 @@ Future<void> _sliceImageToPdf(
   }
 }
 
+void _logPreviewOpened(String source) {
+  unawaited(
+    AnalyticsService().logEvent(
+      name: AnalyticsEvent.printPreview,
+      parameters: {
+        'category': AnalyticsCategory.featureInteraction.value,
+        'source': source,
+      },
+    ),
+  );
+}
+
 // ── Public preview entry points ───────────────────────────────────────────────
 
 /// Opens a full-screen PDF preview dialog for a PDF built by [buildPdf].
@@ -119,11 +134,13 @@ Future<void> _sliceImageToPdf(
 Future<void> showBuiltPdfPreview(
   BuildContext context, {
   required Future<Uint8List> Function(PdfPageFormat format) buildPdf,
+  required String source,
   String title = '',
   String? filename,
 }) async {
   final pdfFilename =
       filename ?? (title.isNotEmpty ? '$title.pdf' : 'Helium_print.pdf');
+  _logPreviewOpened(source);
 
   await showDialog(
     context: context,
@@ -256,11 +273,13 @@ class _TrailingActionSlot extends StatelessWidget {
 Future<void> showPdfPreview(
   BuildContext context, {
   required captureImage,
+  required String source,
   String title = '',
   String? filename,
 }) async {
   final pdfFilename =
       filename ?? (title.isNotEmpty ? '$title.pdf' : 'print.pdf');
+  _logPreviewOpened(source);
 
   await showDialog(
     context: context,
@@ -577,10 +596,13 @@ class PrintableArea extends StatefulWidget {
   /// `Helium_<title>_<yyyy-MM-dd>.pdf`. Leave empty for a generic filename.
   final String title;
 
+  final String source;
+
   const PrintableArea({
     super.key,
     required this.header,
     required this.body,
+    required this.source,
     this.flexColumn = false,
     this.title = '',
   });
@@ -654,6 +676,7 @@ class _PrintableAreaState extends State<PrintableArea> {
       await showPdfPreview(
         context,
         captureImage: _captureImage,
+        source: widget.source,
         title: title,
         filename: 'Helium_${title.toLowerCase()}_$date.pdf',
       );

@@ -223,7 +223,7 @@ class CourseDetailsState extends State<CourseDetails>
                         );
                       },
                       icon: Icons.launch_outlined,
-                      tooltip: 'Launch class website',
+                      label: 'Launch class website',
                       color: context.semanticColors.success,
                     ),
                   ),
@@ -251,7 +251,7 @@ class CourseDetailsState extends State<CourseDetails>
                               UrlHelpers.launchMailUrl(formController.teacherEmailController.text);
                             },
                             icon: Icons.email_outlined,
-                            tooltip: 'Email teacher',
+                            label: 'Email teacher',
                             color: context.semanticColors.info,
                           ),
                         ),

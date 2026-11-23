@@ -716,6 +716,30 @@ void main() {
       expect(PlannerHelper.firstIndexDueOnOrAfter(sorted, now, losAngeles), 1);
     });
   });
+
+  group('isShowingDay', () {
+    test('a week that held yesterday is showing it', () {
+      // GIVEN
+      final week = [for (var d = 15; d <= 21; d++) DateTime(2026, 11, d)];
+
+      // WHEN
+      final showing = PlannerHelper.isShowingDay(week, DateTime(2026, 11, 21));
+
+      // THEN
+      expect(showing, isTrue);
+    });
+
+    test('a week navigated away from yesterday is not showing it', () {
+      // GIVEN
+      final nextWeek = [for (var d = 22; d <= 28; d++) DateTime(2026, 11, d)];
+
+      // WHEN
+      final showing = PlannerHelper.isShowingDay(nextWeek, DateTime(2026, 11, 21));
+
+      // THEN
+      expect(showing, isFalse, reason: 'The student moved on, so midnight leaves the view alone');
+    });
+  });
 }
 
 EventModel _createEventModel({bool allDay = false}) {

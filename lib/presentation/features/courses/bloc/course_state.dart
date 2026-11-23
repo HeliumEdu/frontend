@@ -39,11 +39,13 @@ class CoursesLoading extends CourseState {
 
 class CoursesError extends CourseState {
   final LinkedNoteSave? linkedNoteSave;
+  final bool background;
 
   CoursesError({
     required super.origin,
     required super.message,
     this.linkedNoteSave,
+    this.background = false,
   });
 }
 

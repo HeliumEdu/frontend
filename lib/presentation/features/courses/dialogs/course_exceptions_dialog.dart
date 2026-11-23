@@ -256,7 +256,8 @@ class _CourseExceptionsDialogState
               builder: (buttonContext) => HeliumIconButton(
                 onPressed: () => _addDate(buttonContext),
                 icon: Icons.add,
-                semanticLabel: 'Add date',
+                showTooltip: false,
+                label: 'Add date',
               ),
             ),
           ],
@@ -317,7 +318,7 @@ class _CourseExceptionsDialogState
               onPressed: () => _removeDate(date, scheduleId),
               icon: Icons.delete_outline,
               color: context.colorScheme.error,
-              tooltip: 'Remove',
+              label: 'Remove',
             ),
           ],
         ),

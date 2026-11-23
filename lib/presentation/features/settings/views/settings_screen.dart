@@ -225,8 +225,12 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   }
 
   @override
-  void loadScreenData({required bool forceRefresh}) =>
-      context.read<AuthBloc>().add(FetchProfileEvent());
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    // A profile fetch flips the app-wide AuthBloc to loading, which spins this
+    // page, so in-place refreshes leave the profile to the long-absence reload.
+    if (keepPlace) return;
+    context.read<AuthBloc>().add(FetchProfileEvent());
+  }
 
   @override
   void dispose() {
@@ -645,7 +649,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Support Portal',
+                label: 'Support Portal',
                 minimumSize: 40,
                 visualDensity: context.theme.visualDensity,
               ),

@@ -24,11 +24,13 @@ class NotesLoading extends NoteState {
 
 class NotesError extends NoteState {
   final bool canRetry;
+  final bool background;
 
   NotesError({
     required super.origin,
     required super.message,
     this.canRetry = true,
+    this.background = false,
   });
 }
 

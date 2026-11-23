@@ -68,7 +68,6 @@ class _GradesProvidedScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
-  static const _savedGradeGraphSettingsKey = 'saved_grades_graph_settings';
 
   @override
   bool get enablePrint => true;
@@ -110,14 +109,16 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   }
 
   @override
-  void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh && !(settingsLoaded && userSettings.rememberFilterState)) {
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    if (forceRefresh &&
+        !keepPlace &&
+        !(settingsLoaded && userSettings.rememberFilterState)) {
       setState(() {
         _selectedGroupId = CourseGroupHelpers.currentGroupId(_courseGroups);
       });
     }
     context.read<GradeBloc>().add(
-      FetchGradeScreenDataEvent(forceRefresh: forceRefresh),
+      FetchGradeScreenDataEvent(forceRefresh: forceRefresh, background: keepPlace),
     );
   }
 
@@ -144,7 +145,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       ),
       BlocListener<GradeBloc, GradeState>(
         listener: (context, state) {
-          if (state is GradesError) {
+          if (state is GradesError && !state.background) {
             setState(() {
               isLoading = false;
               screenError = state.message ?? HeliumException.unexpectedError;
@@ -2107,7 +2108,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       'visibleSeries': _visibleSeries,
     };
     PrefService().setString(
-      _savedGradeGraphSettingsKey,
+      FilterStatePrefKey.gradesGraph.key,
       jsonEncode(graphSettings),
     );
   }
@@ -2115,7 +2116,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
   void _restoreGraphSettingsIfEnabled(UserSettingsModel settings) {
     if (!settings.rememberFilterState) return;
 
-    final savedState = PrefService().getString(_savedGradeGraphSettingsKey);
+    final savedState = PrefService().getString(FilterStatePrefKey.gradesGraph.key);
     if (savedState == null || savedState.isEmpty) return;
 
     try {

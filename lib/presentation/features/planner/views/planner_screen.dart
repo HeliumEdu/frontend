@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/analytics_event.dart';
@@ -10,6 +12,8 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/cache_service.dart';
+import 'package:heliumapp/core/day_change_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -239,6 +243,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   bool _isCalendarInteractionInProgress = false;
   bool _dragRejected = false;
   Timer? _tooltipSuppressTimer;
+  final Stopwatch _sinceLastInput = Stopwatch()..start();
+  DateTime? _endedDayToLeave;
+  Timer? _newDayJumpTimer;
 
   // Workaround for SfCalendar reporting the wrong appointment in onDragStart.
   // _lastHoveredItem tracks hover via MouseRegion; _pointerDownHoveredItem
@@ -304,6 +311,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     if (!_applyDateDeepLink()) {
       _goToToday();
     }
+    DayChangeService().addDeviceDayEndedListener(_onDeviceDayEnded);
+    HardwareKeyboard.instance.addHandler(_onKeyInput);
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointerInput);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_warmSearchGlyphs());
@@ -311,14 +321,52 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   @override
-  void loadScreenData({required bool forceRefresh}) {
-    if (forceRefresh) _goToToday();
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    if (forceRefresh && !keepPlace) _goToToday();
     context.read<PlannerBloc>().add(
       FetchPlannerScreenDataEvent(
         origin: EventOrigin.screen,
         forceRefresh: forceRefresh,
+        background: keepPlace,
       ),
     );
+  }
+
+  @override
+  bool get defersInPlaceRefresh =>
+      super.defersInPlaceRefresh ||
+      (_plannerItemDataSource?.changeNotificationsFrozen ?? false) ||
+      _pendingToggleTimers.isNotEmpty ||
+      _inFlightCompletionCounts.isNotEmpty;
+
+  bool _onKeyInput(KeyEvent event) {
+    _sinceLastInput.reset();
+    return false;
+  }
+
+  void _onPointerInput(PointerEvent event) {
+    if (event is PointerDownEvent) _sinceLastInput.reset();
+  }
+
+  void _onDeviceDayEnded(DateTime dayEnded) {
+    _endedDayToLeave = dayEnded;
+    _jumpToNewDayOnceIdle();
+  }
+
+  void _jumpToNewDayOnceIdle() {
+    _newDayJumpTimer?.cancel();
+    final untilIdle =
+        CacheService.inactivityThreshold - _sinceLastInput.elapsed;
+    if (untilIdle > Duration.zero) {
+      _newDayJumpTimer = Timer(untilIdle, _jumpToNewDayOnceIdle);
+      return;
+    }
+    final dayEnded = _endedDayToLeave!;
+    _endedDayToLeave = null;
+    if (_currentView != PlannerView.todos &&
+        PlannerHelper.isShowingDay(_visibleDates, dayEnded)) {
+      _jumpToDate(DateTime.now(), offsetForVisibility: true);
+    }
   }
 
   /// Reads the `?date=` query param when the current location is /planner
@@ -431,6 +479,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   @override
   void dispose() {
     router.routerDelegate.removeListener(_onRouterChanged);
+    DayChangeService().removeDeviceDayEndedListener(_onDeviceDayEnded);
+    HardwareKeyboard.instance.removeHandler(_onKeyInput);
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointerInput);
+    _newDayJumpTimer?.cancel();
     _tooltipSuppressTimer?.cancel();
     for (final timer in _pendingToggleTimers.values) {
       timer.cancel();
@@ -520,7 +572,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
             // The range cache short-circuits handleLoadMore, so an
             // invalidated Dio cache alone refetches nothing.
-            if (state.forceRefresh) {
+            if (state.background) {
+              unawaited(_plannerItemDataSource?.refreshLoadedDaysQuietly());
+            } else if (state.forceRefresh) {
               _agendaLoadedWeek = null;
               unawaited(
                 _plannerItemDataSource?.refreshCalendarSources(
@@ -553,7 +607,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     : null,
               ),
             );
-          } else if (state is PlannerError) {
+          } else if (state is PlannerError && !state.background) {
             setState(() {
               isLoading = false;
               if (state.origin == EventOrigin.screen) {

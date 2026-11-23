@@ -13,8 +13,7 @@ class SpinnerField extends StatelessWidget {
   );
 
   final String? label;
-
-  final String? semanticLabel;
+  final String? description;
   final TextEditingController controller;
   final double minValue;
   final double? maxValue;
@@ -22,11 +21,12 @@ class SpinnerField extends StatelessWidget {
   final bool allowDecimal;
   final ValueChanged<String>? onChanged;
   final double? maxSpinnerWidth;
+  final Widget? trailing;
 
   const SpinnerField({
     super.key,
     this.label,
-    this.semanticLabel,
+    this.description,
     required this.controller,
     this.minValue = 0,
     this.maxValue,
@@ -34,6 +34,7 @@ class SpinnerField extends StatelessWidget {
     this.allowDecimal = false,
     this.onChanged,
     this.maxSpinnerWidth,
+    this.trailing,
   });
 
   @override
@@ -45,15 +46,38 @@ class SpinnerField extends StatelessWidget {
           ExcludeSemantics(
             child: Text(label!, style: AppStyles.formLabel(context)),
           ),
-        if (label != null) const SizedBox(height: 9),
-        _buildSpinnerRow(context),
+        if (description != null)
+          Text(description!, style: AppStyles.smallSecondaryText(context)),
+        if (label != null || description != null)
+          SizedBox(height: description != null || trailing != null ? 8 : 9),
+        if (trailing == null)
+          _buildSpinnerRow(context)
+        else
+          Row(
+            children: [
+              SizedBox(width: maxSpinnerWidth, child: _buildField(context)),
+              const SizedBox(width: 8),
+              Expanded(child: trailing!),
+            ],
+          ),
       ],
     );
   }
 
   Widget _buildSpinnerRow(BuildContext context) {
-    final field = Semantics(
-      label: semanticLabel ?? label,
+    final field = _buildField(context);
+    if (maxSpinnerWidth != null) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxSpinnerWidth!),
+        child: field,
+      );
+    }
+    return field;
+  }
+
+  Widget _buildField(BuildContext context) {
+    return Semantics(
+      label: label,
       child: Focus(
         onKeyEvent: (_, event) {
           if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -91,14 +115,6 @@ class SpinnerField extends StatelessWidget {
         ),
       ),
     );
-
-    if (maxSpinnerWidth != null) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxSpinnerWidth!),
-        child: field,
-      );
-    }
-    return field;
   }
 
   Widget _buildArrows(BuildContext context) {

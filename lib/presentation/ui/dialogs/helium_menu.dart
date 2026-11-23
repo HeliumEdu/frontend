@@ -43,13 +43,7 @@ Future<void> showHeliumMenu({
     // Open on the root navigator so the popup's tap-outside barrier covers the
     // page chrome (header, nav rail): tapping anywhere dismisses the menu.
     useRootNavigator: true,
-    items: [
-      PopupMenuItem(
-        enabled: false,
-        padding: EdgeInsets.zero,
-        child: StatefulBuilder(builder: builder),
-      ),
-    ],
+    items: [_HeliumMenuItem(child: StatefulBuilder(builder: builder))],
   );
 }
 
@@ -171,5 +165,29 @@ class HeliumMenuItemRow extends StatelessWidget {
         ),
       ),
     ];
+  }
+}
+
+class _HeliumMenuItem extends PopupMenuItem<void> {
+  const _HeliumMenuItem({required super.child})
+    : super(enabled: false, padding: EdgeInsets.zero);
+
+  @override
+  PopupMenuItemState<void, _HeliumMenuItem> createState() =>
+      _HeliumMenuItemState();
+}
+
+class _HeliumMenuItemState
+    extends PopupMenuItemState<void, _HeliumMenuItem> {
+  @override
+  Widget buildSemantics({required Widget child}) => child;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = super.build(context);
+    // PopupMenuItem wraps its content in one disabled menu-item node, hiding
+    // the menu's own controls from Voice Control. Keep its styling and drop
+    // that wrapper.
+    return item is MergeSemantics ? item.child! : item;
   }
 }

@@ -115,6 +115,11 @@ class PlannerHelper {
   /// Kept in sync with the [SizedBox] in `PlannerItemCalendarTile._buildCheckboxWidget`.
   static const double checkboxWidth = 17;
 
+  /// Whether the calendar's [visibleDates] (naive, as SfCalendar reports them)
+  /// include [day].
+  static bool isShowingDay(List<DateTime> visibleDates, DateTime day) =>
+      visibleDates.any((date) => DateUtils.isSameDay(date, day));
+
   /// Each day from [firstDay] through [lastDay] that has items, in date order.
   static List<({DateTime date, List<PlannerItemBaseModel> items})> agendaDaysOf(
     DateTime firstDay,

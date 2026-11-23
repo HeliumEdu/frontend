@@ -81,28 +81,32 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             },
             availableColors: HeliumColors.preferredColors,
             itemBuilder: (color, isCurrentColor, changeColor) {
-              return InkWell(
-                onTap: changeColor,
-                borderRadius: BorderRadius.circular(4),
-                child: Container(
-                    margin: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(4.0),
-                      border: Border.all(
-                        color: context.colorScheme.outline.withValues(
-                          alpha: 0.2,
+              return Semantics(
+                button: true,
+                label: 'Color ${HeliumColors.preferredColors.indexOf(color) + 1} of ${HeliumColors.preferredColors.length}',
+                child: InkWell(
+                  onTap: changeColor,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                          color: context.colorScheme.outline.withValues(
+                            alpha: 0.2,
+                          ),
                         ),
                       ),
+                      child: isCurrentColor
+                          ? Icon(
+                              Icons.check,
+                              color: HeliumColors.contrastingTextColor(color),
+                              size: 15.0,
+                            )
+                          : null,
                     ),
-                    child: isCurrentColor
-                        ? Icon(
-                            Icons.check,
-                            color: HeliumColors.contrastingTextColor(color),
-                            size: 15.0,
-                          )
-                        : null,
-                  ),
+                ),
               );
             },
             layoutBuilder: (context, colors, child) {
