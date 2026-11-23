@@ -39,14 +39,16 @@ class ScheduleCard extends StatelessWidget {
                 HeliumIconButton(
                   onPressed: onEdit,
                   icon: Icons.edit_outlined,
-                  semanticLabel: 'Edit',
+                  showTooltip: false,
+                  label: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
               HeliumIconButton(
                 onPressed: onDelete,
                 icon: Icons.delete_outline,
-                semanticLabel: 'Delete',
+                showTooltip: false,
+                label: 'Delete',
                 color: context.colorScheme.error,
               ),
             ],

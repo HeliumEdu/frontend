@@ -1323,7 +1323,7 @@ class TodosDataSource extends BaseDataGridSource {
           onPressed: () {
             UrlHelpers.launchMailUrl(course.teacherEmail);
           },
-          tooltip: 'Email teacher',
+          label: 'Email teacher',
           icon: Icons.email_outlined,
           color: _context.colorScheme.onSurface,
         ),
@@ -1336,7 +1336,7 @@ class TodosDataSource extends BaseDataGridSource {
           onPressed: () {
             UrlHelpers.launchWebUrl(course.website.toString());
           },
-          tooltip: 'Launch class website',
+          label: 'Launch class website',
           icon: Icons.launch_outlined,
           color: _context.colorScheme.onSurface,
         ),
@@ -1348,7 +1348,8 @@ class TodosDataSource extends BaseDataGridSource {
         HeliumIconButton(
           onPressed: () => _onTap(homework),
           icon: Icons.edit_outlined,
-          semanticLabel: 'Edit',
+          showTooltip: false,
+          label: 'Edit',
           color: _context.colorScheme.onSurface,
         ),
       );

@@ -373,91 +373,46 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
 
             KeyedSubtree(key: _gradesSectionKey, child: _buildSectionHeader('GRADES')),
-            ExcludeSemantics(
-              child: Text(
-                'At-risk threshold (%)',
-                style: AppStyles.formLabel(context),
-              ),
-            ),
-            Text(
-              'Classes with an overall grade below this are flagged',
-              style: AppStyles.smallSecondaryText(context),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _atRiskThresholdController,
-                semanticLabel: 'At-risk threshold (%)',
-                minValue: 0,
-                maxValue: 100,
-              ),
+            SpinnerField(
+              label: 'At-risk threshold (%)',
+              description:
+                  'Classes with an overall grade below this are flagged',
+              maxSpinnerWidth: 120,
+              controller: _atRiskThresholdController,
+              minValue: 0,
+              maxValue: 100,
             ),
             const SizedBox(height: 14),
-            ExcludeSemantics(
-              child: Text(
-                'On-track tolerance (%)',
-                style: AppStyles.formLabel(context),
-              ),
-            ),
-            Text(
-              'How far off pace your work can be and still be On Track, and how far above the at-risk threshold a grade shows as a warning',
-              style: AppStyles.smallSecondaryText(context),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _onTrackToleranceController,
-                semanticLabel: 'On-track tolerance (%)',
-                minValue: 0,
-                maxValue: 100,
-              ),
+            SpinnerField(
+              label: 'On-track tolerance (%)',
+              description:
+                  'How far off pace your work can be and still be On Track, and how far above the at-risk threshold a grade shows as a warning',
+              maxSpinnerWidth: 120,
+              controller: _onTrackToleranceController,
+              minValue: 0,
+              maxValue: 100,
             ),
             const SizedBox(height: 14),
-            ExcludeSemantics(
-              child: Text(
-                'Prior credits',
-                style: AppStyles.formLabel(context),
-              ),
-            ),
-            Text(
-              'Credits from before you started using Helium, counted in your All GPA',
-              style: AppStyles.smallSecondaryText(context),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _priorCreditsController,
-                semanticLabel: 'Prior credits',
-                minValue: 0,
-                maxValue: 999.99,
-                allowDecimal: true,
-              ),
+            SpinnerField(
+              label: 'Prior credits',
+              description:
+                  'Credits from before you started using Helium, counted in your All GPA',
+              maxSpinnerWidth: 120,
+              controller: _priorCreditsController,
+              minValue: 0,
+              maxValue: 999.99,
+              allowDecimal: true,
             ),
             const SizedBox(height: 14),
-            ExcludeSemantics(
-              child: Text(
-                'Prior GPA',
-                style: AppStyles.formLabel(context),
-              ),
-            ),
-            Text(
-              'Your GPA over those prior credits',
-              style: AppStyles.smallSecondaryText(context),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _priorGpaController,
-                semanticLabel: 'Prior GPA',
-                minValue: 0,
-                maxValue: 100,
-                step: 0.1,
-                allowDecimal: true,
-              ),
+            SpinnerField(
+              label: 'Prior GPA',
+              description: 'Your GPA over those prior credits',
+              maxSpinnerWidth: 120,
+              controller: _priorGpaController,
+              minValue: 0,
+              maxValue: 100,
+              step: 0.1,
+              allowDecimal: true,
             ),
 
             _buildSectionHeader('REMINDERS'),
@@ -480,36 +435,23 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               },
             ),
             const SizedBox(height: 14),
-            Text(
-              'Default "Remind before"',
-              style: AppStyles.formLabel(context),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                SizedBox(
-                  width: 120,
-                  child: SpinnerField(
-                    controller: _reminderOffsetController,
-                    maxValue: 100,
-                  ),
+            SpinnerField(
+              label: 'Default "Remind before"',
+              controller: _reminderOffsetController,
+              maxValue: 100,
+              maxSpinnerWidth: 120,
+              trailing: DropDown(
+                initialValue: ReminderConstants.offsetTypeItems.firstWhere(
+                  (rot) => rot.value == _selectedReminderOffsetType,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: DropDown(
-                    initialValue: ReminderConstants.offsetTypeItems.firstWhere(
-                      (rot) => rot.value == _selectedReminderOffsetType,
-                    ),
-                    items: ReminderConstants.offsetTypeItems,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedReminderOffsetType = value!.value!;
-                        _isChanged = true;
-                      });
-                    },
-                  ),
-                ),
-              ],
+                items: ReminderConstants.offsetTypeItems,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedReminderOffsetType = value!.value!;
+                    _isChanged = true;
+                  });
+                },
+              ),
             ),
 
             const SizedBox(height: 12),

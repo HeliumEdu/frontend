@@ -14,7 +14,6 @@ import 'package:heliumapp/presentation/features/planner/constants/reminder_const
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
-import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -127,34 +126,24 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
           },
         ),
         const SizedBox(height: 12),
-        Text('Remind before', style: AppStyles.formLabel(context)),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                controller: _formController.offsetController,
-                maxValue: 100,
-                onChanged: (_) => _formController.markChanged(),
-              ),
+        SpinnerField(
+          label: 'Remind before',
+          controller: _formController.offsetController,
+          maxValue: 100,
+          maxSpinnerWidth: 120,
+          onChanged: (_) => _formController.markChanged(),
+          trailing: DropDown(
+            initialValue: ReminderConstants.offsetTypeItems.firstWhere(
+              (ot) => ot.id == _formController.reminderOffsetType,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: DropDown(
-                initialValue: ReminderConstants.offsetTypeItems.firstWhere(
-                  (ot) => ot.id == _formController.reminderOffsetType,
-                ),
-                items: ReminderConstants.offsetTypeItems,
-                onChanged: (value) {
-                  _formController.markChanged();
-                  setState(() {
-                    _formController.reminderOffsetType = value!.id;
-                  });
-                },
-              ),
-            ),
-          ],
+            items: ReminderConstants.offsetTypeItems,
+            onChanged: (value) {
+              _formController.markChanged();
+              setState(() {
+                _formController.reminderOffsetType = value!.id;
+              });
+            },
+          ),
         ),
       ],
     );

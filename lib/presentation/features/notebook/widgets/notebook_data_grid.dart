@@ -1043,7 +1043,8 @@ class NotesDataSource extends BaseDataGridSource {
               HeliumIconButton(
                 onPressed: () => onEdit(note),
                 icon: Icons.edit_outlined,
-                semanticLabel: 'Edit',
+                showTooltip: false,
+                label: 'Edit',
                 color: context.colorScheme.onSurface,
               ),
             ],

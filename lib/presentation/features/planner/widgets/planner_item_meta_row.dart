@@ -88,8 +88,9 @@ class PlannerItemMetaRow extends StatelessWidget {
         _MetaEntry.iconOnly(
           icon: Icons.library_books,
           color: context.colorScheme.primary,
-          onTap: onOpenInNotebook == null ? null : (_) => onOpenInNotebook!(),
-          tooltip: onOpenInNotebook != null ? 'Open in Notebook' : null,
+          action: onOpenInNotebook == null
+              ? null
+              : (onTap: (_) => onOpenInNotebook!(), tooltip: 'Open in Notebook'),
         ),
       );
     }
@@ -111,8 +112,9 @@ class PlannerItemMetaRow extends StatelessWidget {
           icon: Icons.attachment,
           count: attachmentCount,
           color: context.semanticColors.success.withValues(alpha: 0.9),
-          onTap: onOpenAttachments,
-          tooltip: onOpenAttachments != null ? 'Show attachments' : null,
+          action: onOpenAttachments == null
+              ? null
+              : (onTap: onOpenAttachments!, tooltip: 'Show attachments'),
         ),
       );
     }
@@ -123,8 +125,9 @@ class PlannerItemMetaRow extends StatelessWidget {
           icon: Icons.book_outlined,
           count: resources.length,
           color: userSettings.resourceColor.withValues(alpha: 0.9),
-          onTap: onOpenResources,
-          tooltip: onOpenResources != null ? 'Show resources' : null,
+          action: onOpenResources == null
+              ? null
+              : (onTap: onOpenResources!, tooltip: 'Show resources'),
         ),
       );
     }
@@ -143,9 +146,9 @@ class PlannerItemMetaRow extends StatelessWidget {
         ? entries
         : entries.take(maxEntries!).toList();
     double startPadding(int i) =>
-        i > 0 && visible[i].onTap != null ? groupGap / 2 : 0;
+        i > 0 && visible[i].action != null ? groupGap / 2 : 0;
     double endPadding(int i) =>
-        i < visible.length - 1 && visible[i].onTap != null ? groupGap / 2 : 0;
+        i < visible.length - 1 && visible[i].action != null ? groupGap / 2 : 0;
     final verticalPadding = math.max(
       0.0,
       (HoverTapTarget.extentOf(context) - iconSize) / 2,
@@ -190,38 +193,40 @@ class PlannerItemMetaRow extends StatelessWidget {
             ],
           );
 
-    final onTap = entry.onTap;
-    if (onTap == null) return visual;
+    final action = entry.action;
+    if (action == null) return visual;
 
     return HoverTapTarget(
-      onTap: onTap,
+      onTap: action.onTap,
       color: entry.color,
-      tooltip: entry.tooltip,
+      tooltip: action.tooltip,
       hitPadding: hitPadding,
       child: visual,
     );
   }
 }
 
+typedef _MetaAction = ({
+  void Function(BuildContext anchorContext) onTap,
+  String tooltip,
+});
+
 class _MetaEntry {
   final IconData icon;
   final int? count;
   final Color color;
-  final void Function(BuildContext anchorContext)? onTap;
-  final String? tooltip;
+  final _MetaAction? action;
 
   _MetaEntry.count({
     required this.icon,
     required int this.count,
     required this.color,
-    this.onTap,
-    this.tooltip,
+    this.action,
   });
 
   _MetaEntry.iconOnly({
     required this.icon,
     required this.color,
-    this.onTap,
-    this.tooltip,
+    this.action,
   }) : count = null;
 }

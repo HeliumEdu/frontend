@@ -538,7 +538,7 @@ class _ResourcesScreenState
                           UrlHelpers.launchWebUrl(resource.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        tooltip: "Launch resource's website",
+                        label: "Launch resource's website",
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -549,7 +549,8 @@ class _ResourcesScreenState
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(resource),
                         icon: Icons.edit_outlined,
-                        semanticLabel: 'Edit',
+                        showTooltip: false,
+                        label: 'Edit',
                       ),
                     ),
                   ],

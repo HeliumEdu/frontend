@@ -376,7 +376,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
             UrlHelpers.launchMailUrl(course!.teacherEmail);
           },
           icon: Icons.email_outlined,
-          tooltip: 'Email teacher',
+          label: 'Email teacher',
           color: foregroundColor,
         ),
       );
@@ -389,7 +389,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
             UrlHelpers.launchWebUrl(course!.website.toString());
           },
           icon: Icons.launch_outlined,
-          tooltip: 'Launch class website',
+          label: 'Launch class website',
           color: foregroundColor,
         ),
       );
@@ -405,7 +405,8 @@ class PlannerItemCalendarTile extends StatelessWidget {
             hideWebsiteLink: true,
           ),
           icon: Icons.more_vert,
-          semanticLabel: 'More',
+          showTooltip: false,
+          label: 'More',
           color: foregroundColor,
         ),
       );
@@ -419,7 +420,8 @@ class PlannerItemCalendarTile extends StatelessWidget {
         HeliumIconButton(
           onPressed: () => onOpenPlannerItem(plannerItem),
           icon: Icons.edit_outlined,
-          semanticLabel: 'Edit',
+          showTooltip: false,
+          label: 'Edit',
           color: foregroundColor,
         ),
       );

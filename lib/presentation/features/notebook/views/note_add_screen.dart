@@ -399,7 +399,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         enabled: !isSubmitting,
         onPressed: _onDelete,
         icon: Icons.delete_outline,
-        semanticLabel: 'Delete',
+        showTooltip: false,
+        label: 'Delete',
         color: context.colorScheme.error,
       ),
     ];

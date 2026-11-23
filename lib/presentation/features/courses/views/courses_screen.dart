@@ -612,7 +612,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchMailUrl(course.teacherEmail);
                         },
                         icon: Icons.email_outlined,
-                        tooltip: 'Email teacher',
+                        label: 'Email teacher',
                         color: context.semanticColors.info,
                       ),
                     ),
@@ -625,7 +625,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchWebUrl(course.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        tooltip: 'Launch class website',
+                        label: 'Launch class website',
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -636,6 +636,8 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                       child: HeliumIconButton(
                         onPressed: () => _onEdit(course),
                         icon: Icons.edit_outlined,
+                        showTooltip: false,
+                        label: 'Edit',
                       ),
                     ),
                   ],

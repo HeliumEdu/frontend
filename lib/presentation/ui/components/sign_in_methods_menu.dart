@@ -70,7 +70,7 @@ class _SignInMethodsMenuContent extends StatelessWidget {
       action: HeliumIconButton(
         onPressed: () => onRemove(provider),
         icon: Icons.link_off,
-        tooltip: 'Remove ${provider.label}',
+        label: 'Remove ${provider.label}',
         color: context.colorScheme.error,
       ),
     );

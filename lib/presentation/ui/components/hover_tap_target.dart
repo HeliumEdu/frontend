@@ -13,7 +13,7 @@ class HoverTapTarget extends StatefulWidget {
   final Widget child;
   final void Function(BuildContext anchorContext) onTap;
   final Color color;
-  final String? tooltip;
+  final String tooltip;
   final EdgeInsets hitPadding;
 
   const HoverTapTarget({
@@ -21,7 +21,7 @@ class HoverTapTarget extends StatefulWidget {
     required this.child,
     required this.onTap,
     required this.color,
-    this.tooltip,
+    required this.tooltip,
     this.hitPadding = EdgeInsets.zero,
   });
 
@@ -44,7 +44,7 @@ class _HoverTapTargetState extends State<HoverTapTarget> {
         Theme.of(context).iconButtonTheme.style?.shape?.resolve({}) ??
         const StadiumBorder();
 
-    Widget target = MouseRegion(
+    final target = MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -93,9 +93,6 @@ class _HoverTapTargetState extends State<HoverTapTarget> {
         ),
       ),
     );
-    if (widget.tooltip != null) {
-      target = Tooltip(message: widget.tooltip!, child: target);
-    }
-    return target;
+    return Tooltip(message: widget.tooltip, child: target);
   }
 }

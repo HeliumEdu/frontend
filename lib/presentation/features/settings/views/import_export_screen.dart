@@ -87,7 +87,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Learn more',
+                label: 'Learn more',
                 onPressed: () => UrlHelpers.launchWebUrl(
                   AppConstants.supportImportExportUrl,
                 ),

@@ -649,7 +649,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Support Portal',
+                label: 'Support Portal',
                 minimumSize: 40,
                 visualDensity: context.theme.visualDensity,
               ),

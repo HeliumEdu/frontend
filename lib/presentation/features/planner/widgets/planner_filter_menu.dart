@@ -639,14 +639,48 @@ class _CheckboxToggle extends StatelessWidget {
         ? (isToggleOn ? toggleOnLabel : toggleOffLabel)
         : baseLabel;
 
-    return HeliumCheckboxListTile(
-      title: Text(label, style: AppStyles.formText(context)),
-      value: isChecked,
-      onChanged: onCheckedChanged,
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      secondary: Row(
+    return Stack(
+      children: [
+        HeliumCheckboxListTile(
+          title: Text(label, style: AppStyles.formText(context)),
+          value: isChecked,
+          onChanged: onCheckedChanged,
+          controlAffinity: ListTileControlAffinity.leading,
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          secondary: ExcludeSemantics(child: _buildOnlySwitch(context)),
+        ),
+        // The tile merges everything in it into the checkbox's node, so the
+        // switch gets its own node from an invisible, pointer-transparent copy
+        // laid exactly over it.
+        Positioned(
+          top: 0,
+          right: 0,
+          bottom: 0,
+          child: Semantics(
+            container: true,
+            label: 'Only ${baseLabel.toLowerCase()}',
+            toggled: isToggleOn,
+            onTap: _toggleSwitch,
+            child: ExcludeSemantics(
+              child: IgnorePointer(
+                child: Opacity(opacity: 0, child: _buildOnlySwitch(context)),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOnlySwitch(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        Feedback.forTap(context);
+        _toggleSwitch();
+      },
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
@@ -656,22 +690,21 @@ class _CheckboxToggle extends StatelessWidget {
             ).copyWith(color: Theme.of(context).colorScheme.onSurface),
           ),
           const SizedBox(width: 6),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: !isChecked
-                ? () {
-                    Feedback.forTap(context);
-                    onToggleTapWhenDisabled();
-                  }
-                : null,
-            child: Switch(
-              value: isToggleOn,
-              onChanged: isChecked ? onToggleChanged : null,
-              mouseCursor: SystemMouseCursors.click,
-            ),
+          Switch(
+            value: isToggleOn,
+            onChanged: isChecked ? onToggleChanged : null,
+            mouseCursor: SystemMouseCursors.click,
           ),
         ],
       ),
     );
+  }
+
+  void _toggleSwitch() {
+    if (isChecked) {
+      onToggleChanged(!isToggleOn);
+    } else {
+      onToggleTapWhenDisabled();
+    }
   }
 }

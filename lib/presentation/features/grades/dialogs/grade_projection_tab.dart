@@ -224,19 +224,24 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
           Row(
             children: [
               Expanded(
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: widget.courseColor,
-                    thumbColor: widget.courseColor,
-                    overlayColor: widget.courseColor.withValues(alpha: 0.2),
-                    valueIndicatorTextStyle: AppStyles.buttonText(context),
-                  ),
-                  child: Slider(
-                    value: rawScore,
-                    min: 0,
-                    max: pp,
-                    divisions: pp.round().clamp(1, 1000),
-                    onChanged: (v) => _onSliderChanged(item.id, v, pp),
+                child: MergeSemantics(
+                  child: Semantics(
+                    label: item.title,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: widget.courseColor,
+                        thumbColor: widget.courseColor,
+                        overlayColor: widget.courseColor.withValues(alpha: 0.2),
+                        valueIndicatorTextStyle: AppStyles.buttonText(context),
+                      ),
+                      child: Slider(
+                        value: rawScore,
+                        min: 0,
+                        max: pp,
+                        divisions: pp.round().clamp(1, 1000),
+                        onChanged: (v) => _onSliderChanged(item.id, v, pp),
+                      ),
+                    ),
                   ),
                 ),
               ),

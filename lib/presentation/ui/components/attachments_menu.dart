@@ -140,7 +140,8 @@ class _AttachmentsMenuContentState extends State<AttachmentsMenuContent> {
         onPressed: () => _download(attachment),
         enabled: !_downloading.contains(attachment.id),
         icon: Icons.download_outlined,
-        semanticLabel: 'Download',
+        showTooltip: false,
+        label: 'Download',
         color: context.semanticColors.success,
       ),
     );

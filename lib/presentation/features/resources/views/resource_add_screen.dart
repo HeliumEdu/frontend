@@ -263,7 +263,8 @@ class _ResourceAddScreenState
         enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
-        semanticLabel: 'Delete',
+        showTooltip: false,
+        label: 'Delete',
         color: context.colorScheme.error,
       ),
     ];

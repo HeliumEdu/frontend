@@ -126,6 +126,7 @@ Widget _buildContent(
                         icon: Icon(
                           Icons.close,
                           color: menuContext.colorScheme.secondary,
+                          semanticLabel: 'Close',
                         ),
                       ),
                   ],

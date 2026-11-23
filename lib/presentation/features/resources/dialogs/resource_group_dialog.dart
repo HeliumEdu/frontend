@@ -147,7 +147,8 @@ class _ResourceGroupWidgetState
           );
         },
         icon: Icons.delete_outlined,
-        semanticLabel: 'Delete',
+        showTooltip: false,
+        label: 'Delete',
         color: context.colorScheme.error,
       ),
     ];

@@ -56,7 +56,7 @@ class GradeScaleField extends StatelessWidget {
         onPressed: () => _showBands(context),
         enabled: bands.isNotEmpty,
         icon: Icons.table_rows_outlined,
-        tooltip: 'View grade scale',
+        label: 'View grade scale',
       ),
       helperText: hint ?? (bands.isEmpty ? '' : _topBandSummary(bands.last)),
     );

@@ -494,7 +494,8 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             HeliumIconButton(
               onPressed: () => _downloadAttachment(attachment),
               icon: Icons.download_outlined,
-              semanticLabel: 'Download',
+              showTooltip: false,
+              label: 'Download',
               color: context.semanticColors.success,
             ),
             if (canDelete) ...[
@@ -519,7 +520,8 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   );
                 },
                 icon: Icons.delete_outline,
-                semanticLabel: 'Delete',
+                showTooltip: false,
+                label: 'Delete',
                 color: context.colorScheme.error,
               ),
             ],

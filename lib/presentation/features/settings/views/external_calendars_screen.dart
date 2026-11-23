@@ -113,7 +113,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Learn more',
+                label: 'Learn more',
                 onPressed: () => UrlHelpers.launchWebUrl(
                   AppConstants.supportExternalCalendarsUrl,
                 ),
@@ -129,7 +129,8 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                   HeliumIconButton(
                     onPressed: onAddCalendar,
                     icon: Icons.add,
-                    semanticLabel: 'Add external calendar',
+                    showTooltip: false,
+                    label: 'Add external calendar',
                   ),
                 ],
               ),
@@ -259,22 +260,27 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Switch.adaptive(
-                value: externalCalendar.shownOnCalendar!,
-                activeTrackColor: context.colorScheme.primary,
-                onChanged: _updatingCalendarIds.contains(externalCalendar.id)
-                    ? null
-                    : (value) {
-                        Feedback.forTap(context);
-                        _toggleShownOnCalendar(externalCalendar, value);
-                      },
+              Semantics(
+                container: true,
+                label: 'Show on calendar',
+                child: Switch.adaptive(
+                  value: externalCalendar.shownOnCalendar!,
+                  activeTrackColor: context.colorScheme.primary,
+                  onChanged: _updatingCalendarIds.contains(externalCalendar.id)
+                      ? null
+                      : (value) {
+                          Feedback.forTap(context);
+                          _toggleShownOnCalendar(externalCalendar, value);
+                        },
+                ),
               ),
               const SizedBox(width: 8),
               if (PlatformBehavior.showItemActions(context)) ...[
                 HeliumIconButton(
                   onPressed: () => _onEdit(externalCalendar),
                   icon: Icons.edit_outlined,
-                  semanticLabel: 'Edit',
+                  showTooltip: false,
+                  label: 'Edit',
                 ),
                 const SizedBox(width: 8),
               ],
@@ -295,7 +301,8 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                   );
                 },
                 icon: Icons.delete_outline,
-                semanticLabel: 'Delete',
+                showTooltip: false,
+                label: 'Delete',
                 color: context.colorScheme.error,
               ),
             ],

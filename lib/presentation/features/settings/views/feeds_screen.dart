@@ -63,7 +63,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Learn more',
+                label: 'Learn more',
                 onPressed: () =>
                     UrlHelpers.launchWebUrl(AppConstants.supportFeedsUrl),
               ),
@@ -218,7 +218,11 @@ class _FeedsScreenState extends State<FeedsScreen> {
                             }
                           }
                         },
-                        icon: Icon(Icons.share_outlined, color: color),
+                        icon: Icon(
+                          Icons.share_outlined,
+                          color: color,
+                          semanticLabel: 'Share',
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 36,

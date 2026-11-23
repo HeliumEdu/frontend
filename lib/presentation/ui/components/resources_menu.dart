@@ -62,7 +62,7 @@ class ResourcesMenuContent extends StatelessWidget {
           : HeliumIconButton(
               onPressed: () => UrlHelpers.launchWebUrl(website.toString()),
               icon: Icons.launch_outlined,
-              tooltip: "Launch resource's website",
+              label: "Launch resource's website",
               color: context.semanticColors.success,
             ),
     );

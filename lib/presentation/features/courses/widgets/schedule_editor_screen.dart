@@ -578,33 +578,35 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // The whole row toggles the day; the checkbox is display-only.
-          InkWell(
-            onTap: () {
-              Feedback.forTap(context);
-              _onCycleDayChanged(day, !meets);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  IgnorePointer(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: meets,
-                        visualDensity: VisualDensity.compact,
-                        onChanged: (_) {},
+          MergeSemantics(
+            child: InkWell(
+              onTap: () {
+                Feedback.forTap(context);
+                _onCycleDayChanged(day, !meets);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  children: [
+                    IgnorePointer(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: meets,
+                          visualDensity: VisualDensity.compact,
+                          onChanged: (_) {},
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    _cycleDayLabel(day),
-                    style: AppStyles.formLabel(context)
-                        .copyWith(color: context.colorScheme.primary),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Text(
+                      _cycleDayLabel(day),
+                      style: AppStyles.formLabel(context)
+                          .copyWith(color: context.colorScheme.primary),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

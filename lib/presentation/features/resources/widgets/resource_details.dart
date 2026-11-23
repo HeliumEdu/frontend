@@ -276,7 +276,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                         );
                       },
                       icon: Icons.launch_outlined,
-                      tooltip: "Launch resource's website",
+                      label: "Launch resource's website",
                       color: context.semanticColors.success,
                     ),
                   ),

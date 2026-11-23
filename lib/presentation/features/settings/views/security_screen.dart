@@ -77,7 +77,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                tooltip: 'Learn more',
+                label: 'Learn more',
                 onPressed: () =>
                     UrlHelpers.launchWebUrl(AppConstants.supportApiUrl),
               ),
@@ -273,7 +273,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       trailing: HeliumIconButton(
         icon: Icons.code,
         backgroundColor: context.colorScheme.onSurfaceVariant,
-        tooltip: 'API docs',
+        label: 'API docs',
         onPressed: () => UrlHelpers.launchWebUrl(ApiUrl.docsUrl),
       ),
       body: Column(
@@ -416,7 +416,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       trailing: HeliumIconButton(
         icon: Icons.menu_book_outlined,
         backgroundColor: context.colorScheme.onSurfaceVariant,
-        tooltip: 'Learn more',
+        label: 'Learn more',
         onPressed: () =>
             UrlHelpers.launchWebUrl(AppConstants.supportConnectedAppsUrl),
       ),
@@ -492,7 +492,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
         HeliumIconButton(
           icon: Icons.link_off,
           color: context.colorScheme.error,
-          semanticLabel: 'Revoke ${connectedApp.name}',
+          showTooltip: false,
+          label: 'Revoke ${connectedApp.name}',
           enabled: !_revokingConnectedAppIds.contains(connectedApp.id),
           onPressed: () => _onRevokeConnectedApp(connectedApp),
         ),
