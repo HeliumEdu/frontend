@@ -92,6 +92,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool _reloadRequested = false;
   bool _screenDataRequested = false;
+  Timer? _deferredRefresh;
   bool isSubmitting = false;
 
   bool get isAuthenticatedScreen => true;
@@ -165,6 +166,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
     if (isAuthenticatedScreen) {
       dioClient.cacheService.addInactivityResumeListener(_onInactivityResume);
+      dioClient.cacheService.addInPlaceRefreshListener(_refreshInPlace);
       loadSettings();
       if (context.read<InfoBloc>().state is InfoLoadFailed) {
         context.read<InfoBloc>().add(LoadInfoEvent());
@@ -208,6 +210,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   @mustCallSuper
   void dispose() {
     dioClient.cacheService.removeInactivityResumeListener(_onInactivityResume);
+    dioClient.cacheService.removeInPlaceRefreshListener(_refreshInPlace);
+    _deferredRefresh?.cancel();
     super.dispose();
   }
 
@@ -296,7 +300,12 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
   /// Runs on mount, and with [forceRefresh] after a long absence, while the
   /// screen stays mounted.
   @protected
-  void loadScreenData({required bool forceRefresh}) {}
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {}
+
+  /// Whether an in-place refresh should wait, for an interaction it would
+  /// disrupt.
+  @protected
+  bool get defersInPlaceRefresh => PrintableArea.capturing.value;
 
   @override
   Widget build(BuildContext context) {
@@ -534,6 +543,16 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
       _reloadRequested = true;
     });
     loadSettings();
+  }
+
+  void _refreshInPlace() {
+    _deferredRefresh?.cancel();
+    if (!mounted) return;
+    if (defersInPlaceRefresh) {
+      _deferredRefresh = Timer(const Duration(seconds: 1), _refreshInPlace);
+      return;
+    }
+    loadScreenData(forceRefresh: true, keepPlace: true);
   }
 
   Future<void> _onInactivityResume() async {

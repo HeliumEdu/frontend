@@ -71,11 +71,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     SearchNoteContentEvent event,
     Emitter<NoteState> emit,
   ) async {
-    emit(NotesLoading(origin: event.origin));
+    if (!event.background) emit(NotesLoading(origin: event.origin));
     try {
       final notes = await noteRepository.getNotes(
         search: event.search,
         shownOnCalendar: event.shownOnCalendar,
+        forceRefresh: event.background,
       );
       emit(
         NoteContentSearched(
@@ -85,11 +86,16 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(NotesError(
+        origin: event.origin,
+        message: e.message,
+        background: event.background,
+      ));
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
         message: HeliumException.unexpectedError,
+        background: event.background,
       ));
     }
   }
@@ -98,7 +104,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     FetchNotebookScreenDataEvent event,
     Emitter<NoteState> emit,
   ) async {
-    emit(NotesLoading(origin: event.origin));
+    if (!event.background) emit(NotesLoading(origin: event.origin));
     try {
       final shownOnCalendar = event.shownOnCalendar ? true : null;
       final results = await Future.wait([
@@ -134,12 +140,17 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(NotesError(origin: event.origin, message: e.message));
+      emit(NotesError(
+        origin: event.origin,
+        message: e.message,
+        background: event.background,
+      ));
     } catch (e) {
       emit(
         NotesError(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          background: event.background,
         ),
       );
     }

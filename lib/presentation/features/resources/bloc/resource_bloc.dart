@@ -73,12 +73,17 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(ResourcesError(origin: event.origin, message: e.message));
+      emit(ResourcesError(
+        origin: event.origin,
+        message: e.message,
+        background: event.background,
+      ));
     } catch (e) {
       emit(
         ResourcesError(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          background: event.background,
         ),
       );
     }

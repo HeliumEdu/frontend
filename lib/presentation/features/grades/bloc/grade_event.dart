@@ -2,8 +2,9 @@ abstract class GradeEvent {}
 
 class FetchGradeScreenDataEvent extends GradeEvent {
   final bool forceRefresh;
+  final bool background;
 
-  FetchGradeScreenDataEvent({this.forceRefresh = false});
+  FetchGradeScreenDataEvent({this.forceRefresh = false, this.background = false});
 }
 
 class CalculateNeededGradeEvent extends GradeEvent {

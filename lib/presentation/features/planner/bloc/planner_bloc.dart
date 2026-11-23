@@ -104,7 +104,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
     FetchPlannerScreenDataEvent event,
     Emitter<PlannerState> emit,
   ) async {
-    emit(PlannerLoading(origin: event.origin));
+    if (!event.background) emit(PlannerLoading(origin: event.origin));
     try {
       final results = await Future.wait([
         courseRepository.getCourseGroups(
@@ -140,15 +140,21 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
           resources: resources,
           attachments: attachments,
           forceRefresh: event.forceRefresh,
+          background: event.background,
         ),
       );
     } on HeliumException catch (e) {
-      emit(PlannerError(origin: event.origin, message: e.message));
+      emit(PlannerError(
+        origin: event.origin,
+        message: e.message,
+        background: event.background,
+      ));
     } catch (e) {
       emit(
         PlannerError(
           origin: event.origin,
           message: HeliumException.unexpectedError,
+          background: event.background,
         ),
       );
     }

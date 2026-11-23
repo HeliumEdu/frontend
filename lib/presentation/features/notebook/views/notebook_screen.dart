@@ -71,8 +71,6 @@ class _NotebookProvidedScreen extends StatefulWidget {
 }
 
 class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> {
-  static const _savedNotebookFilterStateKey = 'saved_notebook_filter_state';
-  static const _savedRowsPerPageKey = 'saved_rows_per_page';
 
   @override
   bool get enablePrint => true;
@@ -115,8 +113,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   bool _isRecoveringNewNote = false;
 
   @override
-  void loadScreenData({required bool forceRefresh}) {
-    _fetchNotes();
+  void loadScreenData({required bool forceRefresh, bool keepPlace = false}) {
+    _fetchNotes(background: keepPlace);
     unawaited(_recoverNewNoteDraft(forceRefresh: forceRefresh));
   }
 
@@ -145,7 +143,9 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     return [
       BlocListener<NoteBloc, NoteState>(
         listener: (context, state) {
-          if (state is NotesError && state.origin == EventOrigin.screen) {
+          if (state is NotesError &&
+              state.origin == EventOrigin.screen &&
+              !state.background) {
             setState(() {
               isLoading = false;
               screenError = state.message ?? HeliumException.unexpectedError;
@@ -156,7 +156,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
             setState(() {
               _loadingContentSearchQuery = null;
             });
-            if (!_contentSearchErrorShown) {
+            if (!state.background && !_contentSearchErrorShown) {
               _contentSearchErrorShown = true;
               showSnackBar(context, state.message!, type: SnackType.error);
             }
@@ -574,14 +574,16 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     _refreshContentSearch();
   }
 
-  void _fetchNotes() {
+  void _fetchNotes({bool background = false}) {
     context.read<NoteBloc>().add(
       FetchNotebookScreenDataEvent(
         origin: EventOrigin.screen,
         shownOnCalendar: _shownOnCalendar,
+        forceRefresh: background,
+        background: background,
       ),
     );
-    _refreshContentSearch(immediately: true);
+    _refreshContentSearch(immediately: true, background: background);
   }
 
   Future<void> _recoverNewNoteDraft({required bool forceRefresh}) async {
@@ -698,12 +700,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
     _scheduleContentSearch(immediately: true);
   }
 
-  void _refreshContentSearch({bool immediately = false}) {
+  void _refreshContentSearch({bool immediately = false, bool background = false}) {
     _loadedContentSearchQuery = null;
-    _scheduleContentSearch(immediately: immediately);
+    _scheduleContentSearch(immediately: immediately, background: background);
   }
 
-  void _scheduleContentSearch({bool immediately = false}) {
+  void _scheduleContentSearch({bool immediately = false, bool background = false}) {
     _contentSearchTimer?.cancel();
     if (!_isContentSearchWorthRequesting) {
       _contentSearchErrorShown = false;
@@ -716,13 +718,13 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       return;
     }
     if (immediately) {
-      _runContentSearch();
+      _runContentSearch(background: background);
       return;
     }
     _contentSearchTimer = Timer(_contentSearchDebounce, _runContentSearch);
   }
 
-  void _runContentSearch() {
+  void _runContentSearch({bool background = false}) {
     if (!mounted) return;
     final query = _contentSearchQuery;
     if (query == _loadingContentSearchQuery || query == _loadedContentSearchQuery) {
@@ -736,6 +738,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         origin: EventOrigin.subScreen,
         search: query,
         shownOnCalendar: _shownOnCalendar,
+        background: background,
       ),
     );
   }
@@ -819,18 +822,18 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       'searchNoteContent': _searchNoteContent,
     };
     PrefService().setString(
-      _savedNotebookFilterStateKey,
+      FilterStatePrefKey.notebookFilters.key,
       jsonEncode(filterState),
     );
-    PrefService().setInt(_savedRowsPerPageKey, _rowsPerPage);
+    PrefService().setInt(FilterStatePrefKey.rowsPerPage.key, _rowsPerPage);
   }
 
   void _restoreFilterStateIfEnabled(UserSettingsModel settings) {
     if (!settings.rememberFilterState) return;
 
-    final savedRowsPerPage = PrefService().getInt(_savedRowsPerPageKey);
+    final savedRowsPerPage = PrefService().getInt(FilterStatePrefKey.rowsPerPage.key);
 
-    final savedState = PrefService().getString(_savedNotebookFilterStateKey);
+    final savedState = PrefService().getString(FilterStatePrefKey.notebookFilters.key);
     List<dynamic>? savedEntityTypes;
     List<dynamic>? savedCourseIds;
     bool? savedExcludeHiddenGroups;

@@ -14,22 +14,26 @@ class ResetNotesEvent extends NoteEvent {
 class SearchNoteContentEvent extends NoteEvent {
   final String search;
   final bool shownOnCalendar;
+  final bool background;
 
   SearchNoteContentEvent({
     required super.origin,
     required this.search,
     this.shownOnCalendar = false,
+    this.background = false,
   });
 }
 
 class FetchNotebookScreenDataEvent extends NoteEvent {
   final bool shownOnCalendar;
   final bool forceRefresh;
+  final bool background;
 
   FetchNotebookScreenDataEvent({
     required super.origin,
     this.shownOnCalendar = false,
     this.forceRefresh = false,
+    this.background = false,
   });
 }
 

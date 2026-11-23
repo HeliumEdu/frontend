@@ -7,7 +7,6 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
-import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -190,7 +189,6 @@ class _NavigationShellState extends State<NavigationShell> {
     super.initState();
 
     DioClient().cacheService.addInactivityResumeListener(_checkGettingStartedDialog);
-    DioClient().cacheService.addInactivityResumeListener(_clearScreenDropdownFilters);
     DioClient().cacheService.addInactivityResumeListener(_refreshInfo);
     DioClient().cacheService.addQuickResumeListener(_refreshNotificationCount);
     _checkDialogs();
@@ -201,9 +199,6 @@ class _NavigationShellState extends State<NavigationShell> {
   void dispose() {
     DioClient().cacheService.removeInactivityResumeListener(
       _checkGettingStartedDialog,
-    );
-    DioClient().cacheService.removeInactivityResumeListener(
-      _clearScreenDropdownFilters,
     );
     DioClient().cacheService.removeInactivityResumeListener(_refreshInfo);
     DioClient().cacheService.removeQuickResumeListener(
@@ -221,10 +216,6 @@ class _NavigationShellState extends State<NavigationShell> {
   }
 
   void _refreshInfo() => context.read<InfoBloc>().add(LoadInfoEvent());
-
-  void _clearScreenDropdownFilters() {
-    unawaited(PrefService().removeKeys(ScreensDropdownFilterPrefKey.allKeys));
-  }
 
   @override
   Widget build(BuildContext context) {

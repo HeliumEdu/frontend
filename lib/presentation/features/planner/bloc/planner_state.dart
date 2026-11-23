@@ -18,7 +18,9 @@ class PlannerLoading extends PlannerState {
 }
 
 class PlannerError extends PlannerState {
-  PlannerError({required super.origin, required super.message});
+  final bool background;
+
+  PlannerError({required super.origin, required super.message, this.background = false});
 }
 
 class PlannerScreenDataFetched extends PlannerState {
@@ -28,6 +30,7 @@ class PlannerScreenDataFetched extends PlannerState {
   final List<ResourceModel> resources;
   final List<AttachmentModel> attachments;
   final bool forceRefresh;
+  final bool background;
 
   PlannerScreenDataFetched({
     required super.origin,
@@ -38,6 +41,7 @@ class PlannerScreenDataFetched extends PlannerState {
     required this.resources,
     required this.attachments,
     this.forceRefresh = false,
+    this.background = false,
   });
 }
 

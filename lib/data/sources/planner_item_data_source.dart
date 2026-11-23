@@ -115,6 +115,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   /// overlay.
   bool get isRefreshing => _isRefreshing;
 
+  bool get changeNotificationsFrozen => _changeNotificationsFrozen;
+
   /// Tell the data source which calendar view is active.
   /// In month view, all-day items are reported as timed (isAllDay = false) so
   /// SfCalendar uses getStartTime for ordering. SfCalendar's internal sort for
@@ -230,6 +232,21 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       _isRefreshing = false;
       _notifyChangeListeners();
     }
+  }
+
+  /// Refetches every loaded day in the background: no overlay and no load
+  /// error, and the loaded items are replaced only once the fetch succeeds, so
+  /// a failure leaves them shown.
+  Future<void> refreshLoadedDaysQuietly() async {
+    if (_dateRangeCache.isEmpty) return;
+    final (firstDay, lastDay) = _loadedDays;
+    await handleLoadMore(
+      firstDay,
+      lastDay,
+      forceRefresh: true,
+      reportErrors: false,
+      replaceLoadedDays: true,
+    );
   }
 
   /// Refreshes only external calendar events without clearing other cached data.
@@ -654,8 +671,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     DateTime startDate,
     DateTime endDate, {
     bool forceRefresh = false,
+    bool reportErrors = true,
+    bool replaceLoadedDays = false,
   }) async {
     final key = _cacheKey(startDate, endDate);
+    final replacedKeys = replaceLoadedDays
+        ? _dateRangeCache.keys.toList()
+        : const <String>[];
 
     if (forceRefresh || !_dateRangeCache.containsKey(key)) {
       // Send whole-day bounds in the user's timezone as instants, so the
@@ -697,11 +719,13 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         // requests another range. Return instead; the range stays uncached and
         // is retried when the view comes back to it.
         _notifyCalendarReset();
-        onLoadError?.call(
-          error is HeliumException
-              ? error.displayMessage
-              : HeliumException.unexpectedError,
-        );
+        if (reportErrors) {
+          onLoadError?.call(
+            error is HeliumException
+                ? error.displayMessage
+                : HeliumException.unexpectedError,
+          );
+        }
         return;
       }
       final homeworks = results[0] as List<HomeworkModel>;
@@ -722,6 +746,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
         '${externalCalendarEvents.length} external events',
       );
 
+      replacedKeys.forEach(_dateRangeCache.remove);
       _dateRangeCache[key] = plannerItems;
     } else {
       _log.fine('Items for date range already cached: $startDate to $endDate');
@@ -984,20 +1009,20 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
       'selectedExternalCalendars': _selectedExternalCalendarIds.toList(),
     };
 
-    PrefService().setString('saved_filter_state', jsonEncode(filterState));
-    PrefService().setInt('saved_rows_per_page', _todosItemsPerPage);
+    PrefService().setString(FilterStatePrefKey.plannerFilters.key, jsonEncode(filterState));
+    PrefService().setInt(FilterStatePrefKey.rowsPerPage.key, _todosItemsPerPage);
     _log.fine('Filter state saved');
   }
 
   void restoreFiltersIfEnabled() {
     if (!userSettings.rememberFilterState) return;
 
-    final savedItemsPerPage = PrefService().getInt('saved_rows_per_page');
+    final savedItemsPerPage = PrefService().getInt(FilterStatePrefKey.rowsPerPage.key);
     if (savedItemsPerPage != null) {
       _todosItemsPerPage = savedItemsPerPage;
     }
 
-    final savedState = PrefService().getString('saved_filter_state');
+    final savedState = PrefService().getString(FilterStatePrefKey.plannerFilters.key);
     if (savedState == null) return;
 
     try {

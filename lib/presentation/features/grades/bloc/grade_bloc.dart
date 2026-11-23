@@ -22,7 +22,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
     FetchGradeScreenDataEvent event,
     Emitter<GradeState> emit,
   ) async {
-    emit(GradesLoading());
+    if (!event.background) emit(GradesLoading());
 
     try {
       final results = await Future.wait([
@@ -40,9 +40,12 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         ),
       );
     } on HeliumException catch (e) {
-      emit(GradesError(message: e.message));
+      emit(GradesError(message: e.message, background: event.background));
     } catch (e) {
-      emit(GradesError(message: HeliumException.unexpectedError));
+      emit(GradesError(
+        message: HeliumException.unexpectedError,
+        background: event.background,
+      ));
     }
   }
 

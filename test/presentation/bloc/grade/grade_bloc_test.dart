@@ -149,6 +149,41 @@ void main() {
               .having((s) => s.grades, 'grades', isEmpty),
         ],
       );
+
+      blocTest<GradeBloc, GradeState>(
+        'a background fetch shows no loading state',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroups(),
+          ).thenAnswer((_) async => MockModels.createCourseGroups());
+          when(() => mockGradeRepository.getGrades()).thenAnswer(
+            (_) async => GradesModel(
+              courseGroups: MockModels.createGradeCourseGroups(),
+              cumulativeGpa: 3.5,
+            ),
+          );
+          return gradeBloc;
+        },
+        act: (bloc) => bloc.add(FetchGradeScreenDataEvent(background: true)),
+        expect: () => [isA<GradeScreenDataFetched>()],
+      );
+
+      blocTest<GradeBloc, GradeState>(
+        'a failed background fetch is flagged so the screen keeps what it shows',
+        build: () {
+          when(
+            () => mockCourseRepository.getCourseGroups(),
+          ).thenThrow(NetworkException(message: 'Offline'));
+          when(() => mockGradeRepository.getGrades()).thenAnswer(
+            (_) async => GradesModel(courseGroups: [], cumulativeGpa: null),
+          );
+          return gradeBloc;
+        },
+        act: (bloc) => bloc.add(FetchGradeScreenDataEvent(background: true)),
+        expect: () => [
+          isA<GradesError>().having((s) => s.background, 'background', isTrue),
+        ],
+      );
     });
 
     group('CalculateNeededGradeEvent', () {

@@ -40,11 +40,13 @@ class ResourcesLoading extends ResourceState {
 class ResourcesError extends ResourceState {
   /// The linked note's save, when it went through beside the failed resource.
   final LinkedNoteSave? linkedNoteSave;
+  final bool background;
 
   ResourcesError({
     required super.origin,
     required super.message,
     this.linkedNoteSave,
+    this.background = false,
   });
 }
 

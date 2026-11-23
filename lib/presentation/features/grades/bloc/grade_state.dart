@@ -13,7 +13,9 @@ class GradeInitial extends GradeState {}
 class GradesLoading extends GradeState {}
 
 class GradesError extends GradeState {
-  GradesError({required super.message});
+  final bool background;
+
+  GradesError({required super.message, this.background = false});
 }
 
 class GradeScreenDataFetched extends GradeState {

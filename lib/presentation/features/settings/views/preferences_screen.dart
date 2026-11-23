@@ -161,7 +161,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               widget.onFailed?.call();
             } else if (state is AuthProfileUpdated) {
               if (!_isRememberFilterSelection) {
-                PrefService().setString('saved_filter_state', '');
+                PrefService().removeKeys(FilterStatePrefKey.allKeys);
               }
               setState(() {
                 _isChanged = false;

@@ -16,6 +16,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/config/regional_settings_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
+import 'package:heliumapp/core/day_change_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/api_url.dart';
@@ -592,15 +593,16 @@ class DioClient {
       ?p.setInt(SettingsPrefKey.numberFormat.key, settings.numberFormat),
       ?p.setBool(SettingsPrefKey.promptForReview.key, settings.promptForReview),
     ]);
+    DayChangeService().scheduleRefresh();
 
-    if (p.getString('saved_grades_graph_settings') == null) {
+    if (p.getString(FilterStatePrefKey.gradesGraph.key) == null) {
       final view = WidgetsBinding.instance.platformDispatcher.views.firstOrNull;
       final isMobile = view != null &&
           Responsive.isMobileWidth(
             view.physicalSize.width / view.devicePixelRatio,
           );
       await p.setString(
-        'saved_grades_graph_settings',
+        FilterStatePrefKey.gradesGraph.key,
         jsonEncode({
           'autoAdjustToGradedRange': isMobile,
           'hideLegend': false,

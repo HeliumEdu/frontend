@@ -17,11 +17,13 @@ class ResetCoursesEvent extends CourseEvent {
 class FetchCoursesScreenDataEvent extends CourseEvent {
   final bool forceRefresh;
   final bool passive;
+  final bool background;
 
   FetchCoursesScreenDataEvent({
     required super.origin,
     this.forceRefresh = false,
     this.passive = false,
+    this.background = false,
   });
 }
 
