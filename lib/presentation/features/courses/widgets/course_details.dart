@@ -575,24 +575,24 @@ class CourseDetailsState extends State<CourseDetails>
       confirmText: 'Select',
     );
 
-    if (picked != null) {
-      formController.markChanged();
-      setState(() {
-        if (isStartDate) {
-          formController.startDate = picked;
-          formController.endDate = DateRangeEnforcer.adjustEndDate(
-            picked,
-            formController.endDate!,
-          );
-        } else {
-          formController.endDate = picked;
-          formController.startDate = DateRangeEnforcer.adjustStartDate(
-            formController.startDate!,
-            picked,
-          );
-        }
-      });
-    }
+    if (picked == null || !mounted) return;
+
+    formController.markChanged();
+    setState(() {
+      if (isStartDate) {
+        formController.startDate = picked;
+        formController.endDate = DateRangeEnforcer.adjustEndDate(
+          picked,
+          formController.endDate!,
+        );
+      } else {
+        formController.endDate = picked;
+        formController.startDate = DateRangeEnforcer.adjustStartDate(
+          formController.startDate!,
+          picked,
+        );
+      }
+    });
   }
 
 }

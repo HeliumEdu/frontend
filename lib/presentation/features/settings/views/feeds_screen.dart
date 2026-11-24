@@ -179,7 +179,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                             copyable: false,
                           );
                         },
-                        icon: Icons.copy,
+                        icon: Icons.copy_outlined,
                         buttonText: 'Copy',
                         backgroundColor: color,
                         minHeight: 36,
@@ -257,7 +257,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                 borderRadius: BorderRadius.circular(16.0),
               ),
               child: Icon(
-                Icons.block_rounded,
+                Icons.block_outlined,
                 size: Responsive.getIconSize(
                   context,
                   mobile: 40,
@@ -293,7 +293,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
       message:
           'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
       actionText: 'Disable',
-      icon: Icons.warning_rounded,
+      icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
     context.read<AuthBloc>().add(DisablePrivateFeedsEvent());

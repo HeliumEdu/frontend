@@ -22,11 +22,7 @@ class UpdateRequiredCard extends StatelessWidget {
     if (kIsWeb) {
       reloadPage();
     } else {
-      UrlHelpers.launchWebUrl(
-        Responsive.isIOSPlatform()
-            ? AppConstants.iosUrl
-            : AppConstants.androidUrl,
-      );
+      UrlHelpers.launchStoreListing();
     }
   }
 
@@ -41,7 +37,7 @@ class UpdateRequiredCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.system_update,
+              Icons.system_update_outlined,
               color: context.colorScheme.primary,
               size: Responsive.getIconSize(
                 context,
@@ -62,7 +58,7 @@ class UpdateRequiredCard extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 200),
               child: HeliumElevatedButton(
                 buttonText: kIsWeb ? 'Reload' : 'Update',
-                icon: kIsWeb ? Icons.refresh : Icons.system_update,
+                icon: kIsWeb ? Icons.refresh : Icons.system_update_outlined,
                 onPressed: _update,
               ),
             ),

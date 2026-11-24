@@ -8,11 +8,18 @@ class SupportHeliumCard extends StatelessWidget {
   static const _cardBorderRadius = 16.0;
   static const _cardPadding = 16.0;
   static const _iconSize = 32.0;
+  static const _iconGap = 12.0;
   static const _arrowIconSize = 16.0;
 
-  const SupportHeliumCard({super.key, this.compact = false});
+  const SupportHeliumCard({
+    super.key,
+    this.compact = false,
+    this.showRating = false,
+  });
 
   final bool compact;
+
+  final bool showRating;
 
   @override
   Widget build(BuildContext context) {
@@ -33,52 +40,80 @@ class SupportHeliumCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () => UrlHelpers.launchWebUrl(AppConstants.patreonUrl),
-          borderRadius: BorderRadius.circular(_cardBorderRadius),
-          child: Padding(
-            padding: const EdgeInsets.all(_cardPadding),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.volunteer_activism,
-                  color: context.colorScheme.primary,
-                  size: _iconSize,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Keep Helium Free',
-                        style: AppStyles.menuItem(
-                          context,
-                        ).copyWith(color: context.colorScheme.primary),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        compact
-                            ? 'A passion project, free for everyone — made '
-                                  'possible by supporters like you.'
-                            : 'A passion project, free for everyone. '
-                                  'Supporters like you are what make that '
-                                  'possible, covering real costs like hosting '
-                                  'and app store fees.',
-                        style: AppStyles.menuItemHint(context),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: _arrowIconSize,
-                ),
-              ],
+        borderRadius: BorderRadius.circular(_cardBorderRadius),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            _buildAction(
+              context,
+              icon: Icons.volunteer_activism,
+              title: 'Keep Helium Free',
+              hint: compact
+                  ? 'A passion project, free for everyone — made '
+                        'possible by supporters like you.'
+                  : 'A passion project, free for everyone. '
+                        'Supporters like you are what make that '
+                        'possible, covering real costs like hosting '
+                        'and app store fees.',
+              onTap: () => UrlHelpers.launchWebUrl(AppConstants.patreonUrl),
             ),
-          ),
+            if (showRating) ...[
+              Divider(
+                height: 1,
+                indent: _cardPadding + _iconSize + _iconGap,
+                color: context.colorScheme.primary.withValues(alpha: 0.2),
+              ),
+              _buildAction(
+                context,
+                icon: Icons.star,
+                title: 'Rate Helium',
+                hint: 'Helps other students find Helium.',
+                onTap: UrlHelpers.launchStoreListing,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAction(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String hint,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(_cardPadding),
+        child: Row(
+          children: [
+            Icon(icon, color: context.colorScheme.primary, size: _iconSize),
+            const SizedBox(width: _iconGap),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppStyles.menuItem(
+                      context,
+                    ).copyWith(color: context.colorScheme.primary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(hint, style: AppStyles.menuItemHint(context)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: context.colorScheme.onSurface.withValues(alpha: 0.3),
+              size: _arrowIconSize,
+            ),
+          ],
         ),
       ),
     );

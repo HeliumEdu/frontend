@@ -39,7 +39,7 @@ class InfoContainer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  icon ?? Icons.info_outline_rounded,
+                  icon ?? Icons.info_outline,
                   color: primaryColor.withValues(alpha: 0.7),
                   size: Responsive.getIconSize(
                     context,

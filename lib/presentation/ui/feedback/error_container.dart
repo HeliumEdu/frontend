@@ -37,7 +37,7 @@ class ErrorContainer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  icon ?? Icons.error_outline_rounded,
+                  icon ?? Icons.error_outline,
                   color: errorColor,
                   size: Responsive.getIconSize(
                     context,

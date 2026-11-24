@@ -17,6 +17,7 @@ class FeedbackService with WidgetsBindingObserver {
   static const String _keyCleanSessionCount = 'feedback_clean_session_count';
   static const int _cleanSessionThreshold = 2;
   static const Duration _reviewRequestDelay = Duration(seconds: 4);
+  static const Duration _reminderCloseReviewDelay = Duration(seconds: 1);
 
   final DioClient _dioClient;
   final PrefService _prefService;
@@ -68,15 +69,22 @@ class FeedbackService with WidgetsBindingObserver {
     }
   }
 
-  /// Requests a review once completions have stopped for
+  /// Requests a review once calls have stopped for
   /// [_reviewRequestDelay], so a run of completions is not interrupted; each
   /// call restarts the wait. Backgrounding the app drops the pending request
   /// unacknowledged, leaving the user eligible next time.
-  void scheduleReviewRequest() {
+  void scheduleReviewRequest() => _scheduleReviewRequest(_reviewRequestDelay);
+
+  /// Requests a review shortly after an item opened from a reminder closes,
+  /// once its closing transition has finished.
+  void scheduleReviewRequestAfterReminderClose() =>
+      _scheduleReviewRequest(_reminderCloseReviewDelay);
+
+  void _scheduleReviewRequest(Duration delay) {
     if (kIsWeb) return;
 
     _cancelPendingReviewRequest();
-    _pendingReviewRequest = Timer(_reviewRequestDelay, _requestReview);
+    _pendingReviewRequest = Timer(delay, _requestReview);
   }
 
   void _cancelPendingReviewRequest() {

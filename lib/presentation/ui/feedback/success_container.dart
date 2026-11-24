@@ -37,7 +37,7 @@ class SuccessContainer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  icon ?? Icons.check_circle_outline_rounded,
+                  icon ?? Icons.check_circle_outline,
                   color: successColor,
                   size: Responsive.getIconSize(
                     context,

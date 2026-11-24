@@ -6,6 +6,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
@@ -73,11 +74,14 @@ class CourseAddScreen extends MultiStepContainer {
   /// racing against `routerDelegate.currentConfiguration`, which lags push.
   final String initialFullPath;
 
+  final bool openedFromReminder;
+
   CourseAddScreen({
     super.key,
     required super.shellPath,
     required super.isNew,
     required this.initialFullPath,
+    this.openedFromReminder = false,
     this.courseId,
     this.courseGroupId,
     this.initialStepName = 'details',
@@ -97,6 +101,7 @@ class CourseAddScreen extends MultiStepContainer {
 
 class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   bool _dataLoaded = false;
+  bool _deleted = false;
   final _detailsKey = GlobalKey<CourseDetailsState>();
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
@@ -132,6 +137,14 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               );
         }
       }
+    }
+  }
+
+  @override
+  void closeWithoutPrompt() {
+    super.closeWithoutPrompt();
+    if (widget.openedFromReminder && _dataLoaded && !_deleted && !isReopening) {
+      FeedbackService().scheduleReviewRequestAfterReminderClose();
     }
   }
 
@@ -428,6 +441,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
             }
           } else if (state is CourseDeleted) {
             showSnackBar(context, 'Class deleted.', useRootMessenger: true);
+            _deleted = true;
             closeWithoutPrompt();
           } else if (state is CourseUpdated &&
               state.origin == EventOrigin.subScreen) {

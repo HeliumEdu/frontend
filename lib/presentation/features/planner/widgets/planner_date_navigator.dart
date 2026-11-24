@@ -239,7 +239,7 @@ class PlannerTodayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = Icon(
-      Icons.calendar_today,
+      Icons.calendar_today_outlined,
       size: Responsive.getIconSize(
         context,
         mobile: 20,

@@ -13,6 +13,7 @@ import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
@@ -186,6 +187,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               _coursesMap[_selectedGroupId!] = [];
             });
             _saveSelectedGroup();
+            if (!state.courseGroup.exampleSchedule &&
+                _courseGroups.where((g) => !g.exampleSchedule).length >= 2) {
+              FeedbackService().scheduleReviewRequest();
+            }
           } else if (state is CourseGroupUpdated) {
             // No snackbar on updates
             _replaceCourseGroup(state.courseGroup);

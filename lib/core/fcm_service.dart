@@ -565,12 +565,14 @@ class FcmService with WidgetsBindingObserver {
 
   static String _routeForNotification(NotificationModel notification) {
     final reminder = notification.reminder;
-    return reminderEntityRoute(
-          courseId: reminder.course?.id,
-          homeworkId: reminder.homework?.id,
-          eventId: reminder.event?.id,
-        ) ??
-        notificationsRoute;
+    final entityRoute = reminderEntityRoute(
+      courseId: reminder.course?.id,
+      homeworkId: reminder.homework?.id,
+      eventId: reminder.event?.id,
+    );
+    if (entityRoute == null) return notificationsRoute;
+
+    return '$entityRoute?${DeepLinkParam.source}=${DeepLinkParam.reminderSource}';
   }
 
   /// Read before the router is built, so a tapped notification is the initial location rather

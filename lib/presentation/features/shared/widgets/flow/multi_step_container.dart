@@ -64,6 +64,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
   int _previousStep = 0;
 
   bool _isClosing = false;
+  bool _isReopening = false;
 
   Timer? _stepTransitionTimer;
 
@@ -197,6 +198,10 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     }
   }
 
+  /// Whether this dialog is closing only to open another one via [reopenAt].
+  @protected
+  bool get isReopening => _isReopening;
+
   /// Closes this dialog and opens [location] in a fresh one. A URL naming
   /// another entity updates the dialog's page in place, which keeps the
   /// loaded entity's state.
@@ -205,6 +210,7 @@ abstract class MultiStepContainerState<T extends MultiStepContainer>
     final extra = router.routerDelegate.currentConfiguration.extra;
     scheduleMicrotask(() {
       if (!mounted || _isClosing) return;
+      _isReopening = true;
       closeWithoutPrompt();
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => router.go(location, extra: extra),

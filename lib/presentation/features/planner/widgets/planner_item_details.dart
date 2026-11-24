@@ -1189,56 +1189,56 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       confirmText: 'Select',
     );
 
-    if (picked != null) {
-      formController.markChanged();
-      final previousStart = formController.startDate;
-      setState(() {
-        if (isStartDate) {
-          formController.startDate = picked;
-          if (_recurrence case final draft?) {
-            _recurrence = HeliumRecurrence.followStart(draft, previousStart, picked);
-          }
-          if (formController.showEndDateTime) {
-            _endFollowsStart(previousStart, formController.startTime);
-          } else if (formController.isAllDay) {
-            formController.endDate = DateRangeEnforcer.adjustEndDate(
-              picked,
-              formController.endDate,
-            );
-          } else {
-            final adjusted = DateRangeEnforcer.adjustEnd(
-              startDate: picked,
-              startTime: formController.startTime,
-              endDate: formController.endDate,
-              endTime: formController.endTime,
-            );
-            formController.endDate = adjusted.date;
-            if (adjusted.time != null) {
-              formController.endTime = adjusted.time!;
-            }
-          }
+    if (picked == null || !mounted) return;
+
+    formController.markChanged();
+    final previousStart = formController.startDate;
+    setState(() {
+      if (isStartDate) {
+        formController.startDate = picked;
+        if (_recurrence case final draft?) {
+          _recurrence = HeliumRecurrence.followStart(draft, previousStart, picked);
+        }
+        if (formController.showEndDateTime) {
+          _endFollowsStart(previousStart, formController.startTime);
+        } else if (formController.isAllDay) {
+          formController.endDate = DateRangeEnforcer.adjustEndDate(
+            picked,
+            formController.endDate,
+          );
         } else {
-          formController.endDate = picked;
-          if (formController.isAllDay) {
-            formController.startDate = DateRangeEnforcer.adjustStartDate(
-              formController.startDate,
-              picked,
-            );
-          } else {
-            final adjusted = DateRangeEnforcer.adjustStart(
-              startDate: formController.startDate,
-              startTime: formController.startTime,
-              endDate: picked,
-              endTime: formController.endTime,
-            );
-            formController.startDate = adjusted.date;
-            if (adjusted.time != null) {
-              formController.startTime = adjusted.time!;
-            }
+          final adjusted = DateRangeEnforcer.adjustEnd(
+            startDate: picked,
+            startTime: formController.startTime,
+            endDate: formController.endDate,
+            endTime: formController.endTime,
+          );
+          formController.endDate = adjusted.date;
+          if (adjusted.time != null) {
+            formController.endTime = adjusted.time!;
           }
         }
-      });
-    }
+      } else {
+        formController.endDate = picked;
+        if (formController.isAllDay) {
+          formController.startDate = DateRangeEnforcer.adjustStartDate(
+            formController.startDate,
+            picked,
+          );
+        } else {
+          final adjusted = DateRangeEnforcer.adjustStart(
+            startDate: formController.startDate,
+            startTime: formController.startTime,
+            endDate: picked,
+            endTime: formController.endTime,
+          );
+          formController.startDate = adjusted.date;
+          if (adjusted.time != null) {
+            formController.startTime = adjusted.time!;
+          }
+        }
+      }
+    });
   }
 
   void _endFollowsStart(DateTime previousStartDate, TimeOfDay previousStartTime) {
@@ -1267,41 +1267,41 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       confirmText: 'Select',
     );
 
-    if (picked != null) {
-      formController.markChanged();
-      formController.userChangedTime = true;
-      setState(() {
-        if (isStartTime && formController.showEndDateTime) {
-          final previousStartTime = formController.startTime;
-          formController.startTime = picked;
-          _endFollowsStart(formController.startDate, previousStartTime);
-        } else if (isStartTime) {
-          formController.startTime = picked;
-          final adjusted = DateRangeEnforcer.adjustEnd(
-            startDate: formController.startDate,
-            startTime: picked,
-            endDate: formController.endDate,
-            endTime: formController.endTime,
-          );
-          formController.endDate = adjusted.date;
-          if (adjusted.time != null) {
-            formController.endTime = adjusted.time!;
-          }
-        } else {
-          formController.endTime = picked;
-          final adjusted = DateRangeEnforcer.adjustStart(
-            startDate: formController.startDate,
-            startTime: formController.startTime,
-            endDate: formController.endDate,
-            endTime: picked,
-          );
-          formController.startDate = adjusted.date;
-          if (adjusted.time != null) {
-            formController.startTime = adjusted.time!;
-          }
+    if (picked == null || !mounted) return;
+
+    formController.markChanged();
+    formController.userChangedTime = true;
+    setState(() {
+      if (isStartTime && formController.showEndDateTime) {
+        final previousStartTime = formController.startTime;
+        formController.startTime = picked;
+        _endFollowsStart(formController.startDate, previousStartTime);
+      } else if (isStartTime) {
+        formController.startTime = picked;
+        final adjusted = DateRangeEnforcer.adjustEnd(
+          startDate: formController.startDate,
+          startTime: picked,
+          endDate: formController.endDate,
+          endTime: formController.endTime,
+        );
+        formController.endDate = adjusted.date;
+        if (adjusted.time != null) {
+          formController.endTime = adjusted.time!;
         }
-      });
-    }
+      } else {
+        formController.endTime = picked;
+        final adjusted = DateRangeEnforcer.adjustStart(
+          startDate: formController.startDate,
+          startTime: formController.startTime,
+          endDate: formController.endDate,
+          endTime: picked,
+        );
+        formController.startDate = adjusted.date;
+        if (adjusted.time != null) {
+          formController.startTime = adjusted.time!;
+        }
+      }
+    });
   }
 
   CourseModel? _courseById(int? id) {

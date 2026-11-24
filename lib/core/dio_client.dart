@@ -82,10 +82,6 @@ class DioClient {
   }
 
   @visibleForTesting
-  bool isInvalidTokenErrorForTesting(dynamic data) =>
-      _isInvalidTokenError(data);
-
-  @visibleForTesting
   Future<bool> sessionEndedWithoutRefreshTokenForTesting(
     RequestOptions options,
   ) => _sessionEndedWithoutRefreshToken(options);
@@ -333,17 +329,6 @@ class DioClient {
                 _log.warning(
                   'Token refresh failed with status: ${response.statusCode}',
                 );
-
-                if (_isInvalidTokenError(response.data)) {
-                  _log.info(
-                    'Refresh token is invalid/expired, clearing tokens',
-                  );
-                  await forceLogout();
-                } else {
-                  _log.warning(
-                    'Token refresh failed but not due to invalid token, retrying request',
-                  );
-                }
                 _isRefreshing = false;
                 _refreshCompleter!.complete(false);
                 _refreshCompleter = null;
@@ -358,13 +343,10 @@ class DioClient {
                     'Got $statusCode during token refresh, session expired',
                   );
                   shouldLogout = true;
-                } else if (_isInvalidTokenError(e.response?.data)) {
-                  _log.info('Refresh token is invalid/expired');
-                  shouldLogout = true;
                 }
               }
 
-              // Don't logout on network errors, only on invalid/expired token
+              // Don't sign out on network or server errors, only on a 401 or 403
               if (shouldLogout) {
                 await forceLogout();
               } else {
@@ -785,19 +767,6 @@ class DioClient {
     final current = await getAccessToken();
     final expected = (current?.isNotEmpty ?? false) ? 'Bearer $current' : null;
     return options.headers['Authorization'] == expected;
-  }
-
-  bool _isInvalidTokenError(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      final detail = responseData['detail'];
-      if (detail != null) {
-        final detailStr = detail.toString().toLowerCase();
-        return detail == 'Token is blacklisted' ||
-            detailStr.contains('invalid') ||
-            detailStr.contains('expired');
-      }
-    }
-    return false;
   }
 
   Future<void> forceLogout([

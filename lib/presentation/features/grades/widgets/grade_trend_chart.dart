@@ -281,7 +281,7 @@ class GradeTrendChart {
     final isCourse = selectedGroup.courses.any(
       (course) => course.title == name,
     );
-    if (isCourse) return Icons.school;
+    if (isCourse) return Icons.school_outlined;
 
     final selectedCourse = getSelectedCourse(
       grades: grades,
@@ -533,7 +533,7 @@ class GradeTrendTooltip extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.school, size: 14, color: seriesColor),
+                Icon(Icons.school_outlined, size: 14, color: seriesColor),
                 const SizedBox(width: 4),
                 Text(
                   '• $classGradeAtPoint',

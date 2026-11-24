@@ -1629,7 +1629,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               key: const Key(PlannerScreen.viewSwitcherButtonKey),
               onPressed: () => _openViewMenu(context),
               tooltip: 'Change view',
-              icon: const Icon(Icons.calendar_month),
+              icon: const Icon(Icons.calendar_month_outlined),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 minimumSize: Size(
@@ -1657,7 +1657,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                   ? null
                   : () => _openFilterMenu(context),
               tooltip: 'Filters',
-              icon: const Icon(Icons.filter_alt),
+              icon: const Icon(Icons.filter_alt_outlined),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 minimumSize: Size(
@@ -1733,9 +1733,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       confirmText: 'Select',
     );
 
-    if (picked != null) {
-      _jumpToDate(picked, setSelectedDate: true);
-    }
+    if (picked == null || !mounted) return;
+
+    _jumpToDate(picked, setSelectedDate: true);
   }
 
   void _logViewChange(PlannerView view) {

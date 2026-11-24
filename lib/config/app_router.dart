@@ -469,6 +469,7 @@ Page<dynamic> _courseDialogPage(
       courseGroupId: courseGroupId,
       initialStepName: stepParam,
       initialFullPath: state.uri.toString(),
+      openedFromReminder: DeepLinkParam.isFromReminder(state.uri),
     ),
     width: useCompact
         ? double.infinity
@@ -797,6 +798,7 @@ Page<dynamic> _plannerItemDialogPage(
       isNew: parsedId.isNew,
       initialStepName: stepParam,
       initialFullPath: state.uri.toString(),
+      openedFromReminder: DeepLinkParam.isFromReminder(state.uri),
       initialDate: dialogExtra?.initialDate,
       isFromMonthView: dialogExtra?.isFromMonthView ?? false,
       occurrenceStart: dialogExtra?.occurrenceStart,

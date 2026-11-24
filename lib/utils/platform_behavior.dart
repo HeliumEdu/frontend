@@ -45,6 +45,13 @@ class PlatformBehavior {
 
   static bool get reservesStatusBarSpace => !isDesktopHost;
 
+  /// Whether the app can send the user to its App Store or Google Play page
+  /// to rate it: phones and tablets, not web or the iPad app on a Mac.
+  static bool get hasStoreListing =>
+      !kIsWeb &&
+      (hostPlatform == TargetPlatform.iOS ||
+          hostPlatform == TargetPlatform.android);
+
   static bool get usesTouchInteractions => support.hasTouchInput;
 
   /// Whether hit targets are sized for a finger rather than a pointer.

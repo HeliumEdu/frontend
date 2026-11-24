@@ -464,7 +464,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                     return IconButton.outlined(
                       onPressed: () => _openFilterMenu(context),
                       tooltip: 'Filters',
-                      icon: const Icon(Icons.filter_alt),
+                      icon: const Icon(Icons.filter_alt_outlined),
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         backgroundColor: hasFilters

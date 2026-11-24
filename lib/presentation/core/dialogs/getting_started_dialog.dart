@@ -92,7 +92,7 @@ const _cards = [
         'summaries, paper drafts, whatever else. Format like a doc, search '
         'everything, '
         'and print when you need a hard copy.',
-    icon: Icons.library_books,
+    icon: Icons.library_books_outlined,
     imagePaths: ['assets/img/onboarding_notebook.png'],
   ),
   _OnboardingCard(

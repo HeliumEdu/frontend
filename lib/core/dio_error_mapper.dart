@@ -58,6 +58,15 @@ class DioErrorMapper {
             httpStatusCode: 401,
           );
         } else if (statusCode == 403) {
+          if (responseData is Map<String, dynamic> &&
+              responseData['code'] == 'account_inactive') {
+            return UnauthorizedException(
+              message: responseData['detail'] as String,
+              code: 'account_inactive',
+              httpStatusCode: 403,
+              details: responseData,
+            );
+          }
           return UnauthorizedException(
             message: 'Access denied. Please sign in again.',
             code: '403',

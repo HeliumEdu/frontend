@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,4 +34,8 @@ class UrlHelpers {
       }
     }
   }
+
+  static Future<void> launchStoreListing() => launchWebUrl(
+        Responsive.isIOSPlatform() ? AppConstants.iosUrl : AppConstants.androidUrl,
+      );
 }
