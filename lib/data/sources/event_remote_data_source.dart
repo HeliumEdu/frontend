@@ -144,7 +144,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         final event = EventModel.fromJson(response.data);
         _log.info('... Event ${event.id} created');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'new'}));
         return event;
       } else {
         throw unexpectedStatus(response, 'Failed to create event.');
@@ -175,7 +175,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         final event = EventModel.fromJson(response.data);
         _log.info('... Event $eventId cloned to ${event.id}');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'clone'}));
         return event;
       } else {
         throw unexpectedStatus(response, 'Failed to clone event.');

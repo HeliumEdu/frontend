@@ -1,8 +1,23 @@
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class CourseGroupHelpers {
   CourseGroupHelpers._();
+
+  static String? termWeekOf(CourseGroupModel group, tz.Location timeZone) {
+    final now = DateTime.now();
+    final today = HeliumDateTime.dateOnly(HeliumDateTime.midnightIn(now, timeZone));
+    if (group.exampleSchedule ||
+        today.isBefore(HeliumDateTime.dateOnly(group.startDate)) ||
+        today.isAfter(HeliumDateTime.dateOnly(group.endDate))) {
+      return null;
+    }
+    return HeliumDateTime.weekOfTerm(group.startDate, now, timeZone).toString();
+  }
+
+  static String? currentTermWeek(List<CourseGroupModel> groups, tz.Location timeZone) =>
+      groups.map((group) => termWeekOf(group, timeZone)).nonNulls.firstOrNull;
 
   /// Returns the id of the group whose date range contains today, or the
   /// closest group by date if none matches (preferring the nearest upcoming

@@ -148,7 +148,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
           name: AnalyticsEvent.printPreview,
           parameters: {
             'category': AnalyticsCategory.featureInteraction.value,
-            'source': 'browser',
+            'source':
+                '/${router.routerDelegate.currentConfiguration.uri.pathSegments.firstOrNull ?? ''}',
+            'method': 'browser',
           },
         ),
       );

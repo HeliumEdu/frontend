@@ -167,7 +167,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         final homework = HomeworkModel.fromJson(response.data);
         _log.info('... Homework ${homework.id} created for Course $courseId');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'new'}));
         return homework;
       } else {
         throw unexpectedStatus(response, 'Failed to create homework.');
@@ -200,7 +200,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         final homework = HomeworkModel.fromJson(response.data);
         _log.info('... Homework $homeworkId cloned to ${homework.id}');
         await dioClient.cacheService.invalidateAll();
-        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
+        unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'clone'}));
         return homework;
       } else {
         throw unexpectedStatus(response, 'Failed to clone homework.');

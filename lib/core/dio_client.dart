@@ -9,7 +9,6 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
@@ -35,6 +34,7 @@ import 'package:heliumapp/data/models/auth/token_response_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:sentry_dio/sentry_dio.dart';
@@ -47,6 +47,8 @@ class DioClient {
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 30);
   static const Duration sendTimeout = Duration(seconds: 120);
+  static const Duration secureStorageUnlockWait = Duration(seconds: 5);
+  static const Duration secureStorageUnlockPoll = Duration(milliseconds: 250);
 
   static const String _replayedAfterRefreshKey =
       'helium_replayed_after_refresh';
@@ -82,6 +84,15 @@ class DioClient {
   @visibleForTesting
   bool isInvalidTokenErrorForTesting(dynamic data) =>
       _isInvalidTokenError(data);
+
+  @visibleForTesting
+  Future<bool> sessionEndedWithoutRefreshTokenForTesting(
+    RequestOptions options,
+  ) => _sessionEndedWithoutRefreshToken(options);
+
+  @visibleForTesting
+  Future<bool> rotatedSinceForTesting(String sentRefreshToken) =>
+      _rotatedSince(sentRefreshToken);
 
   @visibleForTesting
   void refreshReplayBodyForTesting(RequestOptions options) =>
@@ -158,6 +169,20 @@ class DioClient {
             if (token?.isNotEmpty ?? false) {
               options.headers['Authorization'] = 'Bearer $token';
               _log.fine('Authorization token attached to request');
+            } else if (await _prefService.isSecureStorageLocked()) {
+              if (!await _waitForSecureStorageUnlock()) {
+                return handler.reject(
+                  DioException(
+                    requestOptions: options,
+                    type: DioExceptionType.connectionError,
+                    error: 'Secure storage is locked',
+                  ),
+                );
+              }
+              final unlockedToken = await _prefService.getSecure('access_token');
+              if (unlockedToken?.isNotEmpty ?? false) {
+                options.headers['Authorization'] = 'Bearer $unlockedToken';
+              }
             }
             return handler.next(options);
           } catch (e, s) {
@@ -186,12 +211,6 @@ class DioClient {
               _log.info(
                 'Token refresh in progress, waiting for completion ...',
               );
-              unawaited(
-                AnalyticsService().logEvent(
-                  name: AnalyticsEvent.debugAuthTokenRefreshQueue,
-                  parameters: {'category': AnalyticsCategory.operational.value},
-                ),
-              );
               final refreshed = await _refreshCompleter!.future;
               if (!refreshed) {
                 return handler.next(error);
@@ -217,7 +236,9 @@ class DioClient {
               final refreshToken = await getRefreshToken();
 
               if (refreshToken == null || refreshToken.isEmpty) {
-                if (await _sentWithCurrentAccessToken(error.requestOptions)) {
+                if (await _sessionEndedWithoutRefreshToken(
+                  error.requestOptions,
+                )) {
                   _log.info('No refresh token available, redirecting to login');
                   await forceLogout();
                 } else {
@@ -265,6 +286,19 @@ class DioClient {
               );
 
               final refreshStatusCode = response.statusCode;
+              if ((refreshStatusCode == 401 || refreshStatusCode == 403) &&
+                  await _rotatedSince(refreshToken)) {
+                _log.info(
+                  'Got $refreshStatusCode during token refresh, but a newer session was saved meanwhile',
+                );
+                _isRefreshing = false;
+                _refreshCompleter!.complete(true);
+                _refreshCompleter = null;
+
+                error.requestOptions.headers['Authorization'] =
+                    'Bearer ${await getAccessToken()}';
+                return await _replayAfterRefresh(error.requestOptions, handler);
+              }
               if (refreshStatusCode == 401 || refreshStatusCode == 403) {
                 _log.info(
                   'Got $refreshStatusCode during token refresh, session expired',
@@ -461,6 +495,12 @@ class DioClient {
         await saveSettings(user.settings);
 
         unawaited(AnalyticsService().setStaffStatus(user.email));
+        if (defaultTargetPlatform == TargetPlatform.iOS &&
+            PlatformBehavior.hostPlatform == TargetPlatform.macOS) {
+          unawaited(
+            AnalyticsService().setUserProperty(name: 'uses_mac_app', value: 'true'),
+          );
+        }
 
         return user.settings;
       } else {
@@ -470,7 +510,11 @@ class DioClient {
         return null;
       }
     } catch (apiError, stackTrace) {
-      _log.severe('Error fetching settings from API: ${apiError.runtimeType}');
+      _log.severe(
+        'Error fetching settings from API: ${apiError.runtimeType}',
+        apiError,
+        stackTrace,
+      );
 
       if (rethrowErrors && apiError is DioException) {
         throw DioErrorMapper.map(apiError, stackTrace);
@@ -669,6 +713,13 @@ class DioClient {
 
   /// A replay that gets a 401 again ends there rather than refreshing again,
   /// and any failure is the replay's own, not the refresh's.
+  /// Whether another refresh saved a newer session after [sentRefreshToken]
+  /// was read, so a rejection of it doesn't mean the session ended.
+  Future<bool> _rotatedSince(String sentRefreshToken) async {
+    final stored = await getRefreshToken();
+    return stored != null && stored.isNotEmpty && stored != sentRefreshToken;
+  }
+
   Future<void> _replayAfterRefresh(
     RequestOptions options,
     ErrorInterceptorHandler handler,
@@ -703,6 +754,27 @@ class DioClient {
         data: {'request_id': requestId},
       ),
     );
+  }
+
+  /// Waits for a device unlock that's already under way, which outruns secure
+  /// storage by a moment; false if storage is still locked afterwards.
+  Future<bool> _waitForSecureStorageUnlock() async {
+    final deadline = DateTime.now().add(secureStorageUnlockWait);
+    while (DateTime.now().isBefore(deadline)) {
+      await Future.delayed(secureStorageUnlockPoll);
+      if (!await _prefService.isSecureStorageLocked()) return true;
+    }
+    return false;
+  }
+
+  /// A missing refresh token ends the session only when storage could be read
+  /// and the request carried the session's current access token.
+  Future<bool> _sessionEndedWithoutRefreshToken(RequestOptions options) async {
+    if (await _prefService.isSecureStorageLocked()) {
+      _log.info('Secure storage is locked, keeping the session');
+      return false;
+    }
+    return _sentWithCurrentAccessToken(options);
   }
 
   Future<bool> _sentWithCurrentAccessToken(RequestOptions options) async {

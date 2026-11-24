@@ -49,6 +49,9 @@ class Responsive {
     return isMobile(context) || isPhoneLandscape(context);
   }
 
+  static int defaultRowsPerPage(BuildContext context) =>
+      useCompactLayout(context) ? 10 : 25;
+
   static bool isPortraitTablet(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return size.width >= ResponsiveBreakpoints.mobile &&

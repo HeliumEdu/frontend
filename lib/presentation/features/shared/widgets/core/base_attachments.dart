@@ -243,7 +243,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                       if (_error != null) {
                         return ErrorCard(
                           message: _error!,
-                          source: 'attachments_widget',
+                          source: 'base_attachments',
                           onReload: _fetchScreenData,
                           expanded: false,
                         );

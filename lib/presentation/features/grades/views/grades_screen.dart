@@ -1216,6 +1216,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           cumulativeGpa: _cumulativeGpa,
           userSettings: userSettings,
           defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
+          termWeek: CourseGroupHelpers.termWeekOf(
+            _getCourseGroupForId(_selectedGroupId!),
+            userSettings.timeZone,
+          ),
         ),
       ),
     );
@@ -1948,6 +1952,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return _courseGroups.firstWhere((g) => g.id == groupId);
   }
 
+  void _logGraphViewChange(GradeTrendViewMode viewMode) {
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.gradeTrendViewChange,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'view': viewMode.courseId == null ? viewMode.radioValue : 'class',
+        },
+      ),
+    );
+  }
+
   void _showGraphSettings(BuildContext buttonContext) {
     final selectedGroup = _grades.firstWhere(
           (g) => g.id == _selectedGroupId,
@@ -1964,8 +1980,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               groupValue: _graphViewMode.radioValue,
               onChanged: (value) {
                 if (value == null) return;
-                setState(() => _graphViewMode =
-                    GradeTrendViewMode.fromRadioValue(value));
+                final viewMode = GradeTrendViewMode.fromRadioValue(value);
+                if (value != _graphViewMode.radioValue) {
+                  _logGraphViewChange(viewMode);
+                }
+                setState(() => _graphViewMode = viewMode);
                 _saveGraphSettingsIfEnabled();
                 Navigator.pop(menuContext);
               },

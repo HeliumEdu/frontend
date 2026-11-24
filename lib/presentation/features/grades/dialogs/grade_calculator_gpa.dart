@@ -5,6 +5,15 @@ import 'package:heliumapp/utils/grade_helpers.dart';
 
 enum GradeCalculatorMode { classGrade, termGpa }
 
+enum GradeCalculatorTab {
+  whatCouldIGet('What Could I Get?'),
+  whatDoINeed('What Do I Need?');
+
+  final String label;
+
+  const GradeCalculatorTab(this.label);
+}
+
 /// What the Grade Calculator's GPA mode works from: a class's grade scale and
 /// credits, the classes whose grade points make up its term's GPA, and, when
 /// the term counts toward it, the classes behind the cumulative GPA.

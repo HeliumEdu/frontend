@@ -92,6 +92,7 @@ void main() {
       courseScheduleRepository: mockCourseScheduleRepository,
       externalCalendarRepository: mockExternalCalendarRepository,
       userSettings: userSettings,
+      todosItemsPerPage: 10,
     );
 
     await dataSource.handleLoadMore(
@@ -150,6 +151,7 @@ void main() {
           courseScheduleRepository: mockCourseScheduleRepository,
               externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
+          todosItemsPerPage: 10,
         );
       });
 
@@ -247,6 +249,7 @@ void main() {
           courseScheduleRepository: mockCourseScheduleRepository,
               externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
+          todosItemsPerPage: 10,
         );
       });
 

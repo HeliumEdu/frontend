@@ -37,7 +37,6 @@ class _ErrorCardState extends State<ErrorCard> {
       parameters: {
         'category': AnalyticsCategory.edgeCase.value,
         'error_source': widget.source,
-        'error_message': widget.message,
       },
     );
   }

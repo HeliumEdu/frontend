@@ -66,7 +66,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
   Set<String> _filterStatuses = {};
   Set<int> _selectedExternalCalendarIds = {};
   String _searchQuery = '';
-  int _todosItemsPerPage = 10;
+  int _todosItemsPerPage;
   final Map<int, bool> _completedOverrides = {};
   final Map<PlannerItemBaseModel, PlannerItemTimeOverride> _timeOverrides = {};
   bool _isMonthView = false;
@@ -101,7 +101,8 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     required this.courseScheduleRepository,
     required this.externalCalendarRepository,
     required this.userSettings,
-  }) {
+    required int todosItemsPerPage,
+  }) : _todosItemsPerPage = todosItemsPerPage {
     appointments = [];
   }
 

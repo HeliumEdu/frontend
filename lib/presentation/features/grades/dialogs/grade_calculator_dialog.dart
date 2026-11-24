@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -41,6 +42,7 @@ class GradeCalculatorDialog extends StatefulWidget {
   final List<HomeworkSeriesItemModel> ungradedAssignments;
   final GradeCalculatorMode mode;
   final GradeCalculatorGpa? gpa;
+  final String? termWeek;
 
   const GradeCalculatorDialog({
     super.key,
@@ -52,6 +54,7 @@ class GradeCalculatorDialog extends StatefulWidget {
     this.defaultDesiredGradeBoost = 5.0,
     this.mode = GradeCalculatorMode.classGrade,
     this.gpa,
+    this.termWeek,
   });
 
   @override
@@ -62,6 +65,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   static const _gpaStep = 0.1;
 
   int? _selectedTargetId;
+  bool _useLogged = false;
   final TextEditingController _desiredGradeController = TextEditingController();
   NeededGradeModel? _result;
   String? _validationErrorMessage;
@@ -159,6 +163,20 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       return;
     }
 
+    if (!_useLogged) {
+      _useLogged = true;
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.gradeCalculatorUse,
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'tab': GradeCalculatorTab.whatDoINeed.name,
+            'mode': widget.mode.name,
+            'term_week': ?widget.termWeek,
+          },
+        ),
+      );
+    }
     setState(() => _isCalculating = true);
     context.read<GradeBloc>().add(
       CalculateNeededGradeEvent(

@@ -191,13 +191,29 @@ class PrefService {
     try {
       return await _secureStorage.read(key: key);
     } on PlatformException catch (e) {
-      if (e.message?.contains('-25308') == true) {
+      if (_isKeychainLocked(e)) {
         _log.warning('Keychain unavailable for key=$key (${e.message})');
         return null;
       }
       rethrow;
     }
   }
+
+  /// Whether secure storage can't be read right now because the device is
+  /// locked, so a missing token there doesn't mean the user signed out.
+  Future<bool> isSecureStorageLocked() async {
+    try {
+      await _secureStorage.read(key: 'access_token');
+      return false;
+    } on PlatformException catch (e) {
+      return _isKeychainLocked(e);
+    }
+  }
+
+  /// errSecInteractionNotAllowed: the keychain refuses reads while the device
+  /// is locked.
+  bool _isKeychainLocked(PlatformException e) =>
+      e.message?.contains('-25308') == true;
 
   Future<void> setSecure(String key, String value) async {
     try {

@@ -58,11 +58,7 @@ class ThemeNotifier extends ChangeNotifier {
         name: AnalyticsEvent.themeSelect,
         parameters: {
           'category': AnalyticsCategory.featureInteraction.value,
-          'theme': switch (mode) {
-            ThemeMode.light => 'light',
-            ThemeMode.dark => 'dark',
-            ThemeMode.system => 'system',
-          },
+          'theme': mode.name,
         },
       ));
     }

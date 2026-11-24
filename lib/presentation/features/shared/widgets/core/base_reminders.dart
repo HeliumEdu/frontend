@@ -209,7 +209,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
               if (_error != null) {
                 return ErrorCard(
                   message: _error!,
-                  source: 'reminders_widget',
+                  source: 'base_reminders',
                   onReload: _fetchScreenData,
                   expanded: false,
                 );

@@ -7,6 +7,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/fcm_service.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/login_request_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
@@ -257,17 +258,17 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
 
   @override
   Future<TokenResponseModel> loginWithGoogle(String firebaseIdToken) async {
-    return _loginWithOAuth(firebaseIdToken, 'google');
+    return _loginWithOAuth(firebaseIdToken, OAuthProvider.google.name);
   }
 
   @override
   Future<TokenResponseModel> loginWithApple(String firebaseIdToken) async {
-    return _loginWithOAuth(firebaseIdToken, 'apple');
+    return _loginWithOAuth(firebaseIdToken, OAuthProvider.apple.name);
   }
 
   @override
   Future<TokenResponseModel> loginWithMicrosoft(String firebaseIdToken) async {
-    return _loginWithOAuth(firebaseIdToken, 'microsoft');
+    return _loginWithOAuth(firebaseIdToken, OAuthProvider.microsoft.name);
   }
 
   Future<TokenResponseModel> _loginWithOAuth(

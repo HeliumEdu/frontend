@@ -33,6 +33,7 @@ class GradeCalculatorContainer extends StatefulWidget {
   final double? cumulativeGpa;
   final UserSettingsModel userSettings;
   final double defaultDesiredGradeBoost;
+  final String? termWeek;
 
   const GradeCalculatorContainer({
     super.key,
@@ -41,6 +42,7 @@ class GradeCalculatorContainer extends StatefulWidget {
     this.cumulativeGpa,
     required this.userSettings,
     this.defaultDesiredGradeBoost = 5.0,
+    this.termWeek,
   });
 
   @override
@@ -49,7 +51,6 @@ class GradeCalculatorContainer extends StatefulWidget {
 
 class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
     with SingleTickerProviderStateMixin {
-  static const _tabs = ['What Could I Get?', 'What Do I Need?'];
   late final TabController _tabController;
   late final GradeCalculatorGpa? _gpa;
   GradeCalculatorMode _mode = GradeCalculatorMode.classGrade;
@@ -58,7 +59,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: _tabs.length,
+      length: GradeCalculatorTab.values.length,
       vsync: this,
       animationDuration: MotionService().effectiveDuration(AppConstants.uiAnimationDuration),
     );
@@ -97,10 +98,9 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
   }
 
   void _logScreenView() {
-    final tab = _tabController.index == 0 ? 'what_could_i_get' : 'what_do_i_need';
-    final mode = _mode == GradeCalculatorMode.termGpa ? '_gpa' : '';
+    final tab = GradeCalculatorTab.values[_tabController.index];
     unawaited(AnalyticsService().logScreenView(
-        screenName: 'grade_calculator_$tab$mode'));
+        screenName: 'grade_calculator_${tab.name}_${_mode.name}'));
   }
 
   void _onModeChanged(DropDownItem<GradeCalculatorMode>? item) {
@@ -156,7 +156,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
 
                 TabBar(
                   controller: _tabController,
-                  tabs: _tabs.map((label) => Tab(text: label)).toList(),
+                  tabs: GradeCalculatorTab.values.map((tab) => Tab(text: tab.label)).toList(),
                   labelStyle: AppStyles.formLabel(context).copyWith(
                     fontSize: Responsive.getFontSize(context, mobile: 12, tablet: 14, desktop: 15),
                   ),
@@ -191,6 +191,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             mode: _mode,
                             gpa: _gpa,
                             hasAssignments: widget.course.numHomework > 0,
+                            termWeek: widget.termWeek,
                           ),
                           GradeCalculatorDialog(
                             courseId: widget.course.id,
@@ -201,6 +202,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             defaultDesiredGradeBoost: widget.defaultDesiredGradeBoost,
                             mode: _mode,
                             gpa: _gpa,
+                            termWeek: widget.termWeek,
                           ),
                         ],
                       );

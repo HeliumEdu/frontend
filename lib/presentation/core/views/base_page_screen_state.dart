@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/time_zone_database_service.dart';
@@ -347,7 +348,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         if (settingsError != null)
           ErrorCard(
             message: settingsError!,
-            source: 'settings',
+            source: ApiUrl.authUserUrl,
             onReload: _reloadSettings,
           )
         else if (isLoading)
@@ -532,8 +533,8 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
     required bool settingsFailed,
     required bool infoFailed,
   }) {
-    if (settingsFailed && infoFailed) return 'settings+/info/';
-    return settingsFailed ? 'settings' : '/info/';
+    if (settingsFailed && infoFailed) return '${ApiUrl.authUserUrl}+${ApiUrl.infoUrl}';
+    return settingsFailed ? ApiUrl.authUserUrl : ApiUrl.infoUrl;
   }
 
   void _reloadSettings() {
@@ -577,7 +578,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
         child: PrintableArea(
           title: printTitle,
           source:
-              router.routerDelegate.currentConfiguration.uri.pathSegments.first,
+              '/${router.routerDelegate.currentConfiguration.uri.pathSegments.first}',
           flexColumn: enablePrintFlexColumn,
           header: screenError != null
               ? (_) => const SizedBox.shrink()

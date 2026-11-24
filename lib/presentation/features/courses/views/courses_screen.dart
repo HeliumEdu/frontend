@@ -215,10 +215,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               Sort.byTitle(_coursesMap[state.course.courseGroup]!);
             });
             _applyLinkedNoteSave(state.course.id, state.linkedNoteSave);
-            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
               name: 'course_load_bucket',
-              value: _courseLoadBucket(totalCourses),
+              value: _courseLoadBucket(_ownCourseCount()),
             ));
           } else if (state is CourseUpdated) {
             _replaceCourse(state.course);
@@ -245,10 +244,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               }
               _notesMap.remove(state.id);
             });
-            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
               name: 'course_load_bucket',
-              value: _courseLoadBucket(totalCourses),
+              value: _courseLoadBucket(_ownCourseCount()),
             ));
           } else if (state case CourseScheduleCreated(:final schedule) ||
               CourseScheduleUpdated(:final schedule) ||
@@ -1002,6 +1000,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       isNew: false,
     );
   }
+
+  int _ownCourseCount() => _courseGroups
+      .where((group) => !group.exampleSchedule)
+      .fold(0, (sum, group) => sum + (_coursesMap[group.id]?.length ?? 0));
 
   String _courseLoadBucket(int count) {
     if (count <= 1) return '1';

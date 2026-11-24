@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
@@ -32,6 +36,7 @@ class GradeProjectionTab extends StatefulWidget {
   final GradeCalculatorMode mode;
   final GradeCalculatorGpa? gpa;
   final bool hasAssignments;
+  final String? termWeek;
 
   const GradeProjectionTab({
     super.key,
@@ -45,6 +50,7 @@ class GradeProjectionTab extends StatefulWidget {
     this.mode = GradeCalculatorMode.classGrade,
     this.gpa,
     this.hasAssignments = true,
+    this.termWeek,
   });
 
   @override
@@ -54,6 +60,7 @@ class GradeProjectionTab extends StatefulWidget {
 class _GradeProjectionTabState extends State<GradeProjectionTab> {
   /// Hypothetical score as a percentage (0-100) per assignment ID.
   late Map<int, double> _projections;
+  bool _useLogged = false;
 
   bool get _hasWeightedGrading => widget.categories.any((c) => c.weight > 0);
 
@@ -115,6 +122,20 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
   }
 
   void _onSliderChanged(int assignmentId, double rawScore, double pointsPossible) {
+    if (!_useLogged) {
+      _useLogged = true;
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.gradeCalculatorUse,
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'tab': GradeCalculatorTab.whatCouldIGet.name,
+            'mode': widget.mode.name,
+            'term_week': ?widget.termWeek,
+          },
+        ),
+      );
+    }
     setState(() {
       _projections[assignmentId] = pointsPossible > 0 ? rawScore / pointsPossible * 100 : 0;
     });

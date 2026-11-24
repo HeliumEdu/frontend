@@ -94,6 +94,7 @@ void main() {
       courseScheduleRepository: mockCourseScheduleRepository,
       externalCalendarRepository: mockExternalCalendarRepository,
       userSettings: userSettings,
+      todosItemsPerPage: 10,
     );
 
     await dataSource.handleLoadMore(
@@ -129,6 +130,7 @@ void main() {
           courseScheduleRepository: mockCourseScheduleRepository,
               externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
+          todosItemsPerPage: 10,
         );
 
         expect(freshDataSource.appointments, isEmpty);
@@ -142,6 +144,7 @@ void main() {
           courseScheduleRepository: mockCourseScheduleRepository,
               externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: userSettings,
+          todosItemsPerPage: 10,
         );
 
         expect(freshDataSource.selectedCourses, isEmpty);
@@ -552,6 +555,7 @@ void main() {
           courseScheduleRepository: mockCourseScheduleRepository,
               externalCalendarRepository: mockExternalCalendarRepository,
           userSettings: colorByCategorySettings,
+          todosItemsPerPage: 10,
         );
         colorByCategoryDataSource.courses = [course];
         colorByCategoryDataSource.categoriesMap = {1: category};
