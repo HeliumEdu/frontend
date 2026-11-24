@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/utils/quill_html_sanitizers.dart';
 import 'package:heliumapp/utils/quill_paste.dart';
 import 'package:quill_native_bridge/quill_native_bridge.dart';
@@ -209,18 +211,38 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
             controller: widget.controller,
             focusNode: _effectiveFocusNode,
             scrollController: _scrollController,
-            config: widget.config,
+            config: _effectiveConfig,
           ),
         ),
       ),
     );
   }
 
+  QuillEditorConfig get _effectiveConfig {
+    var config = widget.config;
+    if (PlatformBehavior.usesCommandForNoteShortcuts) {
+      config = config.copyWith(
+        customShortcuts: {
+          ...heliumCommandNoteShortcuts,
+          ...?config.customShortcuts,
+        },
+      );
+    }
+    if (!PlatformBehavior.unfocusesOnBackgroundTap) {
+      config = config.copyWith(onTapOutside: (_, _) {});
+    }
+    return config;
+  }
+
   /// Hides the keyboard when the user drags the note's content, as
   /// [ScrollViewKeyboardDismissBehavior.onDrag] does on the app's scrolling
   /// forms; the editor scrolls itself, so no scroll view around it can.
   bool _dismissKeyboardOnDrag(ScrollUpdateNotification notification) {
-    if (notification.dragDetails == null) return false;
+    if (notification.dragDetails == null ||
+        PlatformBehavior.keyboardDismissBehavior !=
+            ScrollViewKeyboardDismissBehavior.onDrag) {
+      return false;
+    }
     final scope = FocusScope.of(context);
     if (!scope.hasPrimaryFocus && scope.hasFocus) {
       FocusManager.instance.primaryFocus?.unfocus();

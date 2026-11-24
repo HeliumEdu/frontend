@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -26,6 +27,45 @@ void main() {
   });
 
   group('PrefService', () {
+    group('isSecureStorageLocked', () {
+      test('the keychain refusing reads while the device is locked counts as locked', () async {
+        // GIVEN
+        when(() => mockSecureStorage.read(key: 'access_token')).thenThrow(
+          PlatformException(code: 'Unexpected security result code', message: 'Code: -25308'),
+        );
+
+        // WHEN
+        final locked = await prefService.isSecureStorageLocked();
+
+        // THEN
+        expect(locked, isTrue);
+      });
+
+      test('a readable keychain with no token is not locked', () async {
+        // GIVEN
+        when(() => mockSecureStorage.read(key: 'access_token')).thenAnswer((_) async => null);
+
+        // WHEN
+        final locked = await prefService.isSecureStorageLocked();
+
+        // THEN
+        expect(locked, isFalse);
+      });
+
+      test('other keychain errors are not mistaken for a locked device', () async {
+        // GIVEN
+        when(() => mockSecureStorage.read(key: 'access_token')).thenThrow(
+          PlatformException(code: 'Unexpected security result code', message: 'Code: -34018'),
+        );
+
+        // WHEN
+        final locked = await prefService.isSecureStorageLocked();
+
+        // THEN
+        expect(locked, isFalse);
+      });
+    });
+
     group('clear operation', () {
       test('clear clears both SharedPreferences and SecureStorage', () async {
         // GIVEN

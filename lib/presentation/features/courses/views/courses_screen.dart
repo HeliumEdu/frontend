@@ -215,10 +215,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               Sort.byTitle(_coursesMap[state.course.courseGroup]!);
             });
             _applyLinkedNoteSave(state.course.id, state.linkedNoteSave);
-            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
               name: 'course_load_bucket',
-              value: _courseLoadBucket(totalCourses),
+              value: _courseLoadBucket(_ownCourseCount()),
             ));
           } else if (state is CourseUpdated) {
             _replaceCourse(state.course);
@@ -245,10 +244,9 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               }
               _notesMap.remove(state.id);
             });
-            final totalCourses = _coursesMap.values.fold<int>(0, (sum, c) => sum + c.length);
             unawaited(AnalyticsService().setUserProperty(
               name: 'course_load_bucket',
-              value: _courseLoadBucket(totalCourses),
+              value: _courseLoadBucket(_ownCourseCount()),
             ));
           } else if (state case CourseScheduleCreated(:final schedule) ||
               CourseScheduleUpdated(:final schedule) ||
@@ -464,9 +462,14 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
         if (_selectedGroupId == null ||
             (_coursesMap[_selectedGroupId]?.isEmpty ?? true)) {
+          final hasClassesElsewhere = _coursesMap.values.any(
+            (courses) => courses.isNotEmpty,
+          );
           return EmptyCard(
             icon: Icons.school,
-            title: "You haven't added any classes yet",
+            title: hasClassesElsewhere
+                ? 'No classes in this group yet'
+                : "You haven't added any classes yet",
             message: 'Click "+" to get started',
             expanded: false,
             action: HeliumElevatedButton(
@@ -997,6 +1000,10 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
       isNew: false,
     );
   }
+
+  int _ownCourseCount() => _courseGroups
+      .where((group) => !group.exampleSchedule)
+      .fold(0, (sum, group) => sum + (_coursesMap[group.id]?.length ?? 0));
 
   String _courseLoadBucket(int count) {
     if (count <= 1) return '1';

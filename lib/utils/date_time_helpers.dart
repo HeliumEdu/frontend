@@ -294,6 +294,16 @@ class HeliumDateTime {
     return tz.TZDateTime.from(utc, timeZone);
   }
 
+  /// The week of a term that [now] falls in, by its date in [timeZone]: 0 for
+  /// the first seven days from the date-only [termStart], negative before it.
+  static int weekOfTerm(DateTime termStart, DateTime now, tz.Location timeZone) {
+    final today = midnightIn(now, timeZone);
+    final days = DateTime.utc(today.year, today.month, today.day)
+        .difference(DateTime.utc(termStart.year, termStart.month, termStart.day))
+        .inDays;
+    return (days / 7).floor();
+  }
+
   /// Midnight on the date [instant] falls on in [timeZone]. The UTC date would
   /// be a day early for any positive offset.
   static tz.TZDateTime midnightIn(DateTime instant, tz.Location timeZone) {

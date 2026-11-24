@@ -312,6 +312,74 @@ void main() {
       });
     });
 
+    group('sessionEndedWithoutRefreshToken', () {
+      test('a locked keychain never ends the session', () async {
+        // GIVEN
+        when(() => mockPrefService.isSecureStorageLocked()).thenAnswer((_) async => true);
+        when(() => mockPrefService.getSecure('access_token')).thenAnswer((_) async => null);
+
+        // WHEN
+        final ended = await dioClient.sessionEndedWithoutRefreshTokenForTesting(
+          RequestOptions(path: '/planner/homework/'),
+        );
+
+        // THEN
+        expect(ended, isFalse);
+      });
+
+      test('a readable keychain and a request sent with the current token ends the session', () async {
+        // GIVEN
+        when(() => mockPrefService.isSecureStorageLocked()).thenAnswer((_) async => false);
+        when(() => mockPrefService.getSecure('access_token')).thenAnswer((_) async => 'current');
+
+        // WHEN
+        final ended = await dioClient.sessionEndedWithoutRefreshTokenForTesting(
+          RequestOptions(
+            path: '/planner/homework/',
+            headers: {'Authorization': 'Bearer current'},
+          ),
+        );
+
+        // THEN
+        expect(ended, isTrue);
+      });
+    });
+
+    group('rotatedSince', () {
+      test('a refresh token saved after the one sent means the session rotated elsewhere', () async {
+        // GIVEN
+        when(() => mockPrefService.getSecure('refresh_token')).thenAnswer((_) async => 'newer');
+
+        // WHEN
+        final rotated = await dioClient.rotatedSinceForTesting('sent');
+
+        // THEN
+        expect(rotated, isTrue);
+      });
+
+      test('the same refresh token still stored means the session really was rejected', () async {
+        // GIVEN
+        when(() => mockPrefService.getSecure('refresh_token')).thenAnswer((_) async => 'sent');
+
+        // WHEN
+        final rotated = await dioClient.rotatedSinceForTesting('sent');
+
+        // THEN
+        expect(rotated, isFalse);
+      });
+
+      test('no stored refresh token is not a rotation', () async {
+        // GIVEN
+        when(() => mockPrefService.getSecure('refresh_token')).thenAnswer((_) async => null);
+
+        // WHEN
+        final rotated = await dioClient.rotatedSinceForTesting('sent');
+
+        // THEN
+        expect(rotated, isFalse);
+      });
+    });
+
     group('forceLogout', () {
       test('clears storage and notifies forced logout listeners once', () async {
         // GIVEN

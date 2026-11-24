@@ -96,6 +96,7 @@ void main() {
       courseScheduleRepository: mockCourseScheduleRepository,
       externalCalendarRepository: mockExternalCalendarRepository,
       userSettings: userSettings,
+      todosItemsPerPage: 10,
     );
 
     await dataSource.handleLoadMore(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -41,6 +42,7 @@ class GradeCalculatorDialog extends StatefulWidget {
   final List<HomeworkSeriesItemModel> ungradedAssignments;
   final GradeCalculatorMode mode;
   final GradeCalculatorGpa? gpa;
+  final String? termWeek;
 
   const GradeCalculatorDialog({
     super.key,
@@ -52,6 +54,7 @@ class GradeCalculatorDialog extends StatefulWidget {
     this.defaultDesiredGradeBoost = 5.0,
     this.mode = GradeCalculatorMode.classGrade,
     this.gpa,
+    this.termWeek,
   });
 
   @override
@@ -62,6 +65,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   static const _gpaStep = 0.1;
 
   int? _selectedTargetId;
+  bool _useLogged = false;
   final TextEditingController _desiredGradeController = TextEditingController();
   NeededGradeModel? _result;
   String? _validationErrorMessage;
@@ -159,6 +163,20 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       return;
     }
 
+    if (!_useLogged) {
+      _useLogged = true;
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.gradeCalculatorUse,
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'tab': GradeCalculatorTab.whatDoINeed.name,
+            'mode': widget.mode.name,
+            'term_week': ?widget.termWeek,
+          },
+        ),
+      );
+    }
     setState(() => _isCalculating = true);
     context.read<GradeBloc>().add(
       CalculateNeededGradeEvent(
@@ -362,13 +380,23 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
 
   Widget _buildCalculator(BuildContext context) {
     if (_eligibleTargetIds.isEmpty) {
-      return EmptyCard(
-        expanded: false,
-        icon: Icons.hourglass_empty,
-        title: 'Come back later',
-        message: _hasExplicitWeights
-            ? 'Check back when a category is down to its last ungraded assignment (e.g. the Final).'
-            : 'Check back when this class has an ungraded assignment to plan for (e.g. the Final).',
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          EmptyCard(
+            icon: Icons.hourglass_empty,
+            title: 'Come back later',
+            message: _hasExplicitWeights
+                ? 'Check back when a category is down to its last ungraded assignment.'
+                : 'Check back when this class has an ungraded assignment.',
+          ),
+          const SizedBox(height: 12),
+          HeliumElevatedButton(
+            buttonText: 'Calculate',
+            onPressed: _calculate,
+            enabled: false,
+          ),
+        ],
       );
     }
 

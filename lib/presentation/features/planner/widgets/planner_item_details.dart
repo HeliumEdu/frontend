@@ -271,7 +271,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       children: [
         Expanded(
           child: HeliumFullScreenScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
             child: Form(
               key: formController.formKey,
               child: Column(

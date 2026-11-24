@@ -353,9 +353,14 @@ class _ResourcesScreenState
 
         if (_selectedGroupId == null ||
             (_resourcesMap[_selectedGroupId]?.isEmpty ?? true)) {
-          return const EmptyCard(
+          final hasResourcesElsewhere = _resourcesMap.values.any(
+            (resources) => resources.isNotEmpty,
+          );
+          return EmptyCard(
             icon: Icons.book,
-            title: "You haven't added any resources yet",
+            title: hasResourcesElsewhere
+                ? 'No resources in this group yet'
+                : "You haven't added any resources yet",
             message: 'Click "+" to get started',
             expanded: false,
           );

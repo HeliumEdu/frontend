@@ -26,8 +26,8 @@ final _log = Logger('presentation.bloc');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   static const invalidAuthorizationMessage =
-      "This connection request isn't valid. Start connecting again from the "
-      'app you came from.';
+      "This connection request isn't valid. Start connecting again in the "
+      'app that sent you here.';
 
   final AuthRepository authRepository;
   final DioClient dioClient;
@@ -535,7 +535,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await dioClient.clearStorage();
       emit(AuthUnauthenticated(message: 'Please sign in to continue.'));
     } on HeliumException catch (e) {
-      await dioClient.clearStorage();
       emit(AuthError(
         message: e.displayMessage,
         code: e.code,
@@ -543,7 +542,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      await dioClient.clearStorage();
       emit(AuthError(message: HeliumException.unexpectedError));
     }
   }

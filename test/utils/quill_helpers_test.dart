@@ -1,10 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('tryParseNotesDocument', () {
     test('parses already-terminated content unchanged', () {
       final doc = tryParseNotesDocument({
@@ -152,6 +155,95 @@ void main() {
 
       // THEN
       expect(savedDelta, isNot(editorDelta));
+    });
+  });
+
+  group('allowsTypedText', () {
+    QuillController bulletList({required int caret}) => QuillController(
+      document: Document.fromJson([
+        {'insert': 'First'},
+        {'insert': '\n', 'attributes': {'list': 'bullet'}},
+        {'insert': 'Second'},
+        {'insert': '\n', 'attributes': {'list': 'bullet'}},
+      ]),
+      selection: TextSelection.collapsed(offset: caret),
+    );
+
+    bool isIndented(QuillController controller) => controller.document
+        .toDelta()
+        .toList()
+        .any((op) => op.attributes?['indent'] == 1);
+
+    test('a tab typed at the start of a list item indents it instead', () async {
+      // GIVEN
+      final controller = bulletList(caret: 6);
+
+      // WHEN
+      final typed = allowsTypedText(controller, 6, 0, '\t');
+      await pumpEventQueue();
+
+      // THEN
+      expect(typed, isFalse);
+      expect(isIndented(controller), isTrue);
+      expect(controller.document.toPlainText(), 'First\nSecond\n');
+    });
+
+    test('a tab typed inside a list item\'s text is typed', () async {
+      // GIVEN
+      final controller = bulletList(caret: 9);
+
+      // WHEN
+      final typed = allowsTypedText(controller, 9, 0, '\t');
+      await pumpEventQueue();
+
+      // THEN
+      expect(typed, isTrue);
+      expect(isIndented(controller), isFalse);
+    });
+
+    test('a tab typed in a plain paragraph is typed', () {
+      // GIVEN
+      final controller = QuillController(
+        document: Document.fromJson([
+          {'insert': 'Plain\n'},
+        ]),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+
+      // WHEN
+      final typed = allowsTypedText(controller, 0, 0, '\t');
+
+      // THEN
+      expect(typed, isTrue);
+    });
+
+    test('a tab typed over a selection outside a list changes nothing', () async {
+      // GIVEN
+      final controller = QuillController(
+        document: Document.fromJson([
+          {'insert': 'Plain\n'},
+        ]),
+        selection: const TextSelection(baseOffset: 0, extentOffset: 5),
+      );
+
+      // WHEN
+      final typed = allowsTypedText(controller, 0, 5, '\t');
+      await pumpEventQueue();
+
+      // THEN
+      expect(typed, isFalse);
+      expect(controller.document.toPlainText(), 'Plain\n');
+    });
+
+    test('other typed text goes in untouched', () {
+      // GIVEN
+      final controller = bulletList(caret: 6);
+
+      // WHEN
+      final typed = allowsTypedText(controller, 6, 0, 'a');
+
+      // THEN
+      expect(typed, isTrue);
     });
   });
 }

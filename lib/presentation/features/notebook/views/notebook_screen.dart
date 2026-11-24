@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
+import 'package:heliumapp/config/analytics_event.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -45,6 +47,7 @@ import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/course_group_helpers.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
@@ -94,6 +97,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   List<NoteModel> _notes = [];
   String? _searchQuery;
   bool _searchNoteContent = false;
+  bool _searchLogged = false;
+  final Set<String> _loggedFilterKinds = {};
   Timer? _contentSearchTimer;
   String? _loadingContentSearchQuery;
   String? _loadedContentSearchQuery;
@@ -108,7 +113,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   Map<int, CategoryModel> _categoriesById = {};
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  int _rowsPerPage = 10;
+  late int _rowsPerPage = Responsive.defaultRowsPerPage(context);
   bool _notesReady = false;
   bool _isRecoveringNewNote = false;
 
@@ -489,7 +494,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         if (screenError != null) {
           return ErrorCard(
             message: screenError!,
-            source: 'notes_screen',
+            source: 'notebook_screen',
             onReload: reloadPage,
           );
         }
@@ -681,6 +686,26 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
   }
 
   void _onSearchQueryChanged(String? query) {
+    if (query == null) {
+      _searchLogged = false;
+    } else if (!_searchLogged) {
+      _searchLogged = true;
+      final termWeek = CourseGroupHelpers.currentTermWeek(
+        _courseGroups,
+        userSettings.timeZone,
+      );
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.search,
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'screen': AppRoute.notebookScreen,
+            'content': _searchNoteContent.toString(),
+            'term_week': ?termWeek,
+          },
+        ),
+      );
+    }
     setState(() {
       _searchQuery = query;
       if (_contentSearchQuery != _loadedContentSearchQuery) {
@@ -688,6 +713,25 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       }
     });
     _scheduleContentSearch();
+  }
+
+  void _onFilterApplied(String filter) {
+    if (!_loggedFilterKinds.add(filter)) return;
+    final termWeek = CourseGroupHelpers.currentTermWeek(
+      _courseGroups,
+      userSettings.timeZone,
+    );
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.filterApply,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'screen': AppRoute.notebookScreen,
+          'filter': filter,
+          'term_week': ?termWeek,
+        },
+      ),
+    );
   }
 
   void _toggleContentSearch() {
@@ -940,6 +984,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 const Expanded(child: HeliumMenuTitle(title: 'Filters')),
                 TextButton(
                   onPressed: () {
+                    _onFilterApplied('clear');
                     final wasExcluding = _shownOnCalendar;
                     _filterEntityTypes.clear();
                     _filterCourseIds.clear();
@@ -979,6 +1024,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                 ),
                 value: isChecked,
                 onChanged: (value) {
+                  _onFilterApplied('type');
                   if (value == true) {
                     _filterEntityTypes.add(option.value);
                   } else {
@@ -1033,6 +1079,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               ),
               value: _shownOnCalendar,
               onChanged: (value) {
+                _onFilterApplied('hidden_groups');
                 _shownOnCalendar = value ?? false;
                 _saveFilterStateIfEnabled();
                 setMenuState(() {});
@@ -1088,6 +1135,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       ),
       value: _filterCourseIds.contains(course.id),
       onChanged: (value) {
+        _onFilterApplied('class');
         if (value == true) {
           _filterCourseIds.add(course.id);
         } else {

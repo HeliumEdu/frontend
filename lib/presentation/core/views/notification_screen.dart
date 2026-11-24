@@ -301,7 +301,7 @@ class _NotificationsScreenState
         if (screenError != null) {
           return ErrorCard(
             message: screenError!,
-            source: 'notification_screen',
+            source: 'notifications_screen',
             onReload: reloadPage,
             expanded: true,
           );

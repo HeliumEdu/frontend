@@ -497,7 +497,6 @@ void main() {
         ),
       );
       const homeworkCategoryTitle = 'Homework 👨🏽‍💻';
-      const todosPageSize = 10;
 
       await switchPlannerView(
         tester,
@@ -505,6 +504,9 @@ void main() {
         expectedContent: find.byType(TodosDataGrid),
       );
       await takeScreenshot('todos_view_initial_state');
+      final todosPageSize = Responsive.defaultRowsPerPage(
+        tester.element(find.byType(TodosDataGrid)),
+      );
 
       // X and Y vary mid-load (TodosTable expands the window via a network
       // call); only N is stable, so match on the helper-computed total.

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/log_service.dart';
@@ -113,6 +114,11 @@ class AgendaWidgetService {
       );
       if (!await dioClient.isAuthenticated()) return;
       await _writeSnapshot(snapshot);
+      if ((await HomeWidget.getInstalledWidgets()).isNotEmpty) {
+        unawaited(
+          AnalyticsService().setUserProperty(name: 'uses_agenda_widget', value: 'true'),
+        );
+      }
     } on HeliumException catch (e, s) {
       _log.warning('Agenda widget refresh failed', e, s);
     }

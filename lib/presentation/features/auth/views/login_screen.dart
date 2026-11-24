@@ -303,7 +303,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                   child: SignInButton(
                     Buttons.google,
-                    shape: _lastUsedShape('google'),
+                    shape: _lastUsedShape(OAuthProvider.google.name),
                     onPressed: () {
                       setState(() {
                         _isOAuthLoading = true;
@@ -350,7 +350,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                     opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                     child: SignInButton(
                       Buttons.apple,
-                      shape: _lastUsedShape('apple'),
+                      shape: _lastUsedShape(OAuthProvider.apple.name),
                       onPressed: () {
                         setState(() {
                           _isOAuthLoading = true;
@@ -382,7 +382,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   opacity: _isOAuthLoading || isSubmitting ? 0.5 : 1.0,
                   child: SignInButton(
                     Buttons.microsoft,
-                    shape: _lastUsedShape('microsoft'),
+                    shape: _lastUsedShape(OAuthProvider.microsoft.name),
                     onPressed: () {
                       setState(() {
                         _isOAuthLoading = true;

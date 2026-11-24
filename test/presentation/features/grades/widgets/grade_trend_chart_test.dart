@@ -20,12 +20,12 @@ GradeTrendPoint _point(DateTime date, double grade) =>
 void main() {
   group('GradeTrendChart', () {
     group('calculateYAxisRange', () {
-      test('with no visible series the axis spans 0 to 100', () {
+      test('with no visible series the axis spans 50 to 100', () {
         // WHEN
         final range = GradeTrendChart.calculateYAxisRange([]);
 
         // THEN
-        expect(range.min, 0);
+        expect(range.min, 50);
         expect(range.max, 100);
       });
 

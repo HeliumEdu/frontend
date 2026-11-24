@@ -29,7 +29,7 @@ class StartupFailureApp extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: ErrorCard(
               message: HeliumException.unexpectedError,
-              source: 'startup',
+              source: 'startup_failure_app',
               expanded: false,
               onReload: onReload,
             ),

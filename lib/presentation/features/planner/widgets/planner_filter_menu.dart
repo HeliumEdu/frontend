@@ -21,6 +21,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
   final Map<int, CategoryModel> categoriesMap;
   final Map<int, ExternalCalendarModel> externalCalendarsById;
   final StateSetter setSheetState;
+  final ValueChanged<String> onFilterApplied;
 
   const PlannerFilterMenuContent({
     super.key,
@@ -33,6 +34,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
     required this.categoriesMap,
     required this.externalCalendarsById,
     required this.setSheetState,
+    required this.onFilterApplied,
   });
 
   static bool hasCoursesFilter(
@@ -111,6 +113,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
               : PlannerFilterStatus.incomplete.value,
         );
       }
+      onFilterApplied('status');
       plannerItemDataSource!.setFilterStatuses(currentStatuses);
       setSheetState(() {});
     }
@@ -131,6 +134,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
               : PlannerFilterStatus.ungraded.value,
         );
       }
+      onFilterApplied('status');
       plannerItemDataSource!.setFilterStatuses(currentStatuses);
       setSheetState(() {});
     }
@@ -149,6 +153,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
           } else {
             currentStatuses.remove(label);
           }
+          onFilterApplied('status');
           plannerItemDataSource!.setFilterStatuses(currentStatuses);
           setSheetState(() {});
         },
@@ -184,6 +189,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                 const Expanded(child: HeliumMenuTitle(title: 'Filters')),
                 TextButton(
                   onPressed: () {
+                    onFilterApplied('clear');
                     plannerItemDataSource!.clearFilters();
                     setSheetState(() {});
                   },
@@ -230,6 +236,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                   } else {
                     currentTypes.remove(PlannerFilterType.assignments.value);
                   }
+                  onFilterApplied('type');
                   plannerItemDataSource!.setFilterTypes(currentTypes);
                   setSheetState(() {});
                 },
@@ -273,6 +280,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                   } else {
                     currentTypes.remove(PlannerFilterType.classSchedules.value);
                   }
+                  onFilterApplied('type');
                   plannerItemDataSource!.setFilterTypes(currentTypes);
                   setSheetState(() {});
                 },
@@ -311,6 +319,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                   } else {
                     currentTypes.remove(PlannerFilterType.events.value);
                   }
+                  onFilterApplied('type');
                   plannerItemDataSource!.setFilterTypes(currentTypes);
                   setSheetState(() {});
                 },
@@ -358,6 +367,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                       PlannerFilterType.externalCalendars.value,
                     );
                   }
+                  onFilterApplied('type');
                   plannerItemDataSource!.setFilterTypes(currentTypes);
                   setSheetState(() {});
                 },
@@ -412,6 +422,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                         } else {
                           currentFilters.remove(course.id);
                         }
+                        onFilterApplied('class');
                         plannerItemDataSource!.setSelectedCourses(
                           currentFilters,
                         );
@@ -459,6 +470,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                     } else {
                       current.remove(calendar.id);
                     }
+                    onFilterApplied('external_calendar');
                     plannerItemDataSource!.setSelectedExternalCalendarIds(
                       current,
                     );
@@ -546,6 +558,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                     } else {
                       currentCategories.remove(category.title);
                     }
+                    onFilterApplied('category');
                     plannerItemDataSource!.setFilterCategories(
                       currentCategories,
                     );

@@ -28,6 +28,7 @@ class CacheService with WidgetsBindingObserver {
 
   final DateTime Function() _now;
   DateTime? _pausedAt;
+  DateTime? _lastBackgroundedAt;
   bool _wasAway = false;
   late DateTime _lastRefreshAt;
   Future<void> Function()? onInactivityResume;
@@ -101,6 +102,7 @@ class CacheService with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       _wasAway = true;
+      _lastBackgroundedAt = _now();
       if (_pausedAt == null) {
         _pausedAt = _now();
         _log.fine('App hidden, recording timestamp for cache invalidation check');
@@ -207,6 +209,8 @@ class CacheService with WidgetsBindingObserver {
   /// Logging interceptor to add after the cache interceptor.
   /// Logs whether responses came from cache or network.
   Interceptor get loggingInterceptor => _loggingInterceptor;
+
+  DateTime? get lastBackgroundedAt => _lastBackgroundedAt;
 
   Interceptor _createLoggingInterceptor() {
     return InterceptorsWrapper(

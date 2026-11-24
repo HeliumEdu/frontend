@@ -30,6 +30,7 @@ class AnalyticsEvent {
   static const String connectAllow = 'helium_connect_allow';
   static const String connectDeny = 'helium_connect_deny';
   static const String connectedAppRevoke = 'helium_connected_app_revoke';
+  static const String conflictResolve = 'helium_conflict_resolve';
   static const String courseCreate = 'helium_course_create';
   static const String courseGroupCreate = 'helium_course_group_create';
   static const String exampleScheduleClear = 'helium_example_schedule_clear';
@@ -39,22 +40,26 @@ class AnalyticsEvent {
   static const String externalCalendarAdd = 'helium_external_calendar_add';
   static const String feedsDisable = 'helium_feeds_disable';
   static const String feedsEnable = 'helium_feeds_enable';
+  static const String filterApply = 'helium_filter_apply';
   static const String gradeCalculatorOpen = 'helium_grade_calculator_open';
+  static const String gradeCalculatorUse = 'helium_grade_calculator_use';
+  static const String gradeTrendViewChange = 'helium_grade_trend_view_change';
   static const String homeworkComplete = 'helium_homework_complete';
   static const String homeworkCreate = 'helium_homework_create';
   static const String homeworkGrade = 'helium_homework_grade';
   static const String importComplete = 'helium_import_complete';
   static const String mobileWebContinue = 'helium_mobile_web_continue';
   static const String noteCreate = 'helium_note_create';
+  static const String plannerViewChange = 'helium_planner_view_change';
   static const String printPreview = 'helium_print_preview';
   static const String reminderCreate = 'helium_reminder_create';
   static const String resourceCreate = 'helium_resource_create';
+  static const String search = 'helium_search';
   static const String themeSelect = 'helium_theme_select';
   static const String todosExportCsv = 'helium_todos_export_csv';
 
   // Debug / diagnostic events
   static const String debugAuthNoSetupState = 'helium_debug_auth_no_setup_state';
-  static const String debugAuthTokenRefreshQueue = 'helium_debug_auth_token_refresh_queue';
   static const String debugErrorDisplay = 'helium_debug_error_display';
   static const String debugFcmMessageDeduplicate = 'helium_debug_fcm_message_deduplicate';
   static const String debugFcmTokenStaleFail = 'helium_debug_fcm_token_stale_fail';

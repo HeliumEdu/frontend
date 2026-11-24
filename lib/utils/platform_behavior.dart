@@ -83,12 +83,36 @@ class PlatformBehavior {
 
   /// The iPad build on a Mac gets a palm brushing the trackpad as a click at
   /// the pointer.
-  static bool get rejectsTrackpadTapsWhileTyping =>
-      hostPlatform == TargetPlatform.macOS &&
+  static bool get rejectsTrackpadTapsWhileTyping => _isIPadAppOnMac;
+
+  /// A tap on empty space, or a click outside a text field, drops the field's
+  /// focus: on touch it dismisses the on-screen keyboard, and on web it's what a
+  /// browser does. The iPad build on a Mac keeps the field focused, like any
+  /// desktop app.
+  static bool get unfocusesOnBackgroundTap => !_isIPadAppOnMac;
+
+  /// The iPad build on a Mac gets Tab in a text field as a typed tab
+  /// character, never as a key (flutter/flutter#172635), so fields handle it.
+  static bool get typesTabAsText => _isIPadAppOnMac;
+
+  /// Apple keyboards format notes with Cmd, where flutter_quill binds its
+  /// shortcuts to Ctrl on every platform but macOS.
+  static bool get usesCommandForNoteShortcuts =>
       defaultTargetPlatform == TargetPlatform.iOS;
+
+  /// Dragging a scrolling form hides the on-screen keyboard; without touch
+  /// there's none, and a trackpad scroll shouldn't take focus from a field.
+  static ScrollViewKeyboardDismissBehavior get keyboardDismissBehavior =>
+      support.hasTouchInput
+      ? ScrollViewKeyboardDismissBehavior.onDrag
+      : ScrollViewKeyboardDismissBehavior.manual;
 
   /// Links to the native apps, offered to pointer users of the web build.
   static bool get showsAppStoreLinks => kIsWeb && !support.hasTouchInput;
+
+  static bool get _isIPadAppOnMac =>
+      hostPlatform == TargetPlatform.macOS &&
+      defaultTargetPlatform == TargetPlatform.iOS;
 }
 
 /// Scrollbars and scroll physics follow the host platform, so an iPad build on

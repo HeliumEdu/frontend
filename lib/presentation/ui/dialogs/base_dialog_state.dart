@@ -10,6 +10,7 @@ import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/presentation/ui/layout/reveal_on_mount.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:meta/meta.dart';
 
@@ -21,6 +22,8 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
 
   @mustBeOverridden
   BasicFormController get formController;
+
+  double get desktopWidth => 350;
 
   bool isSubmitting = false;
   bool isLoading = false;
@@ -55,7 +58,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
           : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
-        width: Responsive.getDialogWidth(context),
+        width: Responsive.getDialogWidth(context, fallback: desktopWidth),
         child: Material(
           color: context.colorScheme.surface,
           borderRadius: BorderRadius.circular(_dialogBorderRadius),
@@ -67,7 +70,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
               Flexible(
                 child: SingleChildScrollView(
                   keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
+                      PlatformBehavior.keyboardDismissBehavior,
                   padding: AppConstants.dialogContentPadding,
                   child: _buildForm(context),
                 ),
@@ -94,7 +97,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
               child: LayoutBuilder(
                 builder: (context, constraints) => HeliumFullScreenScrollView(
                   keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
+                      PlatformBehavior.keyboardDismissBehavior,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight - HeliumFullScreenScrollView.insetOf(context),

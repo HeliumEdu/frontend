@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/spell_check_helpers.dart';
+import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
 
 class LabelAndTextFormField extends StatefulWidget {
   final String? label;
@@ -109,7 +111,10 @@ class _LabelAndTextFormFieldState extends State<LabelAndTextFormField> {
       spellCheckConfiguration: _spellCheckConfiguration,
       onChanged: widget.onChanged,
       keyboardType: widget.keyboardType,
-      inputFormatters: widget.inputFormatters,
+      inputFormatters: [
+        if (PlatformBehavior.typesTabAsText) const TabMovesFocusFormatter(),
+        ...?widget.inputFormatters,
+      ],
       autofillHints: widget.autofillHints,
       style: AppStyles.formText(context),
       textAlignVertical: TextAlignVertical.center,

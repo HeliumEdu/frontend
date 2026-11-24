@@ -357,6 +357,42 @@ void main() {
           verify(() => mockDioClient.clearStorage()).called(1);
         },
       );
+
+      blocTest<AuthBloc, AuthState>(
+        'keeps the session when refresh fails because the network is down',
+        build: () {
+          when(
+            () => mockDioClient.getRefreshToken(),
+          ).thenAnswer((_) async => 'valid_refresh_token');
+          when(
+            () => mockAuthRepository.refreshToken(any()),
+          ).thenThrow(NetworkException(message: 'No connection'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(RefreshTokenEvent()),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+        verify: (_) {
+          verifyNever(() => mockDioClient.clearStorage());
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'keeps the session when refresh fails because the server errored',
+        build: () {
+          when(
+            () => mockDioClient.getRefreshToken(),
+          ).thenAnswer((_) async => 'valid_refresh_token');
+          when(
+            () => mockAuthRepository.refreshToken(any()),
+          ).thenThrow(ServerException(message: 'Server error'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(RefreshTokenEvent()),
+        expect: () => [isA<AuthLoading>(), isA<AuthError>()],
+        verify: (_) {
+          verifyNever(() => mockDioClient.clearStorage());
+        },
+      );
     });
 
     group('FetchProfileEvent', () {

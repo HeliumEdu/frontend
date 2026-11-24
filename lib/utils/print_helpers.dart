@@ -117,6 +117,7 @@ void _logPreviewOpened(String source) {
       parameters: {
         'category': AnalyticsCategory.featureInteraction.value,
         'source': source,
+        'method': 'in_app',
       },
     ),
   );

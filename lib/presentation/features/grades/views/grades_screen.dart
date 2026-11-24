@@ -222,9 +222,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             [];
 
         if (_grades.isEmpty || courses.isEmpty) {
-          return const EmptyCard(
+          return EmptyCard(
             icon: Icons.bar_chart,
-            title: "You haven't added any classes yet",
+            title: _grades.isEmpty
+                ? "You haven't added any classes yet"
+                : 'No classes in this term yet',
             message: 'Head over to "Classes" to get started',
             expanded: false,
           );
@@ -1214,6 +1216,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           cumulativeGpa: _cumulativeGpa,
           userSettings: userSettings,
           defaultDesiredGradeBoost: _defaultDesiredGradeBoost,
+          termWeek: CourseGroupHelpers.termWeekOf(
+            _getCourseGroupForId(_selectedGroupId!),
+            userSettings.timeZone,
+          ),
         ),
       ),
     );
@@ -1304,25 +1310,6 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           }
         }
       }
-    }
-
-    if (series.isEmpty) {
-      return _buildGraphCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Grade Trend', style: AppStyles.headingText(context)),
-            const SizedBox(height: 16),
-            const EmptyCard(
-              icon: Icons.bar_chart,
-              title: 'Nothing to visualize yet',
-              message:
-                  "Come back here after you've entered some grades on \"Planner\"",
-              expanded: false,
-            ),
-          ],
-        ),
-      );
     }
 
     return _buildGraphCard(
@@ -1520,7 +1507,10 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         children: [
           // Chart area
           Expanded(
-            child: charts.SfCartesianChart(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                charts.SfCartesianChart(
               margin: const EdgeInsets.fromLTRB(0, 10, 8, 6),
               tooltipBehavior: charts.TooltipBehavior(
                 enable: false,
@@ -1657,9 +1647,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 alpha: 0.2,
               ),
             ),
+                if (series.isEmpty)
+                  Center(child: IgnorePointer(child: _buildNoGradesHint())),
+              ],
+            ),
           ),
           // Legend
-          if (!_hideLegend)
+          if (!_hideLegend && series.isNotEmpty)
             SizedBox(
               width: _legendWidth,
               child: _buildLegend(series),
@@ -1668,6 +1662,35 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         ),
       );
       },
+    );
+  }
+
+  Widget _buildNoGradesHint() {
+    final color = context.colorScheme.onSurface.withValues(
+      alpha: AppStyles.increasedContrastAlpha(AppStyles.mutedTextAlpha),
+    );
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.containerContentInset),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'No grades yet',
+            textAlign: TextAlign.center,
+            style: AppStyles.standardBodyText(context).copyWith(color: color),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Grade an assignment on the Planner and your trend shows up here.',
+            textAlign: TextAlign.center,
+            style: AppStyles.smallSecondaryText(context).copyWith(color: color),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1929,6 +1952,18 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     return _courseGroups.firstWhere((g) => g.id == groupId);
   }
 
+  void _logGraphViewChange(GradeTrendViewMode viewMode) {
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.gradeTrendViewChange,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'view': viewMode.courseId == null ? viewMode.radioValue : 'class',
+        },
+      ),
+    );
+  }
+
   void _showGraphSettings(BuildContext buttonContext) {
     final selectedGroup = _grades.firstWhere(
           (g) => g.id == _selectedGroupId,
@@ -1945,8 +1980,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               groupValue: _graphViewMode.radioValue,
               onChanged: (value) {
                 if (value == null) return;
-                setState(() => _graphViewMode =
-                    GradeTrendViewMode.fromRadioValue(value));
+                final viewMode = GradeTrendViewMode.fromRadioValue(value);
+                if (value != _graphViewMode.radioValue) {
+                  _logGraphViewChange(viewMode);
+                }
+                setState(() => _graphViewMode = viewMode);
                 _saveGraphSettingsIfEnabled();
                 Navigator.pop(menuContext);
               },

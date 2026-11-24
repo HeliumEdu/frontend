@@ -112,7 +112,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         }
       },
       child: HeliumFullScreenScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
         child: AutofillGroup(
           child: Form(
             key: _formController.formKey,

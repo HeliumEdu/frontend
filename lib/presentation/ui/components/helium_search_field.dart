@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
 
 class HeliumSearchField extends StatelessWidget {
   static const _height = 40.0;
@@ -39,6 +41,9 @@ class HeliumSearchField extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         onTapOutside: onTapOutside,
+        inputFormatters: [
+          if (PlatformBehavior.typesTabAsText) const TabMovesFocusFormatter(),
+        ],
         style: AppStyles.formText(context),
         textAlignVertical: TextAlignVertical.center,
         decoration: AppStyles.formFieldDecoration(context).copyWith(

@@ -92,6 +92,7 @@ import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
+import 'package:heliumapp/utils/course_group_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/week_column.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -230,6 +231,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   final List<CategoryModel> _deduplicatedCategories = [];
   bool _isSearchExpanded = false;
   bool _isFilterExpanded = false;
+  bool _searchLogged = false;
+  final Set<String> _loggedFilterKinds = {};
   bool _wasDesktop = false;
   PlannerView _currentView = PlannerView.month;
   PlannerView? _previousView;
@@ -533,6 +536,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               ),
             ),
             userSettings: settings,
+            todosItemsPerPage: Responsive.defaultRowsPerPage(context),
           );
 
           _plannerItemDataSource!.onLoadError = (message) {
@@ -711,7 +715,9 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     )).toString(),
                     'days_since_due': DateTime.now()
                         .difference(state.homework.start)
-                        .inDays,
+                        .inDays
+                        .toString(),
+                    'term_week': ?_termWeekOf(state.homework),
                   },
                 ),
               );
@@ -735,7 +741,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                   name: AnalyticsEvent.homeworkGrade,
                   parameters: {
                     'category': AnalyticsCategory.featureInteraction.value,
-                    'days_since_due': daysSinceDue,
+                    'days_since_due': daysSinceDue.toString(),
+                    'term_week': ?_termWeekOf(state.homework),
                   },
                 ),
               );
@@ -1731,6 +1738,18 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
     }
   }
 
+  void _logViewChange(PlannerView view) {
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.plannerViewChange,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'view': view.name,
+        },
+      ),
+    );
+  }
+
   void _changeView(PlannerView newView) {
     _log.info('View changed: $_currentView --> $newView');
     final isEnteringNonCalendarView = (newView == PlannerView.todos);
@@ -1812,6 +1831,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     final newView = PlannerHelper.mapSfCalendarViewToHeliumView(sfView);
     if (newView != _currentView) {
+      _logViewChange(newView);
       setState(() {
         _changeView(newView);
       });
@@ -1873,7 +1893,52 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   void _onSearchTextFieldChanged(String value) {
+    if (value.isEmpty) {
+      _searchLogged = false;
+    } else if (!_searchLogged) {
+      _searchLogged = true;
+      final termWeek = CourseGroupHelpers.currentTermWeek(
+        _courseGroups,
+        userSettings.timeZone,
+      );
+      unawaited(
+        AnalyticsService().logEvent(
+          name: AnalyticsEvent.search,
+          parameters: {
+            'category': AnalyticsCategory.featureInteraction.value,
+            'screen': AppRoute.plannerScreen,
+            'term_week': ?termWeek,
+          },
+        ),
+      );
+    }
     _plannerItemDataSource!.setSearchQuery(value);
+  }
+
+  void _onFilterApplied(String filter) {
+    if (!_loggedFilterKinds.add(filter)) return;
+    final termWeek = CourseGroupHelpers.currentTermWeek(
+      _courseGroups,
+      userSettings.timeZone,
+    );
+    unawaited(
+      AnalyticsService().logEvent(
+        name: AnalyticsEvent.filterApply,
+        parameters: {
+          'category': AnalyticsCategory.featureInteraction.value,
+          'screen': AppRoute.plannerScreen,
+          'filter': filter,
+          'term_week': ?termWeek,
+        },
+      ),
+    );
+  }
+
+  String? _termWeekOf(HomeworkModel homework) {
+    final group = _courseGroupsById[homework.courseGroup];
+    return group == null
+        ? null
+        : CourseGroupHelpers.termWeekOf(group, userSettings.timeZone);
   }
 
   void _dropCalendarItem(AppointmentDragEndDetails dropDetails) {
@@ -2856,6 +2921,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         categoriesMap: _categoriesMap,
         externalCalendarsById: _externalCalendarsById,
         setSheetState: setSheetState,
+        onFilterApplied: _onFilterApplied,
       ),
     );
   }
@@ -2873,6 +2939,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           RadioGroup<PlannerView>(
             groupValue: _currentView,
             onChanged: (value) {
+              if (value != _currentView) _logViewChange(value!);
               setState(() {
                 _changeView(value!);
               });

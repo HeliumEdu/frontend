@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -71,6 +73,15 @@ Future<void> resolveConflict(
     context,
     canKeepEditing: canKeepEditing,
     message: message,
+  );
+  unawaited(
+    AnalyticsService().logEvent(
+      name: AnalyticsEvent.conflictResolve,
+      parameters: {
+        'category': AnalyticsCategory.edgeCase.value,
+        'resolution': resolution.name,
+      },
+    ),
   );
   if (!context.mounted) return;
 

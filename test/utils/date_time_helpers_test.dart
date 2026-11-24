@@ -839,4 +839,56 @@ void main() {
       expect(dateOnly, 'FREQ=DAILY;UNTIL=20261211');
     });
   });
+
+  group('weekOfTerm', () {
+    final termStart = DateTime(2026, 8, 31);
+
+    test('a positive-offset zone counts by its own date, not the UTC date', () {
+      // GIVEN
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      final now = DateTime.utc(2026, 9, 6, 23, 30);
+
+      // WHEN
+      final week = HeliumDateTime.weekOfTerm(termStart, now, amsterdam);
+
+      // THEN
+      expect(week, 1, reason: 'It is already 7 Sep in Amsterdam, a week after the start');
+    });
+
+    test('a negative-offset zone still counts the day before', () {
+      // GIVEN
+      final losAngeles = tz.getLocation('America/Los_Angeles');
+      final now = DateTime.utc(2026, 9, 7, 6, 30);
+
+      // WHEN
+      final week = HeliumDateTime.weekOfTerm(termStart, now, losAngeles);
+
+      // THEN
+      expect(week, 0, reason: 'It is still 6 Sep in Los Angeles');
+    });
+
+    test('a week holding a daylight saving change is still seven days', () {
+      // GIVEN
+      final amsterdam = tz.getLocation('Europe/Amsterdam');
+      final now = tz.TZDateTime(amsterdam, 2026, 10, 26, 0, 30);
+
+      // WHEN
+      final week = HeliumDateTime.weekOfTerm(DateTime(2026, 10, 19), now, amsterdam);
+
+      // THEN
+      expect(week, 1, reason: 'The 25-hour day of 25 Oct must not push 26 Oct back into week 0');
+    });
+
+    test('days before the term count as negative weeks', () {
+      // GIVEN
+      final losAngeles = tz.getLocation('America/Los_Angeles');
+      final now = tz.TZDateTime(losAngeles, 2026, 8, 30, 12);
+
+      // WHEN
+      final week = HeliumDateTime.weekOfTerm(termStart, now, losAngeles);
+
+      // THEN
+      expect(week, -1);
+    });
+  });
 }
