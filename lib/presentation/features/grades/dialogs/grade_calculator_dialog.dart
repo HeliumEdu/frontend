@@ -362,13 +362,23 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
 
   Widget _buildCalculator(BuildContext context) {
     if (_eligibleTargetIds.isEmpty) {
-      return EmptyCard(
-        expanded: false,
-        icon: Icons.hourglass_empty,
-        title: 'Come back later',
-        message: _hasExplicitWeights
-            ? 'Check back when a category is down to its last ungraded assignment (e.g. the Final).'
-            : 'Check back when this class has an ungraded assignment to plan for (e.g. the Final).',
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          EmptyCard(
+            icon: Icons.hourglass_empty,
+            title: 'Come back later',
+            message: _hasExplicitWeights
+                ? 'Check back when a category is down to its last ungraded assignment.'
+                : 'Check back when this class has an ungraded assignment.',
+          ),
+          const SizedBox(height: 12),
+          HeliumElevatedButton(
+            buttonText: 'Calculate',
+            onPressed: _calculate,
+            enabled: false,
+          ),
+        ],
       );
     }
 

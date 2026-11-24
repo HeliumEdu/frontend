@@ -175,7 +175,7 @@ class GradeTrendChart {
     List<charts.CartesianSeries<GradeTrendPoint, DateTime>> visibleSeries,
   ) {
     if (visibleSeries.isEmpty) {
-      return const GradeTrendGradeRange(min: 0.0, max: 100.0);
+      return const GradeTrendGradeRange(min: 50.0, max: 100.0);
     }
 
     // Find the lowest and highest grade points across all visible series

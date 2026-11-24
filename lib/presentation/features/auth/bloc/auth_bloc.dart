@@ -26,8 +26,8 @@ final _log = Logger('presentation.bloc');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   static const invalidAuthorizationMessage =
-      "This connection request isn't valid. Start connecting again from the "
-      'app you came from.';
+      "This connection request isn't valid. Start connecting again in the "
+      'app that sent you here.';
 
   final AuthRepository authRepository;
   final DioClient dioClient;

@@ -190,6 +190,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                             userSettings: widget.userSettings,
                             mode: _mode,
                             gpa: _gpa,
+                            hasAssignments: widget.course.numHomework > 0,
                           ),
                           GradeCalculatorDialog(
                             courseId: widget.course.id,

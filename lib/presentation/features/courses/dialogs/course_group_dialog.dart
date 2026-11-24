@@ -52,6 +52,9 @@ class _CourseGroupWidgetState
   String get dialogTitle => 'Group';
 
   @override
+  double get desktopWidth => 370;
+
+  @override
   BasicFormController get formController => _formController;
 
   @override

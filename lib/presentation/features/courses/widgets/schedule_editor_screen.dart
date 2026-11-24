@@ -380,7 +380,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     if (_isRotating && _anchorDate == null) {
       return _isWeekBased
           ? 'Select the date the first week begins.'
-          : 'Select the date cycle Day 1 falls on.';
+          : 'Select the date of cycle Day 1.';
     }
     if (_isDayCycle && _cycleMeets.isEmpty) {
       return 'Select at least one meeting day for the cycle.';

@@ -464,9 +464,14 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
         if (_selectedGroupId == null ||
             (_coursesMap[_selectedGroupId]?.isEmpty ?? true)) {
+          final hasClassesElsewhere = _coursesMap.values.any(
+            (courses) => courses.isNotEmpty,
+          );
           return EmptyCard(
             icon: Icons.school,
-            title: "You haven't added any classes yet",
+            title: hasClassesElsewhere
+                ? 'No classes in this group yet'
+                : "You haven't added any classes yet",
             message: 'Click "+" to get started',
             expanded: false,
             action: HeliumElevatedButton(

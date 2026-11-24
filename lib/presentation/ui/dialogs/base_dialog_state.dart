@@ -22,6 +22,8 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
   @mustBeOverridden
   BasicFormController get formController;
 
+  double get desktopWidth => 350;
+
   bool isSubmitting = false;
   bool isLoading = false;
   String? errorMessage;
@@ -55,7 +57,7 @@ abstract class BaseDialogState<T extends StatefulWidget> extends State<T> {
           ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
           : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: SizedBox(
-        width: Responsive.getDialogWidth(context),
+        width: Responsive.getDialogWidth(context, fallback: desktopWidth),
         child: Material(
           color: context.colorScheme.surface,
           borderRadius: BorderRadius.circular(_dialogBorderRadius),

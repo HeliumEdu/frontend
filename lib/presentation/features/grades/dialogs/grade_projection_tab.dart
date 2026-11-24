@@ -31,6 +31,7 @@ class GradeProjectionTab extends StatefulWidget {
   final UserSettingsModel userSettings;
   final GradeCalculatorMode mode;
   final GradeCalculatorGpa? gpa;
+  final bool hasAssignments;
 
   const GradeProjectionTab({
     super.key,
@@ -43,6 +44,7 @@ class GradeProjectionTab extends StatefulWidget {
     required this.userSettings,
     this.mode = GradeCalculatorMode.classGrade,
     this.gpa,
+    this.hasAssignments = true,
   });
 
   @override
@@ -131,7 +133,13 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.ungradedAssignments.isEmpty)
+        if (!widget.hasAssignments)
+          const EmptyCard(
+            icon: Icons.hourglass_empty,
+            title: 'Come back later',
+            message: 'Check back when this class has assignments.',
+          )
+        else if (widget.ungradedAssignments.isEmpty)
           const EmptyCard(
             icon: Icons.check_circle_outline,
             title: 'All caught up',
@@ -152,13 +160,16 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
           ),
 
         const SizedBox(height: 12),
-        _buildProjectedGradeStatus(context),
-        const SizedBox(height: 12),
+        if (_projectedGrade >= 0) ...[
+          _buildProjectedGradeStatus(context),
+          const SizedBox(height: 12),
+        ],
 
         HeliumElevatedButton(
           buttonText: 'Reset',
           backgroundColor: context.colorScheme.onSurfaceVariant,
           onPressed: _onReset,
+          enabled: widget.ungradedAssignments.isNotEmpty,
         ),
       ],
     );
