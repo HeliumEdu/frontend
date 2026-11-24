@@ -173,7 +173,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         ),
       ],
       child: HeliumFullScreenScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

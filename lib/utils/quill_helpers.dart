@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports
+import 'package:flutter_quill/src/editor/raw_editor/keyboard_shortcuts/editor_keyboard_shortcut_actions.dart';
+// ignore: implementation_imports
 import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 
 class HeliumQuillLocalizations extends FlutterQuillLocalizationsEn {
   HeliumQuillLocalizations([super.locale = 'en']);
@@ -98,8 +104,9 @@ Document _unrenderableNotePlaceholder() {
 
 /// Creates a [QuillController] pre-configured with Helium's clipboard settings:
 /// rich-paste enabled on native platforms, and the web paste interceptor
-/// activated on web. Pass an optional [document] to pre-populate content;
-/// omit it for a blank controller.
+/// activated on web. Where [PlatformBehavior.typesTabAsText], Tab follows
+/// Quill's desktop rule ([allowsTypedText]). Pass an optional [document] to
+/// pre-populate content; omit it for a blank controller.
 QuillController heliumQuillController({Document? document}) {
   // ignore: experimental_member_use
   final clipboardConfig = QuillClipboardConfig(
@@ -110,15 +117,100 @@ QuillController heliumQuillController({Document? document}) {
   );
   // ignore: experimental_member_use
   final config = QuillControllerConfig(clipboardConfig: clipboardConfig);
-  if (document != null) {
-    return QuillController(
-      document: document,
-      selection: const TextSelection.collapsed(offset: 0),
-      config: config,
-    );
+  final controller = document != null
+      ? QuillController(
+          document: document,
+          selection: const TextSelection.collapsed(offset: 0),
+          config: config,
+        )
+      : QuillController.basic(config: config);
+  if (PlatformBehavior.typesTabAsText) {
+    controller.onReplaceText = (index, len, data) =>
+        allowsTypedText(controller, index, len, data);
   }
-  return QuillController.basic(config: config);
+  return controller;
 }
+
+/// Where Tab reaches the editor only as a typed tab
+/// ([PlatformBehavior.typesTabAsText]), applies flutter_quill's desktop Tab
+/// rule: in a list, Tab at the start of a line or over a selection indents
+/// (Shift+Tab outdents); over a selection outside a list it does nothing;
+/// anywhere else it types a tab. Returns whether the typed text goes in.
+@visibleForTesting
+bool allowsTypedText(QuillController controller, int index, int len, Object? data) {
+  if (data != '\t') return true;
+  final node = controller.document.queryChild(index).node;
+  final parent = node?.parent;
+  final isListLine = node is Line &&
+      parent is Block &&
+      (parent.style.containsKey(Attribute.ol.key) ||
+          parent.style.containsKey(Attribute.ul.key) ||
+          parent.style.containsKey(Attribute.checked.key));
+  if (len == 0) {
+    if (!isListLine) return true;
+    final first = node.isEmpty ? null : node.first;
+    if (first != null && first is! QuillText) return true;
+    if (first is QuillText &&
+        first.value.isNotEmpty &&
+        index > node.documentOffset) {
+      return true;
+    }
+  }
+  final outdent = HardwareKeyboard.instance.isShiftPressed;
+  scheduleMicrotask(() {
+    if (isListLine) controller.indentSelection(!outdent);
+    controller.updateSelection(controller.selection, ChangeSource.local);
+  });
+  return false;
+}
+
+/// Cmd versions of flutter_quill's formatting and undo shortcuts, for
+/// [PlatformBehavior.usesCommandForNoteShortcuts], where Quill binds them to
+/// Ctrl. Search (Cmd+F) is left to the editor's own configuration.
+final Map<ShortcutActivator, Intent> heliumCommandNoteShortcuts = {
+  const SingleActivator(LogicalKeyboardKey.keyZ, meta: true):
+      const UndoTextIntent(SelectionChangedCause.keyboard),
+  const SingleActivator(LogicalKeyboardKey.keyY, meta: true):
+      const RedoTextIntent(SelectionChangedCause.keyboard),
+  const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true):
+      const RedoTextIntent(SelectionChangedCause.keyboard),
+  const SingleActivator(LogicalKeyboardKey.keyB, meta: true):
+      const ToggleTextStyleIntent(Attribute.bold),
+  const SingleActivator(LogicalKeyboardKey.keyU, meta: true):
+      const ToggleTextStyleIntent(Attribute.underline),
+  const SingleActivator(LogicalKeyboardKey.keyI, meta: true):
+      const ToggleTextStyleIntent(Attribute.italic),
+  const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
+      const ToggleTextStyleIntent(Attribute.strikeThrough),
+  const SingleActivator(LogicalKeyboardKey.backquote, meta: true):
+      const ToggleTextStyleIntent(Attribute.inlineCode),
+  const SingleActivator(LogicalKeyboardKey.tilde, meta: true, shift: true):
+      const ToggleTextStyleIntent(Attribute.codeBlock),
+  const SingleActivator(LogicalKeyboardKey.keyB, meta: true, shift: true):
+      const ToggleTextStyleIntent(Attribute.blockQuote),
+  const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+      const QuillEditorApplyLinkIntent(),
+  const SingleActivator(LogicalKeyboardKey.keyL, meta: true, shift: true):
+      const ToggleTextStyleIntent(Attribute.ul),
+  const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true):
+      const ToggleTextStyleIntent(Attribute.ol),
+  const SingleActivator(LogicalKeyboardKey.keyC, meta: true, shift: true):
+      const QuillEditorApplyCheckListIntent(),
+  const SingleActivator(LogicalKeyboardKey.keyM, meta: true):
+      const IndentSelectionIntent(true),
+  const SingleActivator(LogicalKeyboardKey.keyM, meta: true, shift: true):
+      const IndentSelectionIntent(false),
+  for (final (key, header) in [
+    (LogicalKeyboardKey.digit1, Attribute.h1),
+    (LogicalKeyboardKey.digit2, Attribute.h2),
+    (LogicalKeyboardKey.digit3, Attribute.h3),
+    (LogicalKeyboardKey.digit4, Attribute.h4),
+    (LogicalKeyboardKey.digit5, Attribute.h5),
+    (LogicalKeyboardKey.digit6, Attribute.h6),
+    (LogicalKeyboardKey.digit0, Attribute.header),
+  ])
+    SingleActivator(key, meta: true): QuillEditorApplyHeaderIntent(header),
+};
 
 /// Builds a Quill Delta JSON map from a QuillController.
 /// Returns null if the content is empty (only whitespace/newline).

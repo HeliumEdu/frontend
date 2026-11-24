@@ -313,7 +313,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
               Expanded(
                 child: HeliumFullScreenScrollView(
                   keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
+                      PlatformBehavior.keyboardDismissBehavior,
                   child: Padding(
                     padding: AppConstants.dialogContentPadding,
                     child: Form(

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
 
 class SpinnerField extends StatelessWidget {
   static const _arrowSize = 22.0;
@@ -99,13 +101,13 @@ class SpinnerField extends StatelessWidget {
           keyboardType: const TextInputType.numberWithOptions(
             decimal: true,
           ),
-          inputFormatters: allowDecimal
-              ? [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d*[.,]?\d*'),
-                  ),
-                ]
-              : [FilteringTextInputFormatter.digitsOnly],
+          inputFormatters: [
+            if (PlatformBehavior.typesTabAsText) const TabMovesFocusFormatter(),
+            if (allowDecimal)
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*'))
+            else
+              FilteringTextInputFormatter.digitsOnly,
+          ],
           style: AppStyles.formText(context),
           onChanged: _onTextChanged,
           decoration: AppStyles.formFieldDecoration(context).copyWith(

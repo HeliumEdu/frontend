@@ -554,7 +554,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
 
   Widget _buildSettingsPage() {
     return HeliumFullScreenScrollView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
       child: Column(
         children: [
           _buildProfileArea(),
@@ -1257,7 +1257,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               content: SizedBox(
                 width: Responsive.getDialogWidth(context),
                 child: SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
                   child: Form(
                     key: _deleteAccountFormController.formKey,
                     child: Column(

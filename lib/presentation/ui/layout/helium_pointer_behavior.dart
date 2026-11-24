@@ -4,8 +4,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 
-/// How a pointer behaves across the whole app: a tap outside a field dismisses
-/// the keyboard.
+/// How a pointer behaves across the whole app: where
+/// [PlatformBehavior.unfocusesOnBackgroundTap], a tap outside a field
+/// dismisses the keyboard; elsewhere the field keeps focus, as in a desktop app,
+/// which also overrides Flutter's rule that a mouse click outside a text field
+/// drops its focus on iOS builds.
 ///
 /// In the iPad build on a Mac, a palm brushing the trackpad mid-typing arrives
 /// as a tap-to-click at the resting pointer: a trackpad contact, then a click a
@@ -71,14 +74,25 @@ class _HeliumPointerBehaviorState extends State<HeliumPointerBehavior> {
   Widget build(BuildContext context) {
     return _HitTestGate(
       rejecting: _rejecting,
-      child: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: widget.child,
-      ),
+      child: PlatformBehavior.unfocusesOnBackgroundTap
+          ? GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              behavior: HitTestBehavior.opaque,
+              child: widget.child,
+            )
+          : Actions(
+              actions: _keepFocusOnTapOutside,
+              child: widget.child!,
+            ),
     );
   }
 }
+
+final _keepFocusOnTapOutside = <Type, Action<Intent>>{
+  EditableTextTapOutsideIntent: CallbackAction<EditableTextTapOutsideIntent>(
+    onInvoke: (_) => null,
+  ),
+};
 
 class _HitTestGate extends SingleChildRenderObjectWidget {
   final bool Function() rejecting;

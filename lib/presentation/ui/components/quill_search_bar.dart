@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
 
 /// A custom search bar for QuillEditor that maintains focus properly.
 ///
@@ -212,6 +214,10 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     controller: _textController,
                     focusNode: _searchFocusNode,
                     autofocus: true,
+                    inputFormatters: [
+                      if (PlatformBehavior.typesTabAsText)
+                        const TabMovesFocusFormatter(),
+                    ],
                     style: AppStyles.formText(context),
                     decoration: InputDecoration(
                       hintText: 'Search ...',

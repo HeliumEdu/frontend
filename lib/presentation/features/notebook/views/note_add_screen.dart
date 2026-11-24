@@ -1195,7 +1195,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     return Form(
       key: _formController.formKey,
       child: CustomScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        keyboardDismissBehavior: PlatformBehavior.keyboardDismissBehavior,
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
