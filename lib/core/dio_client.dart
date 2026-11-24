@@ -275,7 +275,9 @@ class DioClient {
                     Duration(seconds: 2),
                     Duration(seconds: 3),
                   ],
-                  retryEvaluator: HeliumRetryEvaluator().evaluate,
+                  retryEvaluator: HeliumRetryEvaluator(
+                    lastBackgroundedAt: () => _cacheService.lastBackgroundedAt,
+                  ).evaluate,
                 ),
               );
 
@@ -393,7 +395,9 @@ class DioClient {
           Duration(seconds: 2),
           Duration(seconds: 3),
         ],
-        retryEvaluator: HeliumRetryEvaluator().evaluate,
+        retryEvaluator: HeliumRetryEvaluator(
+          lastBackgroundedAt: () => _cacheService.lastBackgroundedAt,
+        ).evaluate,
       ),
     );
 
