@@ -134,7 +134,6 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
         ),
       );
       _log.info('Updated detected settings from setup flow');
-      AgendaWidgetService().scheduleRefresh();
     } catch (e) {
       _log.warning('Failed to auto-detect or update settings: ${e.runtimeType}');
     }
@@ -160,6 +159,8 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       if (settings != null && settings.setupState == SetupState.complete) {
         _log.info('... setup complete, navigating on');
         _pollTimer?.cancel();
+        await DioClient().cacheService.clearAll();
+        AgendaWidgetService().scheduleRefresh();
 
         if (mounted) {
           context.replace(widget.next ?? AppRoute.plannerScreen);

@@ -61,6 +61,7 @@ extension AppStyles on BuildContext {
     return base.apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
+      decorationColor: colorScheme.onSurface,
       fontFamilyFallback: poppinsFallbackFonts,
     );
   }
