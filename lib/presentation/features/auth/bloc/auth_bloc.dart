@@ -79,6 +79,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
         timezone: event.timezone,
+        language: event.language,
       );
 
       final response = await authRepository.register(request);

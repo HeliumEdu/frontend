@@ -122,6 +122,7 @@ class MockModels {
       dateFormat: dateFormat,
       timeFormat: timeFormat,
       numberFormat: numberFormat,
+      language: 'en',
       promptForReview: promptForReview,
       privateSlug: privateSlug,
       dragAndDropOnMobile: true,

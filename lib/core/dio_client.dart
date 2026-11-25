@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/day_change_service.dart';
@@ -436,7 +436,9 @@ class DioClient {
     unawaited(AgendaWidgetService().clear());
     unawaited(AnalyticsService().setUserId(null));
     await _cacheService.clearAll();
-    return _prefService.clear();
+    final cleared = await _prefService.clear();
+    LocaleNotifier().reset();
+    return cleared;
   }
 
   Future<void> identifyUser([String? accessToken]) async {
@@ -547,6 +549,7 @@ class DioClient {
         SettingsPrefKey.dateFormat.key: p.getInt(SettingsPrefKey.dateFormat.key),
         SettingsPrefKey.timeFormat.key: p.getInt(SettingsPrefKey.timeFormat.key),
         SettingsPrefKey.numberFormat.key: p.getInt(SettingsPrefKey.numberFormat.key),
+        SettingsPrefKey.language.key: p.getString(SettingsPrefKey.language.key),
         SettingsPrefKey.promptForReview.key: p.getBool(SettingsPrefKey.promptForReview.key),
       };
 
@@ -575,8 +578,10 @@ class DioClient {
     }
   }
 
-  Future<void> clearSettings() =>
-      _prefService.removeKeys(SettingsPrefKey.allKeys);
+  Future<void> clearSettings() async {
+    await _prefService.removeKeys(SettingsPrefKey.allKeys);
+    LocaleNotifier().reset();
+  }
 
   Future<List<void>> saveSettings(UserSettingsModel settings) async {
     final themeMode = switch (settings.colorSchemeTheme) {
@@ -585,11 +590,13 @@ class DioClient {
       _ => ThemeMode.system,
     };
     await ThemeNotifier().setThemeMode(themeMode);
-    await RegionalSettingsNotifier().update(
+    await LocaleNotifier().update(
       weekStartsOn: settings.weekStartsOn,
       dateFormat: settings.dateFormat,
       timeFormat: settings.timeFormat,
       numberFormat: settings.numberFormat,
+      language: settings.language,
+      timeZone: settings.timeZone.toString(),
     );
 
     final p = _prefService;

@@ -77,14 +77,12 @@ class TestConfig {
   Duration get apiTimeout => const Duration(seconds: 30);
 }
 
-/// What each runner region's browser detects, and whether signup overrides
-/// the detected time zone (the US leg picks America/Chicago so the rest of
-/// the full suite can assume it).
+/// What each runner region's browser detects. The US leg runs as
+/// America/Chicago, the time zone the rest of the full suite assumes.
 enum IntegrationRegion {
   us(
     languageCode: 'en',
-    detectedTimeZone: 'America/Los_Angeles',
-    signupTimeZoneOverride: 'America/Chicago',
+    timeZone: 'America/Chicago',
     weekStartsOn: 0,
     dateFormat: 0,
     timeFormat: 0,
@@ -93,8 +91,7 @@ enum IntegrationRegion {
   ),
   de(
     languageCode: 'de',
-    detectedTimeZone: 'Europe/Berlin',
-    signupTimeZoneOverride: null,
+    timeZone: 'Europe/Berlin',
     weekStartsOn: 1,
     dateFormat: 1,
     timeFormat: 1,
@@ -103,8 +100,7 @@ enum IntegrationRegion {
   );
 
   final String languageCode;
-  final String detectedTimeZone;
-  final String? signupTimeZoneOverride;
+  final String timeZone;
   final int weekStartsOn;
   final int dateFormat;
   final int timeFormat;
@@ -113,14 +109,11 @@ enum IntegrationRegion {
 
   const IntegrationRegion({
     required this.languageCode,
-    required this.detectedTimeZone,
-    required this.signupTimeZoneOverride,
+    required this.timeZone,
     required this.weekStartsOn,
     required this.dateFormat,
     required this.timeFormat,
     required this.numberFormat,
     required this.atRiskThreshold,
   });
-
-  String get accountTimeZone => signupTimeZoneOverride ?? detectedTimeZone;
 }

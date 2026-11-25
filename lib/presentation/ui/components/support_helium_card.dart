@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
@@ -66,8 +67,8 @@ class SupportHeliumCard extends StatelessWidget {
               _buildAction(
                 context,
                 icon: Icons.star,
-                title: 'Rate Helium',
-                hint: 'Helps other students find Helium.',
+                title: AppLocalizations.of(context).supportHeliumRateTitle,
+                hint: AppLocalizations.of(context).supportHeliumRateHint,
                 onTap: UrlHelpers.launchStoreListing,
               ),
             ],

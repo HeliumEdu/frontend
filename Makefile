@@ -1,6 +1,7 @@
-.PHONY: all env install screenshots screenshots-caption clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
+.PHONY: all env install screenshots screenshots-caption clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test check-l10n generate-forwarding-localizations update-ui-literals-baselinerun-pseudo-locale start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
 
 SHELL := /usr/bin/env bash
+FLUTTER_DART := $(dir $(shell command -v flutter))dart
 TAG_VERSION ?= latest
 PLATFORM ?= arm64
 DOCKER_TAG_VERSION := $(subst +,_,$(TAG_VERSION))
@@ -108,7 +109,9 @@ endif
 # The browser region integration tests run as; mirrors IntegrationRegion in
 # integration_test/helpers/test_config.dart. Chrome only reports the region's
 # language with all three of the UI locale, accept-language, and LANGUAGE set.
-REGION_TZ_us := America/Los_Angeles
+# Without INTEGRATION_REGION the browser still speaks US English, since the
+# tests find widgets by their English text.
+REGION_TZ_us := America/Chicago
 REGION_UI_LANG_us := en-US
 REGION_ACCEPT_LANG_us := en-US
 REGION_LANGUAGE_us := en_US
@@ -116,11 +119,13 @@ REGION_TZ_de := Europe/Berlin
 REGION_UI_LANG_de := de
 REGION_ACCEPT_LANG_de := de-DE
 REGION_LANGUAGE_de := de_DE
+BROWSER_REGION := $(or $(INTEGRATION_REGION),us)
+DRIVE_ARGS += --web-browser-flag="--lang=$(REGION_UI_LANG_$(BROWSER_REGION))"
+DRIVE_ARGS += --web-browser-flag="--accept-lang=$(REGION_ACCEPT_LANG_$(BROWSER_REGION))"
+DRIVE_ENV := LANGUAGE=$(REGION_LANGUAGE_$(BROWSER_REGION))
 ifneq ($(INTEGRATION_REGION),)
     DRIVE_ARGS += --dart-define=INTEGRATION_REGION=$(INTEGRATION_REGION)
-    DRIVE_ARGS += --web-browser-flag="--lang=$(REGION_UI_LANG_$(INTEGRATION_REGION))"
-    DRIVE_ARGS += --web-browser-flag="--accept-lang=$(REGION_ACCEPT_LANG_$(INTEGRATION_REGION))"
-    DRIVE_ENV := TZ=$(REGION_TZ_$(INTEGRATION_REGION)) LANGUAGE=$(REGION_LANGUAGE_$(INTEGRATION_REGION))
+    DRIVE_ENV += TZ=$(REGION_TZ_$(INTEGRATION_REGION))
 endif
 ifdef RELEASE_VERSION
     DRIVE_ARGS += --dart-define=RELEASE_VERSION=$(RELEASE_VERSION)
@@ -247,6 +252,27 @@ test: install
 	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
 
+check-l10n: install
+	flutter gen-l10n
+	python3 bin/check-arb-descriptions.py
+	python3 bin/check-ui-literals.py
+	$(FLUTTER_DART) bin/generate_forwarding_localizations.dart .dart_tool/forwarding_localizations.dart
+	@diff -u lib/utils/forwarding_localizations.dart .dart_tool/forwarding_localizations.dart || \
+		{ echo "lib/utils/forwarding_localizations.dart is out of date: run make generate-forwarding-localizations"; exit 1; }
+
+generate-forwarding-localizations: install
+	$(FLUTTER_DART) bin/generate_forwarding_localizations.dart
+
+update-ui-literals-baseline:
+	python3 bin/check-ui-literals.py --update
+
+run-pseudo-locale: install
+	python3 bin/generate-pseudo-locale.py
+	@trap 'rm -f lib/l10n/app_en_XA.arb; flutter gen-l10n > /dev/null' EXIT; \
+		LANGUAGE=en_XA flutter run -d chrome --debug \
+			--web-browser-flag="--lang=en-XA" --web-browser-flag="--accept-lang=en-XA" \
+			--dart-define=PROJECT_API_HOST=$(PROJECT_API_HOST)
+
 start-platform:
 	@if curl -sf http://localhost:8000/status/ > /dev/null 2>&1; then \
 		echo "Platform already running"; \
@@ -279,7 +305,7 @@ endif
 		exit $$TEST_EXIT
 
 test-integration-smoke:
-	@chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
+	@$(DRIVE_ENV) chromedriver --port=4444 & CHROME_PID=$$!; sleep 2 && $(DRIVE_ENV) flutter drive --target=integration_test/smoke_test.dart $(DRIVE_ARGS); TEST_EXIT=$$?; kill $$CHROME_PID 2>/dev/null || true; exit $$TEST_EXIT
 
 test-playwright:
 	cd canary_test && python3 -m pip install -r requirements.txt -q && python3 -m playwright install chromium && python3 -m pytest -v --screenshot=only-on-failure --output=screenshots

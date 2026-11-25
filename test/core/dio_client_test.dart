@@ -173,6 +173,7 @@ void main() {
         when(() => mockPrefService.getInt('date_format')).thenReturn(1);
         when(() => mockPrefService.getInt('time_format')).thenReturn(1);
         when(() => mockPrefService.getInt('number_format')).thenReturn(1);
+        when(() => mockPrefService.getString('language')).thenReturn('en');
         when(
           () => mockPrefService.getBool('prompt_for_review'),
         ).thenReturn(false);

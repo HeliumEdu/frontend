@@ -38,6 +38,7 @@ enum SettingsPrefKey {
   dateFormat('date_format'),
   timeFormat('time_format'),
   numberFormat('number_format'),
+  language('language'),
   promptForReview('prompt_for_review'),
   gettingStartedLastPage('getting_started_last_page');
 

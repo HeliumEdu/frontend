@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -29,11 +29,13 @@ void main() {
       final afternoon = DateTime(2026, 9, 20, 15, 0);
       final afternoonWithMinutes = DateTime(2026, 9, 20, 15, 5);
 
-      Future<void> useClock(int timeFormat) => RegionalSettingsNotifier().update(
+      Future<void> useClock(int timeFormat) => LocaleNotifier().update(
             weekStartsOn: 0,
             dateFormat: 0,
             timeFormat: timeFormat,
             numberFormat: 0,
+            language: 'en',
+            timeZone: 'UTC',
           );
 
       tearDown(() => useClock(RegionalFormatConstants.timeFormatTwelveHour));
@@ -61,11 +63,13 @@ void main() {
     group('date formatting follows the regional order', () {
       final date = DateTime(2026, 9, 4, 15, 0);
 
-      Future<void> useOrder(int dateFormat) => RegionalSettingsNotifier().update(
+      Future<void> useOrder(int dateFormat) => LocaleNotifier().update(
             weekStartsOn: 0,
             dateFormat: dateFormat,
             timeFormat: 0,
             numberFormat: 0,
+            language: 'en',
+            timeZone: 'UTC',
           );
 
       tearDown(() => useOrder(RegionalFormatConstants.dateFormatMonthDayYear));

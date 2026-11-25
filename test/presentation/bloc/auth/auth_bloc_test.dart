@@ -71,7 +71,7 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(email: email, password: password, timezone: timezone),
+          RegisterEvent(email: email, password: password, timezone: timezone, language: 'en'),
         ),
         expect: () => [isA<AuthLoading>(), isA<AuthRegistered>()],
         verify: (_) {
@@ -88,7 +88,7 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(email: email, password: password, timezone: timezone),
+          RegisterEvent(email: email, password: password, timezone: timezone, language: 'en'),
         ),
         expect: () => [
           isA<AuthLoading>(),
@@ -109,7 +109,7 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(
-          RegisterEvent(email: email, password: password, timezone: timezone),
+          RegisterEvent(email: email, password: password, timezone: timezone, language: 'en'),
         ),
         expect: () => [
           isA<AuthLoading>(),

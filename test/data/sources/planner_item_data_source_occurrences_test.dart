@@ -448,6 +448,7 @@ UserSettingsModel _createUserSettings({required tz.Location timeZone}) {
     dateFormat: 0,
     timeFormat: 0,
     numberFormat: 0,
+    language: 'en',
     onTrackTolerance: 10,
     priorCredits: 0,
     priorGpa: 0,

@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/forwarding_localizations.dart';
 import 'package:intl/intl.dart';
 
 /// Applies the user's regional settings to every Material widget that reads
-/// them, such as the first weekday column in date pickers.
+/// them, such as the first weekday column in date pickers, on top of the
+/// locale's own Material translations.
 class HeliumMaterialLocalizationsDelegate
     extends LocalizationsDelegate<MaterialLocalizations> {
   final int firstDayOfWeekIndex;
@@ -16,14 +18,17 @@ class HeliumMaterialLocalizationsDelegate
   });
 
   @override
-  bool isSupported(Locale locale) => true;
+  bool isSupported(Locale locale) => GlobalMaterialLocalizations.delegate.isSupported(locale);
 
   @override
   Future<MaterialLocalizations> load(Locale locale) =>
-      SynchronousFuture(HeliumMaterialLocalizations(
-        firstDayOfWeekIndex: firstDayOfWeekIndex,
-        dateFormat: dateFormat,
-      ));
+      GlobalMaterialLocalizations.delegate.load(locale).then(
+            (base) => HeliumMaterialLocalizations(
+              base,
+              firstDayOfWeekIndex: firstDayOfWeekIndex,
+              dateFormat: dateFormat,
+            ),
+          );
 
   @override
   bool shouldReload(covariant HeliumMaterialLocalizationsDelegate old) =>
@@ -51,14 +56,15 @@ class RegionalFormatScope extends StatelessWidget {
   }
 }
 
-/// Material's defaults are US-only; word-month dates and typed numeric dates
-/// follow the regional day/month order.
-class HeliumMaterialLocalizations extends DefaultMaterialLocalizations {
+/// Word-month dates and typed numeric dates follow the regional day/month
+/// order instead of [base]'s.
+class HeliumMaterialLocalizations extends ForwardingMaterialLocalizations {
   @override
   final int firstDayOfWeekIndex;
   final int dateFormat;
 
-  const HeliumMaterialLocalizations({
+  const HeliumMaterialLocalizations(
+    super.base, {
     required this.firstDayOfWeekIndex,
     required this.dateFormat,
   });

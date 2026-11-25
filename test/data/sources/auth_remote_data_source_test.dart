@@ -66,6 +66,7 @@ void main() {
           email: 'newuser@test.com',
           password: 'password123',
           timezone: 'America/New_York',
+          language: 'en',
         );
 
         // WHEN
@@ -87,6 +88,7 @@ void main() {
           email: 'existing@test.com',
           password: 'password123',
           timezone: 'America/New_York',
+          language: 'en',
         );
 
         // WHEN/THEN

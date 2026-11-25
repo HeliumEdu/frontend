@@ -26,7 +26,8 @@ enum SetupState {
 }
 
 class UserSettingsModel {
-  tz.Location timeZone;
+  final tz.Location timeZone;
+  final String language;
   final int defaultView;
   final int colorSchemeTheme;
   final int weekStartsOn;
@@ -58,6 +59,7 @@ class UserSettingsModel {
 
   UserSettingsModel({
     required this.timeZone,
+    required this.language,
     required this.defaultView,
     required this.colorSchemeTheme,
     required this.weekStartsOn,
@@ -97,6 +99,7 @@ class UserSettingsModel {
     // there (if necessary)
     return UserSettingsModel(
       timeZone: tz.getLocation(json['time_zone']),
+      language: json['language'],
       defaultView: json['default_view'],
       colorSchemeTheme: json['color_scheme_theme'],
       weekStartsOn: json['week_starts_on'],

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -54,7 +54,7 @@ class ConflictMessage {
 /// zone; null when it isn't a time or the zone isn't loaded.
 String? describeVersionSaved(String? version) {
   final savedAt = version == null ? null : DateTime.tryParse(version);
-  final timeZoneName = PrefService().getString(SettingsPrefKey.timeZone.key);
+  final timeZoneName = LocaleNotifier().timeZone;
   final timeZone = timeZoneName == null
       ? null
       : tz.timeZoneDatabase.locations[timeZoneName];

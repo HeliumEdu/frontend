@@ -4,20 +4,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/contrast_service.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/core/sentry_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/update_gate/update_gate_state.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/update_gate_activity_reporter.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_pointer_behavior.dart';
 import 'package:heliumapp/update_required_app.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 import 'package:heliumapp/utils/material_localizations_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_service.dart';
@@ -40,13 +43,13 @@ class HeliumApp extends StatefulWidget {
 
 class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   final _themeNotifier = ThemeNotifier();
-  final _regionalSettingsNotifier = RegionalSettingsNotifier();
+  final _localeNotifier = LocaleNotifier();
 
   @override
   void initState() {
     super.initState();
     _themeNotifier.addListener(_rebuild);
-    _regionalSettingsNotifier.addListener(_rebuild);
+    _localeNotifier.addListener(_rebuild);
     if (PlatformBehavior.supportsPrintShortcut) {
       HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     }
@@ -65,7 +68,7 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _themeNotifier.removeListener(_rebuild);
-    _regionalSettingsNotifier.removeListener(_rebuild);
+    _localeNotifier.removeListener(_rebuild);
     if (PlatformBehavior.supportsPrintShortcut) {
       HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     }
@@ -177,16 +180,22 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       theme: AppTheme.light(reduceMotion: MotionService().reduceMotion),
       darkTheme: AppTheme.dark(reduceMotion: MotionService().reduceMotion),
       themeMode: _themeNotifier.themeMode,
+      locale: _localeNotifier.appLocale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localeListResolutionCallback: HeliumLocale.resolve,
       localizationsDelegates: [
+        AppLocalizations.delegate,
         const HeliumQuillLocalizationsDelegate(),
         const HeliumSfLocalizationsDelegate(),
         HeliumMaterialLocalizationsDelegate(
-          firstDayOfWeekIndex: _regionalSettingsNotifier.weekStartsOn,
-          dateFormat: _regionalSettingsNotifier.dateFormat,
+          firstDayOfWeekIndex: _localeNotifier.weekStartsOn,
+          dateFormat: _localeNotifier.dateFormat,
         ),
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
       ],
       builder: (context, child) => RegionalFormatScope(
-        alwaysUse24HourFormat: _regionalSettingsNotifier.uses24HourClock,
+        alwaysUse24HourFormat: _localeNotifier.uses24HourClock,
         child: MediaQuery.removePadding(
           context: context,
           removeTop: !PlatformBehavior.reservesStatusBarSpace,

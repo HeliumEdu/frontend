@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
@@ -118,11 +118,13 @@ void main() {
     });
 
     group('format', () {
-      Future<void> useSeparator(int numberFormat) => RegionalSettingsNotifier().update(
+      Future<void> useSeparator(int numberFormat) => LocaleNotifier().update(
             weekStartsOn: 0,
             dateFormat: 0,
             timeFormat: 0,
             numberFormat: numberFormat,
+            language: 'en',
+            timeZone: 'UTC',
           );
 
       tearDown(() => useSeparator(RegionalFormatConstants.numberFormatPoint));

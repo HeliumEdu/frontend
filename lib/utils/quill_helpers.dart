@@ -7,19 +7,21 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/editor/raw_editor/keyboard_shortcuts/editor_keyboard_shortcut_actions.dart';
-// ignore: implementation_imports
-import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
+import 'package:heliumapp/utils/forwarding_localizations.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 
-class HeliumQuillLocalizations extends FlutterQuillLocalizationsEn {
-  HeliumQuillLocalizations([super.locale = 'en']);
+class HeliumQuillLocalizations extends ForwardingQuillLocalizations {
+  final AppLocalizations _app;
+
+  HeliumQuillLocalizations(super.base, this._app);
 
   @override
-  String get pleaseEnterTheLinkURL => 'Link URL';
+  String get pleaseEnterTheLinkURL => _app.noteLinkUrlLabel;
 
   @override
-  String get pleaseEnterTextForYourLink => 'Link text';
+  String get pleaseEnterTextForYourLink => _app.noteLinkTextLabel;
 }
 
 class HeliumQuillLocalizationsDelegate
@@ -27,11 +29,17 @@ class HeliumQuillLocalizationsDelegate
   const HeliumQuillLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'en';
+  bool isSupported(Locale locale) =>
+      AppLocalizations.delegate.isSupported(locale) &&
+      FlutterQuillLocalizations.delegate.isSupported(locale);
 
   @override
-  Future<FlutterQuillLocalizations> load(Locale locale) =>
-      SynchronousFuture(HeliumQuillLocalizations(locale.toString()));
+  Future<FlutterQuillLocalizations> load(Locale locale) => SynchronousFuture(
+        HeliumQuillLocalizations(
+          lookupFlutterQuillLocalizations(locale),
+          lookupAppLocalizations(locale),
+        ),
+      );
 
   @override
   bool shouldReload(covariant LocalizationsDelegate<FlutterQuillLocalizations> old) => false;

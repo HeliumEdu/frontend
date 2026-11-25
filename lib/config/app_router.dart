@@ -143,14 +143,9 @@ void initializeRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoute.setupAccountScreen,
         pageBuilder: (context, state) {
-          final autoDetectTimeZone =
-              state.uri.queryParameters['auto_detect_tz'] == 'true';
           final next = NextRoute.read(state.uri.queryParameters);
           return MaterialPage(
-            child: SetupAccountScreen(
-              autoDetectTimeZone: autoDetectTimeZone,
-              next: next,
-            ),
+            child: SetupAccountScreen(next: next),
           );
         },
       ),

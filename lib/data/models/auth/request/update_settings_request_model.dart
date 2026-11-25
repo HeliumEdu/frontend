@@ -24,6 +24,7 @@ class UpdateSettingsRequestModel {
   final int? dateFormat;
   final int? timeFormat;
   final int? numberFormat;
+  final String? language;
 
   UpdateSettingsRequestModel({
     this.timeZone,
@@ -51,6 +52,7 @@ class UpdateSettingsRequestModel {
     this.dateFormat,
     this.timeFormat,
     this.numberFormat,
+    this.language,
   });
 
   Map<String, dynamic> toJson() {
@@ -130,6 +132,9 @@ class UpdateSettingsRequestModel {
     }
     if (numberFormat != null) {
       json['number_format'] = numberFormat;
+    }
+    if (language != null) {
+      json['language'] = language;
     }
 
     return json;

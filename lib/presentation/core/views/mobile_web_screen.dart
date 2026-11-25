@@ -7,6 +7,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -72,7 +73,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'The native app is faster, smoother, and designed for your phone.',
+          AppLocalizations.of(context).mobileWebNativeAppPitch,
           style: AppStyles.standardBodyText(context),
           textAlign: TextAlign.center,
         ),
@@ -112,7 +113,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
         const SizedBox(height: 6),
         TextButton(
           onPressed: _continueOnWeb,
-          child: const Text('Continue on web'),
+          child: Text(AppLocalizations.of(context).mobileWebContinueOnWebButton),
         ),
       ],
     );
