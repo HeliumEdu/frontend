@@ -11,6 +11,34 @@ import home_widget
 
   private(set) static var hasStartedFlutterEngine = false
 
+  private static let escapeKeyCommand: UIKeyCommand = {
+    let command = UIKeyCommand(
+      input: UIKeyCommand.inputEscape,
+      modifierFlags: [],
+      action: #selector(escapePressed)
+    )
+    command.wantsPriorityOverSystemBehavior = true
+    return command
+  }()
+
+  private var nativeChannel: FlutterMethodChannel?
+
+  /// On a Mac, the text system takes Escape in a text field to end editing,
+  /// so Flutter never sees the key. This command claims it first and hands
+  /// it to Flutter, except while an input method is composing, where Escape
+  /// cancels the composition.
+  override var keyCommands: [UIKeyCommand]? {
+    guard ProcessInfo.processInfo.isiOSAppOnMac else { return super.keyCommands }
+    return (super.keyCommands ?? []) + [AppDelegate.escapeKeyCommand]
+  }
+
+  override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+    if action == #selector(escapePressed) {
+      return AppDelegate.isEditingText()
+    }
+    return super.canPerformAction(action, withSender: sender)
+  }
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -53,6 +81,7 @@ import home_widget
       name: AppDelegate.nativeChannelName,
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
+    nativeChannel = channel
     channel.setMethodCallHandler { call, result in
       switch call.method {
       case "getDeliveredReminderIdentifiers":
@@ -96,6 +125,28 @@ import home_widget
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
     )
+  }
+
+  @objc private func escapePressed() {
+    nativeChannel?.invokeMethod("escapePressed", arguments: nil)
+  }
+
+  private static func isEditingText() -> Bool {
+    let window = UIApplication.shared.connectedScenes
+      .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+      .first
+    guard let input = window.flatMap(firstResponder(in:)) as? UITextInput else {
+      return false
+    }
+    return input.markedTextRange == nil
+  }
+
+  private static func firstResponder(in view: UIView) -> UIView? {
+    if view.isFirstResponder { return view }
+    for subview in view.subviews {
+      if let responder = firstResponder(in: subview) { return responder }
+    }
+    return nil
   }
 
   private static func systemProxy() -> [String: Any]? {

@@ -102,6 +102,15 @@ class PlatformBehavior {
   /// character, never as a key (flutter/flutter#172635), so fields handle it.
   static bool get typesTabAsText => _isIPadAppOnMac;
 
+  /// Flutter binds the arrow keys to moving focus between controls on Apple
+  /// platforms; on the iPad build on a Mac they scroll, as they do on web.
+  static bool get scrollsOnArrowKeys => _isIPadAppOnMac;
+
+  /// flutter_quill opens a link in an editable note only on a long press
+  /// unless it treats the platform as desktop; the iPad build on a Mac opens
+  /// it on a click, as web does.
+  static bool get opensNoteLinksOnClick => _isIPadAppOnMac;
+
   /// Apple keyboards format notes with Cmd, where flutter_quill binds its
   /// shortcuts to Ctrl on every platform but macOS.
   static bool get usesCommandForNoteShortcuts =>

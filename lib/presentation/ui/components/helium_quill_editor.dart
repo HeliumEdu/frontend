@@ -231,6 +231,9 @@ class _HeliumQuillEditorState extends State<HeliumQuillEditor> {
     if (!PlatformBehavior.unfocusesOnBackgroundTap) {
       config = config.copyWith(onTapOutside: (_, _) {});
     }
+    if (PlatformBehavior.opensNoteLinksOnClick) {
+      config = config.copyWith(customRecognizerBuilder: clickToOpenNoteLink);
+    }
     return config;
   }
 

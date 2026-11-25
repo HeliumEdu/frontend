@@ -1,16 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
+// ignore: implementation_imports, invalid_use_of_internal_member
+import 'package:flutter_quill/src/common/utils/link_validator.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/editor/raw_editor/keyboard_shortcuts/editor_keyboard_shortcut_actions.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/l10n/generated/quill_localizations_en.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HeliumQuillLocalizations extends FlutterQuillLocalizationsEn {
   HeliumQuillLocalizations([super.locale = 'en']);
@@ -211,6 +215,19 @@ final Map<ShortcutActivator, Intent> heliumCommandNoteShortcuts = {
   ])
     SingleActivator(key, meta: true): QuillEditorApplyHeaderIntent(header),
 };
+
+/// Opens a note link on a click ([PlatformBehavior.opensNoteLinksOnClick]),
+/// the way flutter_quill opens one where it treats the platform as desktop.
+GestureRecognizer? clickToOpenNoteLink(Attribute<dynamic> attribute, Leaf _) {
+  final link = (attribute.value as String?)?.trim();
+  if (attribute.key != Attribute.link.key || link == null) return null;
+  return TapGestureRecognizer()..onTap = () => _launchNoteLink(link);
+}
+
+void _launchNoteLink(String link) {
+  final url = LinkValidator.validate(link) ? link : 'https://$link';
+  unawaited(launchUrl(Uri.parse(url)));
+}
 
 /// Builds a Quill Delta JSON map from a QuillController.
 /// Returns null if the content is empty (only whitespace/newline).

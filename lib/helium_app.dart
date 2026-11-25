@@ -39,6 +39,18 @@ class HeliumApp extends StatefulWidget {
 }
 
 class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
+  static final Map<ShortcutActivator, Intent> _scrollingArrowKeyShortcuts = {
+    ...WidgetsApp.defaultShortcuts,
+    const SingleActivator(LogicalKeyboardKey.arrowUp):
+        const ScrollIntent(direction: AxisDirection.up),
+    const SingleActivator(LogicalKeyboardKey.arrowDown):
+        const ScrollIntent(direction: AxisDirection.down),
+    const SingleActivator(LogicalKeyboardKey.arrowLeft):
+        const ScrollIntent(direction: AxisDirection.left),
+    const SingleActivator(LogicalKeyboardKey.arrowRight):
+        const ScrollIntent(direction: AxisDirection.right),
+  };
+
   final _themeNotifier = ThemeNotifier();
   final _regionalSettingsNotifier = RegionalSettingsNotifier();
 
@@ -174,6 +186,9 @@ class _HeliumAppState extends State<HeliumApp> with WidgetsBindingObserver {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       scrollBehavior: const HeliumScrollBehavior(),
+      shortcuts: PlatformBehavior.scrollsOnArrowKeys
+          ? _scrollingArrowKeyShortcuts
+          : null,
       theme: AppTheme.light(reduceMotion: MotionService().reduceMotion),
       darkTheme: AppTheme.dark(reduceMotion: MotionService().reduceMotion),
       themeMode: _themeNotifier.themeMode,
