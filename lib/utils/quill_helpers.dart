@@ -219,8 +219,9 @@ final Map<ShortcutActivator, Intent> heliumCommandNoteShortcuts = {
 /// Opens a note link on a click ([PlatformBehavior.opensNoteLinksOnClick]),
 /// the way flutter_quill opens one where it treats the platform as desktop.
 GestureRecognizer? clickToOpenNoteLink(Attribute<dynamic> attribute, Leaf _) {
+  if (attribute.key != Attribute.link.key) return null;
   final link = (attribute.value as String?)?.trim();
-  if (attribute.key != Attribute.link.key || link == null) return null;
+  if (link == null) return null;
   return TapGestureRecognizer()..onTap = () => _launchNoteLink(link);
 }
 
