@@ -42,6 +42,11 @@ permissions:
   issues: none
   pull-requests: none
 
+# The release bot's version bump changes nothing but the version, so its push still tests and keeps the web artifact
+# but promotes nothing to the CI preview, TestFlight or Play Internal
+env:
+  IS_VERSION_BUMP: ${{ github.event_name == 'push' && github.actor == 'heliumedu-bot[bot]' && startsWith(github.event.head_commit.message, 'Bump version to ') }}
+
 jobs:
   test:
     name: Test
@@ -323,6 +328,7 @@ jobs:
           retention-days: 90
 
       - name: Configure AWS credentials
+        if: ${{ env.IS_VERSION_BUMP != 'true' }}
         uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -330,6 +336,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to S3
+        if: ${{ env.IS_VERSION_BUMP != 'true' }}
         env:
           BUCKET_NAME: ${{ steps.target.outputs.bucket }}
         run: |
@@ -366,6 +373,7 @@ jobs:
 
       - name: Invalidate CloudFront cache
         id: cloudfront
+        if: ${{ env.IS_VERSION_BUMP != 'true' }}
         env:
           CF_COMMENT: ${{ steps.target.outputs.cf_comment }}
         run: |
@@ -386,7 +394,7 @@ jobs:
           fi
 
       - name: Trigger canary tests
-        if: ${{ steps.target.outputs.canary_env != '' }}
+        if: ${{ steps.target.outputs.canary_env != '' && env.IS_VERSION_BUMP != 'true' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CANARY_ENV: ${{ steps.target.outputs.canary_env }}
@@ -396,6 +404,7 @@ jobs:
             -f environment="$CANARY_ENV"
 
       - name: Deployment summary
+        if: ${{ env.IS_VERSION_BUMP != 'true' }}
         env:
           LABEL: ${{ steps.target.outputs.label }}
           API: ${{ steps.target.outputs.api }}
@@ -451,7 +460,8 @@ jobs:
       ${{ !cancelled() && needs.test.result == 'success' &&
       contains(fromJSON('["success", "skipped"]'), needs['integration-test'].result) &&
       github.ref != 'refs/heads/main' &&
-      (github.event_name == 'push' ||
+      ((github.event_name == 'push' &&
+      !(github.actor == 'heliumedu-bot[bot]' && startsWith(github.event.head_commit.message, 'Bump version to '))) ||
       (github.event_name == 'workflow_dispatch' && contains(fromJSON('["ios", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-ios-candidate.yml@main
     with:
@@ -476,7 +486,8 @@ jobs:
       ${{ !cancelled() && needs.test.result == 'success' &&
       contains(fromJSON('["success", "skipped"]'), needs['integration-test'].result) &&
       github.ref != 'refs/heads/main' &&
-      (github.event_name == 'push' ||
+      ((github.event_name == 'push' &&
+      !(github.actor == 'heliumedu-bot[bot]' && startsWith(github.event.head_commit.message, 'Bump version to '))) ||
       (github.event_name == 'workflow_dispatch' && contains(fromJSON('["android", "all"]'), inputs.deploy_candidates))) }}
     uses: alexdlaird/.github/.github/workflows/flutter-android-candidate.yml@main
     with:
