@@ -8,11 +8,13 @@ class RegisterEvent extends AuthEvent {
   final String email;
   final String password;
   final String timezone;
+  final String language;
 
   RegisterEvent({
     required this.email,
     required this.password,
     required this.timezone,
+    required this.language,
   });
 }
 

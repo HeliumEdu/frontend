@@ -131,16 +131,9 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 : setupStateCode == SetupState.complete.code;
 
             if (!isSetupComplete) {
-              if (wasOAuthFlow) {
-                context.replace(NextRoute.carry(
-                  '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
-                  _nextRoute,
-                ));
-              } else {
-                context.replace(
-                  NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
-                );
-              }
+              context.replace(
+                NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
+              );
             } else {
               // Redirect to intended destination or default to planner
               context.replace(_nextRoute ?? AppRoute.plannerScreen);

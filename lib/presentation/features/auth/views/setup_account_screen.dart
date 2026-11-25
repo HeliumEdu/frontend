@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
@@ -21,12 +20,10 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.views');
 
 class SetupAccountScreen extends StatefulWidget {
-  final bool autoDetectTimeZone;
   final String? next;
 
   const SetupAccountScreen({
     super.key,
-    this.autoDetectTimeZone = false,
     this.next,
   });
 
@@ -115,8 +112,8 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
     }
   }
 
-  /// The time zone is detected only on the OAuth path; the signup form
-  /// already captured it otherwise.
+  /// Applies the device's regional formats; the time zone and language came
+  /// with the account-creation request on both sign-up paths.
   Future<void> _updateDetectedSettings() async {
     try {
       final locale = PlatformDispatcher.instance.locale;
@@ -127,9 +124,6 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
 
       await DioClient().updateSettings(
         UpdateSettingsRequestModel(
-          timeZone: widget.autoDetectTimeZone
-              ? HeliumDateTime.resolveTimeZone((await FlutterTimezone.getLocalTimezone()).identifier)
-              : null,
           weekStartsOn: await HeliumDateTime.detectWeekStartsOn(locale),
           dateFormat: await HeliumDateTime.detectDateFormat(locale),
           timeFormat: await HeliumDateTime.detectTimeFormat(

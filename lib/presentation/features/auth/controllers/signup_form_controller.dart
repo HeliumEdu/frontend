@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:heliumapp/presentation/features/auth/controllers/credentials_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 
 class SignupFormController extends CredentialsFormController {
   // Field name constants - must match backend API field names
   static const String confirmPasswordField = 'confirm_password';
-  static const String timeZoneField = 'time_zone';
 
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  String selectedTimeZone = 'UTC';
+  String timeZone = 'UTC';
+  String language = HeliumLocale.fallback.languageCode;
 
-  Future<void> initializeTimeZones() async {
-    final tz = (await FlutterTimezone.getLocalTimezone()).identifier;
-    selectedTimeZone = HeliumDateTime.resolveTimeZone(tz);
+  Future<void> detectLocale() async {
+    final detected = await HeliumLocale.detect();
+    timeZone = detected.timeZone;
+    language = detected.language;
   }
 
   @override
@@ -30,7 +30,8 @@ class SignupFormController extends CredentialsFormController {
     super.clearForm();
 
     confirmPasswordController.clear();
-    selectedTimeZone = 'UTC';
+    timeZone = 'UTC';
+    language = HeliumLocale.fallback.languageCode;
   }
 
   String? validateConfirmPassword(String? value) {

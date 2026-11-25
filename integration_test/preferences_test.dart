@@ -72,7 +72,7 @@ void main() {
       final loaded = await waitForWidget(tester, timeZoneField, timeout: config.apiTimeout);
       expect(loaded, isTrue, reason: 'Preferences form should load');
 
-      // The regional settings detected (or chosen) at signup populate the form
+      // The regional settings detected at signup populate the form
       expect(
         tester.widget<SearchableDropdown<String>>(timeZoneField).initialValue.value,
         equals(settings!['time_zone']),

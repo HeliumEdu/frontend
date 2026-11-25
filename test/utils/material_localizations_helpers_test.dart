@@ -103,7 +103,7 @@ void main() {
   group('HeliumMaterialLocalizations', () {
     final date = DateTime(2026, 9, 4);
     HeliumMaterialLocalizations forOrder(int dateFormat) =>
-        HeliumMaterialLocalizations(firstDayOfWeekIndex: 0, dateFormat: dateFormat);
+        HeliumMaterialLocalizations(const DefaultMaterialLocalizations(), firstDayOfWeekIndex: 0, dateFormat: dateFormat);
 
     test('month/day/year keeps Material defaults', () {
       final localizations = forOrder(RegionalFormatConstants.dateFormatMonthDayYear);

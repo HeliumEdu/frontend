@@ -24,13 +24,11 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_password_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
-import 'package:heliumapp/presentation/ui/components/searchable_dropdown.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
-import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
@@ -59,6 +57,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   late final TapGestureRecognizer _termsRecognizer;
   late final TapGestureRecognizer _privacyRecognizer;
+  late final Future<void> _localeDetection;
 
   @override
   void initState() {
@@ -77,7 +76,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     _privacyRecognizer = TapGestureRecognizer()
       ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.privacyUrl);
 
-    _initializeForm();
+    _localeDetection = _formController.detectLocale();
 
     setState(() {
       isLoading = false;
@@ -119,16 +118,9 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 : setupStateCode == SetupState.complete.code;
 
             if (!isSetupComplete) {
-              if (wasOAuthFlow) {
-                context.replace(NextRoute.carry(
-                  '${AppRoute.setupAccountScreen}?auto_detect_tz=true',
-                  _nextRoute,
-                ));
-              } else {
-                context.replace(
-                  NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
-                );
-              }
+              context.replace(
+                NextRoute.carry(AppRoute.setupAccountScreen, _nextRoute),
+              );
             } else {
               // Redirect to intended destination or default to planner
               context.replace(_nextRoute ?? AppRoute.plannerScreen);
@@ -343,23 +335,6 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
               onFieldSubmitted: (value) => _onSubmit(),
               autofillHints: const [AutofillHints.newPassword],
             ),
-            const SizedBox(height: 12),
-
-            SearchableDropdown(
-              key: const Key(SignupFormController.timeZoneField),
-              initialValue: TimeZoneConstants.items.firstWhere(
-                (tz) => tz.value == _formController.selectedTimeZone,
-                orElse: () => TimeZoneConstants.items.firstWhere(
-                  (tz) => tz.value == 'UTC',
-                ),
-              ),
-              items: TimeZoneConstants.items,
-              onChanged: (value) {
-                setState(() {
-                  _formController.selectedTimeZone = value!.value!;
-                });
-              },
-            ),
 
             const SizedBox(height: 16),
 
@@ -462,23 +437,22 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     );
   }
 
-  Future<void> _initializeForm() async {
-    await _formController.initializeTimeZones();
-    if (mounted) setState(() {});
-  }
-
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (_formController.formKey.currentState!.validate()) {
       FocusManager.instance.primaryFocus?.unfocus();
       setState(() {
         isSubmitting = true;
       });
 
+      await _localeDetection;
+      if (!mounted) return;
+
       context.read<AuthBloc>().add(
         RegisterEvent(
           email: _formController.emailController.text.trim(),
           password: _formController.passwordController.text,
-          timezone: _formController.selectedTimeZone,
+          timezone: _formController.timeZone,
+          language: _formController.language,
         ),
       );
     }

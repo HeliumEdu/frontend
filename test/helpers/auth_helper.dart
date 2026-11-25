@@ -65,6 +65,7 @@ Map<String, dynamic> givenUserSettingsJson({
     'date_format': dateFormat,
     'time_format': timeFormat,
     'number_format': numberFormat,
+    'language': 'en',
     'prompt_for_review': promptForReview,
     'private_slug': privateSlug,
   };

@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
+import 'package:heliumapp/utils/forwarding_localizations.dart';
 import 'package:syncfusion_flutter_core/localizations.dart';
 import 'package:syncfusion_localizations/syncfusion_localizations.dart';
 
@@ -8,23 +9,29 @@ class HeliumSfLocalizationsDelegate
   const HeliumSfLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => true;
+  bool isSupported(Locale locale) =>
+      AppLocalizations.delegate.isSupported(locale) &&
+      SfGlobalLocalizations.delegate.isSupported(locale);
 
   @override
   Future<SfLocalizations> load(Locale locale) =>
-      SynchronousFuture(const _HeliumSfLocalizations());
+      SfGlobalLocalizations.delegate.load(locale).then(
+            (base) => _HeliumSfLocalizations(base, lookupAppLocalizations(locale)),
+          );
 
   @override
   bool shouldReload(covariant LocalizationsDelegate<SfLocalizations> old) =>
       false;
 }
 
-class _HeliumSfLocalizations extends SfLocalizationsEn {
-  const _HeliumSfLocalizations();
+class _HeliumSfLocalizations extends ForwardingSfLocalizations {
+  final AppLocalizations _app;
+
+  const _HeliumSfLocalizations(super.base, this._app);
 
   @override
-  String get noEventsCalendarLabel => 'Nothing to see here';
+  String get noEventsCalendarLabel => _app.calendarNoEventsLabel;
 
   @override
-  String get noSelectedDateCalendarLabel => 'Select a date to get started';
+  String get noSelectedDateCalendarLabel => _app.calendarNoSelectedDateLabel;
 }

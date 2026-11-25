@@ -63,3 +63,9 @@ android/fastlane/metadata/android/en-US/changelogs/
 /android/app/release
 
 .venv
+
+# Generated from lib/l10n/*.arb by `flutter gen-l10n` (also run by pub get and builds)
+/lib/l10n/app_localizations*.dart
+
+# Pseudo-locale for `make run-pseudo-locale`; never ships
+/lib/l10n/app_en_XA.arb

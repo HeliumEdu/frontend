@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/pref_service.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/day_change_service.dart';
@@ -154,6 +154,7 @@ class DioClient {
 
             _clientPlatform ??= _resolveClientPlatform();
             options.headers['X-Client-Platform'] = _clientPlatform;
+            options.headers['Accept-Language'] = LocaleNotifier().displayedLanguage;
 
             HeliumRetryEvaluator.deadlineFor(options);
 
@@ -255,6 +256,7 @@ class DioClient {
                   if (_clientVersion != null) 'X-Client-Version': _clientVersion,
                   'X-Client-Platform':
                       _clientPlatform ??= _resolveClientPlatform(),
+                  'Accept-Language': LocaleNotifier().displayedLanguage,
                 },
                 validateStatus: (status) => status != null && status < 500,
               );
@@ -301,7 +303,7 @@ class DioClient {
                 _log.info(
                   'Got $refreshStatusCode during token refresh, session expired',
                 );
-                await forceLogout();
+                await forceLogout(DioErrorMapper.serverMessage(response.data));
                 _isRefreshing = false;
                 _refreshCompleter!.complete(false);
                 _refreshCompleter = null;
@@ -336,6 +338,7 @@ class DioClient {
               }
             } catch (e) {
               bool shouldLogout = false;
+              String? logoutMessage;
               if (e is DioException) {
                 final statusCode = e.response?.statusCode;
                 if (statusCode == 401 || statusCode == 403) {
@@ -343,12 +346,13 @@ class DioClient {
                     'Got $statusCode during token refresh, session expired',
                   );
                   shouldLogout = true;
+                  logoutMessage = DioErrorMapper.serverMessage(e.response?.data);
                 }
               }
 
               // Don't sign out on network or server errors, only on a 401 or 403
               if (shouldLogout) {
-                await forceLogout();
+                await forceLogout(logoutMessage);
               } else {
                 _log.severe('Unexpected error during token refresh', e);
               }
@@ -436,7 +440,9 @@ class DioClient {
     unawaited(AgendaWidgetService().clear());
     unawaited(AnalyticsService().setUserId(null));
     await _cacheService.clearAll();
-    return _prefService.clear();
+    final cleared = await _prefService.clear();
+    LocaleNotifier().reset();
+    return cleared;
   }
 
   Future<void> identifyUser([String? accessToken]) async {
@@ -547,6 +553,7 @@ class DioClient {
         SettingsPrefKey.dateFormat.key: p.getInt(SettingsPrefKey.dateFormat.key),
         SettingsPrefKey.timeFormat.key: p.getInt(SettingsPrefKey.timeFormat.key),
         SettingsPrefKey.numberFormat.key: p.getInt(SettingsPrefKey.numberFormat.key),
+        SettingsPrefKey.language.key: p.getString(SettingsPrefKey.language.key),
         SettingsPrefKey.promptForReview.key: p.getBool(SettingsPrefKey.promptForReview.key),
       };
 
@@ -575,8 +582,10 @@ class DioClient {
     }
   }
 
-  Future<void> clearSettings() =>
-      _prefService.removeKeys(SettingsPrefKey.allKeys);
+  Future<void> clearSettings() async {
+    await _prefService.removeKeys(SettingsPrefKey.allKeys);
+    LocaleNotifier().reset();
+  }
 
   Future<List<void>> saveSettings(UserSettingsModel settings) async {
     final themeMode = switch (settings.colorSchemeTheme) {
@@ -585,16 +594,19 @@ class DioClient {
       _ => ThemeMode.system,
     };
     await ThemeNotifier().setThemeMode(themeMode);
-    await RegionalSettingsNotifier().update(
+    await LocaleNotifier().update(
       weekStartsOn: settings.weekStartsOn,
       dateFormat: settings.dateFormat,
       timeFormat: settings.timeFormat,
       numberFormat: settings.numberFormat,
+      language: settings.language,
+      timeZone: settings.timeZone.toString(),
     );
 
     final p = _prefService;
     final result = await Future.wait([
       ?p.setString(SettingsPrefKey.timeZone.key, settings.timeZone.toString()),
+      ?p.setString(SettingsPrefKey.language.key, settings.language),
       ?p.setBool(SettingsPrefKey.colorByCategory.key, settings.colorByCategory),
       ?p.setInt(SettingsPrefKey.defaultView.key, settings.defaultView),
       ?p.setInt(SettingsPrefKey.colorSchemeTheme.key, settings.colorSchemeTheme),
@@ -769,9 +781,7 @@ class DioClient {
     return options.headers['Authorization'] == expected;
   }
 
-  Future<void> forceLogout([
-    String message = 'Please sign in to continue.',
-  ]) async {
+  Future<void> forceLogout([String? message]) async {
     await FcmService().discardToken();
 
     try {
@@ -781,7 +791,7 @@ class DioClient {
       if (context != null && context.mounted) {
         SnackBarHelper.show(
           context,
-          message,
+          message ?? 'Please sign in to continue.',
           seconds: 4,
           type: SnackType.error,
         );

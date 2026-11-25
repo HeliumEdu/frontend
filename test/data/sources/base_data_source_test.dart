@@ -18,7 +18,7 @@ void main() {
   group('BaseDataSource', () {
     group('handleDioError', () {
       group('rate limiting', () {
-        DioException givenTooManyRequests({String? retryAfter}) {
+        DioException givenTooManyRequests({String? retryAfter, Object? data}) {
           final requestOptions = RequestOptions(path: '');
           return DioException(
             type: DioExceptionType.badResponse,
@@ -26,7 +26,7 @@ void main() {
             response: Response(
               statusCode: 429,
               requestOptions: requestOptions,
-              data: {'detail': 'Request was throttled. Expected available in 3540 seconds.'},
+              data: data,
               headers: Headers.fromMap({
                 if (retryAfter != null) 'retry-after': [retryAfter],
               }),
@@ -34,9 +34,12 @@ void main() {
           );
         }
 
-        test('says how long to wait from Retry-After', () {
+        test('shows the server text as-is', () {
           // GIVEN
-          final error = givenTooManyRequests(retryAfter: '3540');
+          final error = givenTooManyRequests(
+            retryAfter: '3540',
+            data: {'detail': 'Request was throttled. Try again in 3540 seconds.', 'code': 'throttled'},
+          );
 
           // WHEN
           final result = dataSource.handleDioError(error, StackTrace.current);
@@ -44,18 +47,20 @@ void main() {
           // THEN
           expect(result, isA<ServerException>());
           expect(result.httpStatusCode, 429);
-          expect(result.message, 'Too many attempts. Try again in 59 minutes.');
+          expect(result.code, 'throttled');
+          expect(result.message, 'Request was throttled. Try again in 3540 seconds.');
         });
 
-        test('asks to try later without Retry-After', () {
+        test('uses the server error text without a Helium body', () {
           // GIVEN
-          final error = givenTooManyRequests();
+          final error = givenTooManyRequests(retryAfter: '3540', data: '<html>Too Many Requests</html>');
 
           // WHEN
           final result = dataSource.handleDioError(error, StackTrace.current);
 
           // THEN
-          expect(result.message, 'Too many attempts. Try again later.');
+          expect(result.code, '429');
+          expect(result.message, 'Server error. Please try again later.');
         });
       });
 
@@ -103,7 +108,27 @@ void main() {
       });
 
       group('401 Unauthorized', () {
-        test('returns UnauthorizedException for 401 response', () {
+        test('returns UnauthorizedException with the server text and code', () {
+          // GIVEN
+          final error = givenDioException(
+            statusCode: 401,
+            responseData: {
+              'detail': 'Check your credentials and try again.',
+              'code': 'credentials_invalid',
+            },
+          );
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<UnauthorizedException>());
+          expect(result.httpStatusCode, equals(401));
+          expect(result.code, equals('credentials_invalid'));
+          expect(result.message, equals('Check your credentials and try again.'));
+        });
+
+        test('falls back to the status as code for a body without one', () {
           // GIVEN
           final error = givenUnauthorizedException();
 
@@ -111,9 +136,21 @@ void main() {
           final result = dataSource.handleDioError(error, StackTrace.current);
 
           // THEN
+          expect(result.code, equals('401'));
+          expect(result.message, equals('Unauthorized'));
+        });
+
+        test('uses the server error text without a Helium body', () {
+          // GIVEN
+          final error = givenDioException(statusCode: 401);
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
           expect(result, isA<UnauthorizedException>());
           expect(result.code, equals('401'));
-          expect(result.message, contains('credentials'));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
       });
 
@@ -132,7 +169,38 @@ void main() {
           // THEN
           expect(result, isA<UnauthorizedException>());
           expect(result.code, equals('403'));
-          expect(result.message, contains('Access denied'));
+          expect(result.message, equals('Access denied'));
+        });
+
+        test('keeps an inactive account\'s code and email for the resend flow', () {
+          // GIVEN
+          final responseData = {
+            'detail': "Your account isn't active yet.",
+            'code': 'account_inactive',
+            'email': 'student@example.com',
+          };
+          final error = givenDioException(statusCode: 403, responseData: responseData);
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<UnauthorizedException>());
+          expect(result.code, equals('account_inactive'));
+          expect(result.message, equals("Your account isn't active yet."));
+          expect(result.details, equals(responseData));
+        });
+
+        test('uses the server error text for a page that is not a Helium body', () {
+          // GIVEN
+          final error = givenDioException(statusCode: 403, responseData: '<html>Forbidden</html>');
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result.code, equals('403'));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
       });
 
@@ -225,7 +293,7 @@ void main() {
 
           // THEN
           expect(result, isA<ValidationException>());
-          expect(result.message, contains('Unknown validation error'));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
 
         test('includes details in ValidationException', () {
@@ -245,7 +313,7 @@ void main() {
       });
 
       group('500 Server errors', () {
-        test('returns ServerException for 500 response', () {
+        test('returns ServerException with the server text', () {
           // GIVEN
           final error = givenServerException();
 
@@ -255,17 +323,29 @@ void main() {
           // THEN
           expect(result, isA<ServerException>());
           expect(result.code, equals('500'));
-          expect(result.message, contains('Server error'));
+          expect(result.message, equals('Internal Server Error'));
+        });
+
+        test('uses the server error text without a Helium body', () {
+          // GIVEN
+          final error = givenDioException(statusCode: 500, responseData: '<html>Internal Server Error</html>');
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<ServerException>());
+          expect(result.message, equals('Server error. Please try again later.'));
         });
       });
 
       group('404 Not Found', () {
-        test('returns NotFoundException with a generic message regardless of backend detail text', () {
+        test('returns NotFoundException with the server text and code', () {
           // GIVEN
           final error = givenDioException(
             type: DioExceptionType.badResponse,
             statusCode: 404,
-            responseData: {'detail': 'No CourseGroup matches the given query.'},
+            responseData: {'detail': 'Group not found.', 'code': 'not_found'},
           );
 
           // WHEN
@@ -273,10 +353,21 @@ void main() {
 
           // THEN
           expect(result, isA<NotFoundException>());
-          expect(
-            result.message,
-            equals('Item not found.'),
-          );
+          expect(result.code, equals('not_found'));
+          expect(result.message, equals('Group not found.'));
+        });
+
+        test('uses the server error text without a Helium body', () {
+          // GIVEN
+          final error = givenDioException(statusCode: 404);
+
+          // WHEN
+          final result = dataSource.handleDioError(error, StackTrace.current);
+
+          // THEN
+          expect(result, isA<NotFoundException>());
+          expect(result.code, equals('404'));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
       });
 
@@ -330,12 +421,17 @@ void main() {
           expect(result.message, equals('Method "PATCH" not allowed.'));
         });
 
-        test('handles String response data', () {
+        test('uses the server error text for a page that is not a Helium body', () {
           // GIVEN
-          final error = givenDioException(
+          final error = DioException(
             type: DioExceptionType.badResponse,
-            statusCode: 502,
-            responseData: 'Bad Gateway',
+            requestOptions: RequestOptions(path: ''),
+            response: Response(
+              statusCode: 502,
+              statusMessage: 'Bad Gateway',
+              data: '<html><body>502 Bad Gateway</body></html>',
+              requestOptions: RequestOptions(path: ''),
+            ),
           );
 
           // WHEN
@@ -343,10 +439,10 @@ void main() {
 
           // THEN
           expect(result, isA<ServerException>());
-          expect(result.message, equals('Bad Gateway'));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
 
-        test('falls back to status message when no response data', () {
+        test('uses the server error text when there is no response data', () {
           // GIVEN
           final error = DioException(
             type: DioExceptionType.badResponse,
@@ -363,7 +459,7 @@ void main() {
 
           // THEN
           expect(result, isA<ServerException>());
-          expect(result.message, equals("I'm a teapot"));
+          expect(result.message, equals('Server error. Please try again later.'));
         });
 
         test('includes details in ServerException', () {

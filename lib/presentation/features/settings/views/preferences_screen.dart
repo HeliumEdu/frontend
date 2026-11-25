@@ -7,6 +7,8 @@ import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -30,6 +32,7 @@ import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
 import 'package:logging/logging.dart';
@@ -43,6 +46,7 @@ class PreferencesScreen extends StatefulWidget {
   final VoidCallback? onFailed;
 
   static const String timeZoneField = 'preferences_time_zone';
+  static const String languageField = 'preferences_language';
   static const String dateFormatField = 'preferences_date_format';
   static const String timeFormatField = 'preferences_time_format';
   static const String numberFormatField = 'preferences_number_format';
@@ -82,6 +86,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
   late String _selectedDefaultView;
   late String _selectedWeekStartsOn;
   late String _selectedTimeZone;
+  late String _selectedLanguage;
   late int _selectedDateFormat;
   late int _selectedTimeFormat;
   late int _selectedNumberFormat;
@@ -198,6 +203,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
             ?_buildTimeZoneChangeNotice(),
             const SizedBox(height: 14),
+            if (_offersLanguageChoice) ...[
+              _buildLanguageField(),
+              const SizedBox(height: 14),
+            ],
             _buildRegionalFormatFields(),
 
             _buildSectionHeader('PLANNER'),
@@ -529,6 +538,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           dateFormat: _selectedDateFormat,
           timeFormat: _selectedTimeFormat,
           numberFormat: _selectedNumberFormat,
+          language: _offersLanguageChoice ? _selectedLanguage : null,
         ),
       ),
     );
@@ -607,6 +617,31 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     );
   }
 
+  bool get _offersLanguageChoice => HeliumLocale.offersLanguageChoice(
+        languages: HeliumLocale.supportedLanguages,
+        stored: widget.user.settings.language,
+      );
+
+  Widget _buildLanguageField() {
+    final l10n = AppLocalizations.of(context);
+    final items = [
+      for (final (index, language) in HeliumLocale.supportedLanguages.indexed)
+        DropDownItem<String>(id: index, value: language, label: HeliumLocale.nativeNames[language]!),
+    ];
+    return DropDown<String>(
+      key: const Key(PreferencesScreen.languageField),
+      label: l10n.preferencesLanguageLabel,
+      initialValue: items.firstWhere((item) => item.value == _selectedLanguage),
+      items: items,
+      onChanged: (item) {
+        setState(() {
+          _selectedLanguage = item!.value!;
+          _isChanged = true;
+        });
+      },
+    );
+  }
+
   Widget? _buildTimeZoneChangeNotice() {
     if (_hasCourseSchedules == false ||
         _isSubmitting ||
@@ -662,6 +697,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         CalendarConstants.dayNames[settings.weekStartsOn];
     _selectedTimeZone = settings.timeZone.toString();
     _savedTimeZone = _selectedTimeZone;
+    _selectedLanguage = settings.language;
     _selectedDateFormat = settings.dateFormat;
     _selectedTimeFormat = settings.timeFormat;
     _selectedNumberFormat = settings.numberFormat;

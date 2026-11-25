@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/time_zone_aliases.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
@@ -12,13 +13,13 @@ final _log = Logger('utils');
 
 class HeliumTime {
   static String get timePattern =>
-      RegionalSettingsNotifier().uses24HourClock ? 'HH:mm' : 'h:mm a';
+      LocaleNotifier().uses24HourClock ? 'HH:mm' : 'h:mm a';
 
   static String get timeRulerPattern =>
-      RegionalSettingsNotifier().uses24HourClock ? 'HH:mm' : 'h a';
+      LocaleNotifier().uses24HourClock ? 'HH:mm' : 'h a';
 
   static String shortenOnTheHour(String formatted) {
-    return RegionalSettingsNotifier().uses24HourClock ? formatted : formatted.replaceAll(':00', '');
+    return LocaleNotifier().uses24HourClock ? formatted : formatted.replaceAll(':00', '');
   }
 
   static TimeOfDay? parse(String time) {
@@ -360,6 +361,11 @@ class HeliumDateTime {
         : RegionalFormatConstants.dateFormatDayMonthYear;
   }
 
+  /// The device's time zone, mapped to one Helium supports; UTC when the device
+  /// reports none Helium can map.
+  static Future<String> detectTimeZone() async =>
+      resolveTimeZone((await FlutterTimezone.getLocalTimezone()).identifier);
+
   /// The weekday the device locale starts its week on, as the API's
   /// Sunday-based index; falls back to Sunday for an unknown locale.
   static Future<int> detectWeekStartsOn(Locale locale) async {
@@ -587,7 +593,7 @@ class HeliumDateTime {
 
   /// Word-month dates read month-first only for the month/day/year setting.
   static bool get _monthFirst =>
-      RegionalSettingsNotifier().dateFormat == RegionalFormatConstants.dateFormatMonthDayYear;
+      LocaleNotifier().dateFormat == RegionalFormatConstants.dateFormatMonthDayYear;
 
   static String _ordered(String monthFirst, String dayFirst) => _monthFirst ? monthFirst : dayFirst;
 

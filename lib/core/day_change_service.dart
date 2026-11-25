@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -68,7 +68,7 @@ class DayChangeService {
   }
 
   tz.Location? _accountTimeZone() {
-    final name = PrefService().getString(SettingsPrefKey.timeZone.key);
+    final name = LocaleNotifier().timeZone;
     return name == null ? null : tz.timeZoneDatabase.locations[name];
   }
 }

@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:heliumapp/config/app_providers.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -115,6 +116,7 @@ Future<void> _bootstrap() async {
 
   try {
     await PrefService().init();
+    await LocaleNotifier().init();
   } catch (e) {
     _log.severe('Preferences initialization failed', e);
     runApp(const StartupFailureApp(onReload: reloadPage));

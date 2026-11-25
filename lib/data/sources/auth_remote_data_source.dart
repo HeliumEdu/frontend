@@ -25,6 +25,7 @@ import 'package:heliumapp/data/models/auth/user_model.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/no_content_response_model.dart';
 import 'package:heliumapp/data/sources/base_data_source.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('data.sources');
@@ -276,9 +277,15 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     String provider,
   ) async {
     try {
+      final locale = await HeliumLocale.detect();
       final response = await dioClient.dio.post(
         ApiUrl.authTokenOAuthUrl,
-        data: {'id_token': firebaseIdToken, 'provider': provider},
+        data: {
+          'id_token': firebaseIdToken,
+          'provider': provider,
+          'time_zone': locale.timeZone,
+          'language': locale.language,
+        },
       );
 
       if (response.statusCode == 200) {
