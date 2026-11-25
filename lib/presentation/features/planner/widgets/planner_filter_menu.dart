@@ -163,6 +163,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
       );
     }
 
+    final hasClasses = displayCourses.isNotEmpty;
     final visibleCategories = _getVisibleCategories();
     final visibleExternalCalendars = _getVisibleExternalCalendars();
     final selectedExternalCalendarIds =
@@ -483,7 +484,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
               }),
             ],
 
-            if (_areAssignmentsVisible()) ...[
+            if (hasClasses && _areAssignmentsVisible()) ...[
               const HeliumMenuSectionHeader(title: 'STATUS'),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
@@ -536,7 +537,9 @@ class PlannerFilterMenuContent extends StatelessWidget {
               buildStatusTile(PlannerFilterStatus.overdue.value),
             ],
 
-            if (visibleCategories.length > 1 && _areAssignmentsVisible()) ...[
+            if (hasClasses &&
+                visibleCategories.length > 1 &&
+                _areAssignmentsVisible()) ...[
               const HeliumMenuSectionHeader(title: 'CATEGORIES'),
               ...visibleCategories.map((category) {
                 return HeliumCheckboxListTile(

@@ -84,7 +84,7 @@ class AgendaWidgetService {
       if (!await dioClient.isAuthenticated()) return;
 
       final settings = await dioClient.getSettings();
-      if (settings == null) return;
+      if (settings == null || settings.setupState != SetupState.complete) return;
 
       final now = DateTime.now();
       final today = HeliumDateTime.midnightIn(now, settings.timeZone);

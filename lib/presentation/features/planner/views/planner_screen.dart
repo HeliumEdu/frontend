@@ -1653,9 +1653,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 );
             return IconButton.outlined(
               key: const Key(PlannerScreen.filterButtonKey),
-              onPressed: _courses.isEmpty
-                  ? null
-                  : () => _openFilterMenu(context),
+              onPressed: () => _openFilterMenu(context),
               tooltip: 'Filters',
               icon: const Icon(Icons.filter_alt_outlined),
               style: IconButton.styleFrom(
@@ -1670,11 +1668,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                 foregroundColor: hasFilters
                     ? context.colorScheme.onPrimary
                     : null,
-                side: BorderSide(
-                  color: _courses.isEmpty
-                      ? context.colorScheme.onSurface.withValues(alpha: 0.3)
-                      : context.colorScheme.primary,
-                ),
+                side: BorderSide(color: context.colorScheme.primary),
               ),
             );
           },

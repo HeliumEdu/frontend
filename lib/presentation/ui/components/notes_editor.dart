@@ -136,11 +136,18 @@ class NotesEditor extends StatefulWidget {
 
   /// Builds theme-aware default styles for Quill editors.
   ///
-  /// Flutter Quill's default strikethrough/underline styles don't set
-  /// decorationColor, causing black decorations in dark mode.
+  /// Flutter Quill's default strikethrough/underline/link styles don't set
+  /// decorationColor, causing black decorations in dark mode. A link's
+  /// underline matches its text.
   static DefaultStyles buildDefaultStyles(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
+    final linkColor = Theme.of(context).colorScheme.secondary;
     return DefaultStyles(
+      link: TextStyle(
+        color: linkColor,
+        decoration: TextDecoration.underline,
+        decorationColor: linkColor,
+      ),
       strikeThrough: TextStyle(
         decoration: TextDecoration.lineThrough,
         decorationColor: onSurface,
