@@ -362,15 +362,9 @@ class HeliumDateTime {
   }
 
   /// The device's time zone, mapped to one Helium supports; UTC when the device
-  /// reports none Helium can map or can't report one at all.
-  static Future<String> detectTimeZone() async {
-    try {
-      return resolveTimeZone((await FlutterTimezone.getLocalTimezone()).identifier);
-    } catch (e) {
-      _log.warning('Device timezone unavailable, defaulting to UTC: ${e.runtimeType}');
-      return 'UTC';
-    }
-  }
+  /// reports none Helium can map.
+  static Future<String> detectTimeZone() async =>
+      resolveTimeZone((await FlutterTimezone.getLocalTimezone()).identifier);
 
   /// The weekday the device locale starts its week on, as the API's
   /// Sunday-based index; falls back to Sunday for an unknown locale.

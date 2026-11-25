@@ -62,11 +62,11 @@ void main() {
 
       // WHEN
       final plain = NextRoute.carry(AppRoute.setupAccountScreen, next);
-      final withQuery = NextRoute.carry('${AppRoute.setupAccountScreen}?step=1', next);
+      final withQuery = NextRoute.carry('${AppRoute.setupAccountScreen}?a=1', next);
 
       // THEN
       expect(NextRoute.read(Uri.parse(plain).queryParameters), next);
-      expect(withQuery, startsWith('/setup?step=1&next='));
+      expect(withQuery, startsWith('/setup?a=1&next='));
       expect(NextRoute.read(Uri.parse(withQuery).queryParameters), next);
     });
 

@@ -12,10 +12,10 @@ class SignupFormController extends CredentialsFormController {
   String timeZone = 'UTC';
   String language = HeliumLocale.fallback.languageCode;
 
-  Future<void> initializeLocale() async {
-    final inferred = await HeliumLocale.infer();
-    timeZone = inferred.timeZone;
-    language = inferred.language;
+  Future<void> detectLocale() async {
+    final detected = await HeliumLocale.detect();
+    timeZone = detected.timeZone;
+    language = detected.language;
   }
 
   @override

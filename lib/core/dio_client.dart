@@ -602,6 +602,7 @@ class DioClient {
     final p = _prefService;
     final result = await Future.wait([
       ?p.setString(SettingsPrefKey.timeZone.key, settings.timeZone.toString()),
+      ?p.setString(SettingsPrefKey.language.key, settings.language),
       ?p.setBool(SettingsPrefKey.colorByCategory.key, settings.colorByCategory),
       ?p.setInt(SettingsPrefKey.defaultView.key, settings.defaultView),
       ?p.setInt(SettingsPrefKey.colorSchemeTheme.key, settings.colorSchemeTheme),

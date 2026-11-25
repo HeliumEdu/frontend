@@ -57,7 +57,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
   late final TapGestureRecognizer _termsRecognizer;
   late final TapGestureRecognizer _privacyRecognizer;
-  late final Future<void> _locale;
+  late final Future<void> _localeDetection;
 
   @override
   void initState() {
@@ -76,7 +76,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
     _privacyRecognizer = TapGestureRecognizer()
       ..onTap = () => UrlHelpers.launchWebUrl(AppConstants.privacyUrl);
 
-    _locale = _formController.initializeLocale();
+    _localeDetection = _formController.detectLocale();
 
     setState(() {
       isLoading = false;
@@ -444,7 +444,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
         isSubmitting = true;
       });
 
-      await _locale;
+      await _localeDetection;
       if (!mounted) return;
 
       context.read<AuthBloc>().add(

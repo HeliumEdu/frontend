@@ -277,7 +277,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     String provider,
   ) async {
     try {
-      final locale = await HeliumLocale.infer();
+      final locale = await HeliumLocale.detect();
       final response = await dioClient.dio.post(
         ApiUrl.authTokenOAuthUrl,
         data: {

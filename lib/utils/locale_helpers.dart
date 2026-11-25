@@ -47,9 +47,9 @@ class HeliumLocale {
   static String languageFor(List<Locale>? preferred, Iterable<Locale> supported) =>
       resolve(preferred, supported).languageCode;
 
-  static Future<({String timeZone, String language})> infer() async =>
-      (timeZone: await HeliumDateTime.detectTimeZone(), language: inferLanguage());
+  static Future<({String timeZone, String language})> detect() async =>
+      (timeZone: await HeliumDateTime.detectTimeZone(), language: detectLanguage());
 
-  static String inferLanguage() =>
+  static String detectLanguage() =>
       languageFor(PlatformDispatcher.instance.locales, AppLocalizations.supportedLocales);
 }

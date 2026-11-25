@@ -8,9 +8,9 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('config');
 
-/// The account's locale settings the app root applies once for every screen
-/// (app language, Material localizations, media query), mirroring
-/// [ThemeNotifier].
+/// The account's locale settings: the regional formats and language the app
+/// root applies for every screen (app language, Material localizations, media
+/// query), and the time zone, mirroring [ThemeNotifier].
 class LocaleNotifier extends ChangeNotifier {
   static final LocaleNotifier _instance = LocaleNotifier._internal();
 

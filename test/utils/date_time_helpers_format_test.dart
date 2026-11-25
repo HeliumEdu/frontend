@@ -155,7 +155,7 @@ void main() {
             RegionalFormatConstants.timeFormatTwelveHour);
       });
 
-      test('infers from the locale when the OS reports nothing', () async {
+      test('detects from the locale when the OS reports nothing', () async {
         expect(await HeliumDateTime.detectTimeFormat(const Locale('en', 'US')),
             RegionalFormatConstants.timeFormatTwelveHour);
         expect(await HeliumDateTime.detectTimeFormat(const Locale('de', 'DE')),
