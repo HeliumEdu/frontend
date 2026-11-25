@@ -352,7 +352,14 @@ void main() {
           return authBloc;
         },
         act: (bloc) => bloc.add(RefreshTokenEvent()),
-        expect: () => [isA<AuthLoading>(), isA<AuthUnauthenticated>()],
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthUnauthenticated>().having(
+            (s) => s.message,
+            'message',
+            'Refresh token expired',
+          ),
+        ],
         verify: (_) {
           verify(() => mockDioClient.clearStorage()).called(1);
         },
@@ -1226,6 +1233,35 @@ void main() {
             () => mockAuthRepository.decideAuthorization(query, allow: true, scopes: ['planner:read']),
           ).called(1);
         },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'shows the server text when the request is valid but the choice is not',
+        build: () {
+          when(
+            () => mockAuthRepository.decideAuthorization(query, allow: true, scopes: []),
+          ).thenThrow(
+            ValidationException(
+              message: 'Check at least one item to allow, or choose Deny.',
+              httpStatusCode: 400,
+              details: {
+                'scopes': [
+                  {'message': 'Check at least one item to allow, or choose Deny.', 'code': 'scopes_none_approved'},
+                ],
+              },
+            ),
+          );
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(DecideAuthorizationEvent(query: query, allow: true, scopes: [])),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthError>().having(
+            (s) => s.message,
+            'message',
+            'Check at least one item to allow, or choose Deny.',
+          ),
+        ],
       );
     });
   });

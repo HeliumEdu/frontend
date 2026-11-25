@@ -154,6 +154,7 @@ class DioClient {
 
             _clientPlatform ??= _resolveClientPlatform();
             options.headers['X-Client-Platform'] = _clientPlatform;
+            options.headers['Accept-Language'] = LocaleNotifier().displayedLanguage;
 
             HeliumRetryEvaluator.deadlineFor(options);
 
@@ -255,6 +256,7 @@ class DioClient {
                   if (_clientVersion != null) 'X-Client-Version': _clientVersion,
                   'X-Client-Platform':
                       _clientPlatform ??= _resolveClientPlatform(),
+                  'Accept-Language': LocaleNotifier().displayedLanguage,
                 },
                 validateStatus: (status) => status != null && status < 500,
               );
@@ -301,7 +303,7 @@ class DioClient {
                 _log.info(
                   'Got $refreshStatusCode during token refresh, session expired',
                 );
-                await forceLogout();
+                await forceLogout(DioErrorMapper.serverMessage(response.data));
                 _isRefreshing = false;
                 _refreshCompleter!.complete(false);
                 _refreshCompleter = null;
@@ -336,6 +338,7 @@ class DioClient {
               }
             } catch (e) {
               bool shouldLogout = false;
+              String? logoutMessage;
               if (e is DioException) {
                 final statusCode = e.response?.statusCode;
                 if (statusCode == 401 || statusCode == 403) {
@@ -343,12 +346,13 @@ class DioClient {
                     'Got $statusCode during token refresh, session expired',
                   );
                   shouldLogout = true;
+                  logoutMessage = DioErrorMapper.serverMessage(e.response?.data);
                 }
               }
 
               // Don't sign out on network or server errors, only on a 401 or 403
               if (shouldLogout) {
-                await forceLogout();
+                await forceLogout(logoutMessage);
               } else {
                 _log.severe('Unexpected error during token refresh', e);
               }
@@ -777,9 +781,7 @@ class DioClient {
     return options.headers['Authorization'] == expected;
   }
 
-  Future<void> forceLogout([
-    String message = 'Please sign in to continue.',
-  ]) async {
+  Future<void> forceLogout([String? message]) async {
     await FcmService().discardToken();
 
     try {
@@ -789,7 +791,7 @@ class DioClient {
       if (context != null && context.mounted) {
         SnackBarHelper.show(
           context,
-          message,
+          message ?? 'Please sign in to continue.',
           seconds: 4,
           type: SnackType.error,
         );

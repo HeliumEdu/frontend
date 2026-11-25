@@ -3,7 +3,10 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('config');
@@ -47,6 +50,13 @@ class LocaleNotifier extends ChangeNotifier {
   /// The account's language, or null to follow the device while no account
   /// is signed in.
   Locale? get appLocale => _language == null ? null : Locale(_language!);
+
+  /// The language the app displays, which the API answers in: [appLocale]
+  /// resolved as the app root resolves it, else the device's.
+  String get displayedLanguage => HeliumLocale.languageFor(
+    appLocale == null ? PlatformDispatcher.instance.locales : [appLocale!],
+    AppLocalizations.supportedLocales,
+  );
 
   bool get uses24HourClock => _timeFormat == RegionalFormatConstants.timeFormatTwentyFourHour;
 
@@ -129,6 +139,7 @@ class LocaleNotifier extends ChangeNotifier {
       ?_prefService.setString(SettingsPrefKey.timeZone.key, timeZone),
       ?_prefService.setString(SettingsPrefKey.language.key, language),
     ]);
+    unawaited(AnalyticsService().setUserProperty(name: 'app_language', value: displayedLanguage));
     if (changed) notifyListeners();
   }
 }

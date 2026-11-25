@@ -3,11 +3,8 @@ import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 
 abstract class BaseDataSource {
-  HeliumException handleDioError(
-    DioException e,
-    StackTrace s, {
-    String? notFoundEntity,
-  }) => DioErrorMapper.map(e, s, notFoundEntity: notFoundEntity);
+  HeliumException handleDioError(DioException e, StackTrace s) =>
+      DioErrorMapper.map(e, s);
 
   Options? ifMatchOptions(String? version) =>
       version == null ? null : Options(headers: {'If-Match': version});

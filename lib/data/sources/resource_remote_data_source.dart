@@ -125,7 +125,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to fetch group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -187,7 +187,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to update group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -212,7 +212,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to delete group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -299,7 +299,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to fetch resource.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Resource');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -331,7 +331,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to create resource.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -363,7 +363,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to update resource.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Resource');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -391,7 +391,7 @@ class ResourceRemoteDataSourceImpl extends ResourceRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to delete resource.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Resource');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {

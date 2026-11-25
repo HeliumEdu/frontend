@@ -5,7 +5,7 @@
   "lib/presentation/core/views/base_page_screen_state.dart": 1,
   "lib/presentation/core/views/mobile_web_screen.dart": 11,
   "lib/presentation/core/views/notification_screen.dart": 7,
-  "lib/presentation/features/auth/bloc/auth_bloc.dart": 7,
+  "lib/presentation/features/auth/bloc/auth_bloc.dart": 5,
   "lib/presentation/features/auth/views/connect_screen.dart": 7,
   "lib/presentation/features/auth/views/forgot_password_screen.dart": 6,
   "lib/presentation/features/auth/views/login_screen.dart": 13,

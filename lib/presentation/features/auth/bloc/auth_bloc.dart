@@ -108,17 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthLoggedIn());
     } on HeliumException catch (e) {
-      // Show friendly message for verification errors (400/404) to avoid revealing user existence
-      if (e.httpStatusCode == 400 || e.httpStatusCode == 404) {
-        emit(
-          AuthError(
-            message:
-                'That code doesn\'t look right. Please check and try again.',
-          ),
-        );
-      } else {
-        emit(AuthError(message: e.message));
-      }
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: HeliumException.unexpectedError));
     }
@@ -532,9 +522,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.refreshToken(request);
 
       emit(AuthTokenRefreshed());
-    } on UnauthorizedException {
+    } on UnauthorizedException catch (e) {
       await dioClient.clearStorage();
-      emit(AuthUnauthenticated(message: 'Please sign in to continue.'));
+      emit(AuthUnauthenticated(message: e.message));
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,
@@ -789,7 +779,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthState _authorizationError(HeliumException e) {
     final details = e.details;
-    if (e is! ValidationException || details is! Map<String, dynamic>) {
+    if (e is! ValidationException ||
+        details is! Map<String, dynamic> ||
+        details['error'] is! String) {
       return AuthError(
         message: e.displayMessage,
         code: e.code,

@@ -141,7 +141,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to fetch class details.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Class');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -172,7 +172,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to create class.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -205,7 +205,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to update class.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Class');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -230,7 +230,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to delete class.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Class');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -301,7 +301,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to fetch group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -368,7 +368,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to update group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -393,7 +393,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to delete group.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Group');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
@@ -424,7 +424,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         throw unexpectedStatus(response, 'Failed to update exceptions.');
       }
     } on DioException catch (e, s) {
-      throw handleDioError(e, s, notFoundEntity: 'Class');
+      throw handleDioError(e, s);
     } on HeliumException {
       rethrow;
     } catch (e, s) {
