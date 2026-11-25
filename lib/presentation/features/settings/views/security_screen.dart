@@ -243,7 +243,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
           ? 'Sign in with your email and password'
           : 'Add a password to also sign in with your email',
       body: HeliumElevatedButton(
-        icon: user.hasUsablePassword ? Icons.lock_reset : Icons.lock_open,
+        icon: user.hasUsablePassword ? Icons.lock_reset : Icons.lock_open_outlined,
         buttonText: user.hasUsablePassword
             ? 'Change Password'
             : 'Set Password',
@@ -360,7 +360,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
         ),
         const SizedBox(height: 12),
         HeliumElevatedButton(
-          icon: Icons.copy,
+          icon: Icons.copy_outlined,
           buttonText: 'Copy',
           minHeight: 36,
           visualDensity: VisualDensity.standard,
@@ -382,7 +382,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       message:
           'Rotating replaces your current token, so anything using it will stop working until you give it the new one.',
       actionText: 'Rotate',
-      icon: Icons.warning_rounded,
+      icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
     _createApiToken();
@@ -400,7 +400,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       message:
           'Anything using your API token will stop working. You can generate a new one later.',
       actionText: 'Revoke',
-      icon: Icons.warning_rounded,
+      icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
 
@@ -518,7 +518,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       message:
           '${connectedApp.name} will no longer be able to reach your Helium account. You can connect it again later.',
       actionText: 'Revoke',
-      icon: Icons.warning_rounded,
+      icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
 

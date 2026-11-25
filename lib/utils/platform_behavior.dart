@@ -45,6 +45,13 @@ class PlatformBehavior {
 
   static bool get reservesStatusBarSpace => !isDesktopHost;
 
+  /// Whether the app can send the user to its App Store or Google Play page
+  /// to rate it: phones and tablets, not web or the iPad app on a Mac.
+  static bool get hasStoreListing =>
+      !kIsWeb &&
+      (hostPlatform == TargetPlatform.iOS ||
+          hostPlatform == TargetPlatform.android);
+
   static bool get usesTouchInteractions => support.hasTouchInput;
 
   /// Whether hit targets are sized for a finger rather than a pointer.
@@ -94,6 +101,15 @@ class PlatformBehavior {
   /// The iPad build on a Mac gets Tab in a text field as a typed tab
   /// character, never as a key (flutter/flutter#172635), so fields handle it.
   static bool get typesTabAsText => _isIPadAppOnMac;
+
+  /// Flutter binds the arrow keys to moving focus between controls on Apple
+  /// platforms; on the iPad build on a Mac they scroll, as they do on web.
+  static bool get scrollsOnArrowKeys => _isIPadAppOnMac;
+
+  /// flutter_quill opens a link in an editable note only on a long press
+  /// unless it treats the platform as desktop; the iPad build on a Mac opens
+  /// it on a click, as web does.
+  static bool get opensNoteLinksOnClick => _isIPadAppOnMac;
 
   /// Apple keyboards format notes with Cmd, where flutter_quill binds its
   /// shortcuts to Ctrl on every platform but macOS.

@@ -159,7 +159,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.mark_email_read,
+                Icons.mark_email_read_outlined,
                 size: Responsive.getIconSize(
                   context,
                   mobile: 60,
@@ -197,7 +197,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
             key: const Key(VerifyEmailScreen.codeField),
             hintText: 'Verification code',
             autofocus: widget.email != null && widget.code == null,
-            prefixIcon: Icons.pin,
+            prefixIcon: Icons.pin_outlined,
             controller: _codeController,
             validator: _validateCode,
             onFieldSubmitted: (value) => _onSubmit(),

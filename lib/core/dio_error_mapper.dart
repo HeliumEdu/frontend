@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:heliumapp/core/api_error_parser.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/session_health.dart';
-import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('core.dio');
@@ -13,12 +12,9 @@ class DioErrorMapper {
   static const _retryHint = 'Check your connection and try again.';
   static const _unreachableMessage = 'Couldn\'t reach Helium. $_retryHint';
   static const _timedOutMessage = 'Took too long to reach Helium. $_retryHint';
+  static const _serverErrorMessage = 'Server error. Please try again later.';
 
-  static HeliumException map(
-    DioException e,
-    StackTrace s, {
-    String? notFoundEntity,
-  }) {
+  static HeliumException map(DioException e, StackTrace s) {
     final responseData = e.response?.data;
     if (e.type == DioExceptionType.badResponse &&
         e.response?.statusCode == 412 &&
@@ -47,27 +43,10 @@ class DioErrorMapper {
             'Dio bad response received, status: $statusCode, dataType: $responseType';
         if (statusCode == 400) {
           _log.warning(summary);
-        } else {
-          _log.info(summary);
-        }
-
-        if (statusCode == 401) {
-          return UnauthorizedException(
-            message: 'Check your credentials and try again.',
-            code: '401',
-            httpStatusCode: 401,
-          );
-        } else if (statusCode == 403) {
-          return UnauthorizedException(
-            message: 'Access denied. Please sign in again.',
-            code: '403',
-            httpStatusCode: 403,
-          );
-        } else if (statusCode == 400) {
           final parsedError = ApiErrorParser.parse(responseData);
           final errorMessage = parsedError.displayMessage.isNotEmpty
               ? parsedError.displayMessage
-              : 'Unknown validation error occurred.';
+              : _serverErrorMessage;
 
           return ValidationException(
             message: errorMessage,
@@ -76,56 +55,51 @@ class DioErrorMapper {
             details: responseData,
             parsedError: parsedError,
           );
-        } else if (statusCode == 500) {
-          return ServerException(
-            message: 'Server error. Please try again later.',
-            code: '500',
-            httpStatusCode: 500,
-          );
-        } else if (statusCode == 429) {
-          return ServerException(
-            message: _tooManyRequestsMessage(e.response?.headers.value('retry-after')),
-            code: '429',
-            httpStatusCode: 429,
-          );
-        } else if (statusCode == 404) {
-          return NotFoundException(
-            message: '${notFoundEntity ?? 'Item'} not found.',
+        }
+
+        _log.info(summary);
+        final message = serverMessage(responseData) ?? _serverErrorMessage;
+        final code = switch (responseData) {
+          {'code': final String bodyCode} => bodyCode,
+          _ => statusCode.toString(),
+        };
+        return switch (statusCode) {
+          401 => UnauthorizedException(
+            message: message,
+            code: code,
+            httpStatusCode: 401,
             details: responseData,
-          );
-        } else {
-          String errorMessage =
-              e.response?.statusMessage ?? HeliumException.unexpectedError;
-          String? errorCode = statusCode.toString();
-
-          if (responseData != null) {
-            if (responseData is Map<String, dynamic>) {
-              // Look for common error message keys
-              if (responseData.containsKey('message')) {
-                errorMessage = responseData['message'].toString();
-              } else if (responseData.containsKey('error')) {
-                errorMessage = responseData['error'].toString();
-              } else if (responseData.containsKey('detail')) {
-                errorMessage = responseData['detail'].toString();
-              } else {
-                errorMessage = responseData.toString();
-              }
-              // Extract custom error code if present
-              if (responseData.containsKey('code')) {
-                errorCode = responseData['code'].toString();
-              }
-            } else if (responseData is String) {
-              errorMessage = responseData;
-            }
-          }
-
-          return ServerException(
-            message: errorMessage,
-            code: errorCode,
+          ),
+          403 => UnauthorizedException(
+            message: message,
+            code: code,
+            httpStatusCode: 403,
+            details: responseData,
+          ),
+          404 => NotFoundException(
+            message: message,
+            code: code,
+            details: responseData,
+          ),
+          429 => ServerException(
+            message: message,
+            code: code,
+            httpStatusCode: 429,
+            details: responseData,
+          ),
+          500 => ServerException(
+            message: message,
+            code: code,
+            httpStatusCode: 500,
+            details: responseData,
+          ),
+          _ => ServerException(
+            message: message,
+            code: code,
             httpStatusCode: statusCode,
             details: responseData,
-          );
-        }
+          ),
+        };
 
       case DioExceptionType.connectionError:
         _log.warning('DioException occurred, connection error', e, s);
@@ -153,17 +127,21 @@ class DioErrorMapper {
     }
   }
 
-  static String _tooManyRequestsMessage(String? retryAfter) {
-    final seconds = int.tryParse(retryAfter ?? '');
-    if (seconds == null) return 'Too many attempts. Try again later.';
-    return 'Too many attempts. Try again in '
-        '${HeliumDateTime.describeWait(Duration(seconds: seconds))}.';
+  /// The user-facing text of a Helium error body, or null when [data] isn't
+  /// one (no body, or a load balancer's page): only a JSON object is.
+  static String? serverMessage(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    for (final key in const ['message', 'error', 'detail']) {
+      if (data[key] case final String text) return text;
+    }
+    final parsed = ApiErrorParser.parse(data).displayMessage;
+    return parsed.isEmpty ? null : parsed;
   }
 
   /// Server-provided text for 4xx only, with every field error included.
   ///
-  /// A 5xx body is our own failure and is not fit to show a user, so callers
-  /// fall back to their own generic message.
+  /// For a 5xx, callers fall back to their own message, which names the
+  /// action that failed.
   static String? clientErrorMessage(DioException e) {
     final statusCode = e.response?.statusCode ?? 0;
     if (statusCode < 400 || statusCode >= 500) {

@@ -35,7 +35,7 @@ import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/config/app_route.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/deep_link_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -464,7 +464,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     columns.add(GridColumn(
       columnName: 'due',
       label: _buildHeaderCell(TodosColumn.due),
-      width: RegionalSettingsNotifier().uses24HourClock
+      width: LocaleNotifier().uses24HourClock
           ? (isSlimMobile ? 104 : isMobile ? 136 : 146)
           : TodosColumn.due.widthForLayout(
               isMobile: isMobile,

@@ -60,7 +60,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
       title: Row(
         children: [
           Icon(
-            Icons.auto_awesome,
+            Icons.auto_awesome_outlined,
             color: context.colorScheme.primary,
             size: 28.0,
           ),
@@ -90,7 +90,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                   children: [
                     _buildFeatureItem(
                       context,
-                      icon: Icons.widgets,
+                      icon: Icons.widgets_outlined,
                       title: 'Home Screen Widgets',
                       description:
                           'Add Helium to your home screen to see what\'s due this week and check off assignments without opening the app',
@@ -98,7 +98,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
-                      icon: Icons.calculate,
+                      icon: Icons.calculate_outlined,
                       title: 'Letter Grades & GPA',
                       description:
                           'Pick your school\'s grade scale to see letter grades, then add credits to your classes to track your GPA',

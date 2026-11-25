@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/presentation/features/planner/constants/reminder_constants.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -57,7 +57,7 @@ class HeliumNumber {
   static String localize(String canonical) => _usesCommaDecimal ? canonical.replaceAll('.', ',') : canonical;
 
   static bool get _usesCommaDecimal =>
-      RegionalSettingsNotifier().numberFormat == RegionalFormatConstants.numberFormatComma;
+      LocaleNotifier().numberFormat == RegionalFormatConstants.numberFormatComma;
 
   /// A locale whose decimal and grouping separators match the number format
   /// setting, so every number renders through the same intl rules.

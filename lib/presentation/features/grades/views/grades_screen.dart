@@ -780,11 +780,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 children: [
                   Icon(
                     status == 'Warming Up'
-                        ? Icons.hourglass_top
+                        ? Icons.hourglass_top_outlined
                         : status == 'All Done'
                         ? Icons.celebration_outlined
                         : status == 'Ahead'
-                        ? Icons.fast_forward
+                        ? Icons.fast_forward_outlined
                         : status == 'Behind'
                         ? Icons.warning_outlined
                         : Icons.check_circle_outline,
@@ -1088,7 +1088,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.bolt,
+                            Icons.bolt_outlined,
                             size: 12,
                             color: BadgeColors.foreground(context, displayCourse.color),
                           ),
@@ -1165,7 +1165,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 leading: Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: Icon(
-                    Icons.school,
+                    Icons.school_outlined,
                     size: 16,
                     color: courses[i].color,
                   ),
@@ -1436,7 +1436,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               child: Builder(
                 builder: (buttonContext) =>
                     IconButton.outlined(
-                      icon: const Icon(Icons.settings, semanticLabel: 'Graph settings'),
+                      icon: const Icon(Icons.settings_outlined, semanticLabel: 'Graph settings'),
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         side: BorderSide(
@@ -2018,7 +2018,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     (course) => RadioListTile<String>(
                       title: Row(
                         children: [
-                          Icon(Icons.school, size: 16,
+                          Icon(Icons.school_outlined, size: 16,
                               color: course.color),
                           const SizedBox(width: 8),
                           Expanded(

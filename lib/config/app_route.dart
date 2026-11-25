@@ -112,6 +112,12 @@ class DeepLinkParam {
   // /settings/preferences: scroll to a section (`grades`)
   static const String section = 'section';
 
+  // Planner item and class dialogs: `reminder` when a tapped reminder notification opened them
+  static const String source = 'source';
+  static const String reminderSource = 'reminder';
+
+  static bool isFromReminder(Uri uri) => uri.queryParameters[source] == reminderSource;
+
   /// Parses an entity ID param that accepts either an integer or the sentinel
   /// string `'new'`.
   ///

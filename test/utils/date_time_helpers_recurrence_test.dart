@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -317,11 +317,13 @@ void main() {
     });
 
     group('describe', () {
-      Future<void> useOrder(int dateFormat) => RegionalSettingsNotifier().update(
+      Future<void> useOrder(int dateFormat) => LocaleNotifier().update(
             weekStartsOn: 0,
             dateFormat: dateFormat,
             timeFormat: 0,
             numberFormat: 0,
+            language: 'en',
+            timeZone: 'UTC',
           );
 
       tearDown(() => useOrder(RegionalFormatConstants.dateFormatMonthDayYear));

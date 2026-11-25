@@ -562,7 +562,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           if (showDonationLink) ...[
             const SizedBox(height: 12),
 
-            const SupportHeliumCard(),
+            SupportHeliumCard(
+              showRating: !userSettings.showGettingStarted &&
+                  PlatformBehavior.hasStoreListing,
+            ),
           ],
 
           const SizedBox(height: 12),
@@ -610,17 +613,17 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                 segments: const [
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.light,
-                    icon: Icon(Icons.light_mode),
+                    icon: Icon(Icons.light_mode_outlined),
                     tooltip: 'Light',
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.dark,
-                    icon: Icon(Icons.dark_mode),
+                    icon: Icon(Icons.dark_mode_outlined),
                     tooltip: 'Dark',
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.system,
-                    icon: Icon(Icons.settings_brightness),
+                    icon: Icon(Icons.settings_brightness_outlined),
                     tooltip: 'System',
                   ),
                 ],
@@ -941,7 +944,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Icon(
-                  Icons.warning_amber_rounded,
+                  Icons.warning_amber,
                   color: context.colorScheme.error,
                   size: Responsive.getIconSize(
                     context,
@@ -1106,7 +1109,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               title: Row(
                 children: [
                   Icon(
-                    Icons.warning_amber_rounded,
+                    Icons.warning_amber,
                     color: context.colorScheme.error,
                     size: Responsive.getIconSize(
                       context,
@@ -1189,7 +1192,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       message: 'Are you sure you want to sign out?',
       actionText: 'Sign Out',
       style: ConfirmActionStyle.warning,
-      icon: Icons.logout_rounded,
+      icon: Icons.logout_outlined,
     );
     if (!confirmed || !mounted) return;
 
@@ -1234,7 +1237,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               title: Row(
                 children: [
                   Icon(
-                    Icons.warning_amber_rounded,
+                    Icons.warning_amber,
                     color: context.colorScheme.error,
                     size: Responsive.getIconSize(
                       context,

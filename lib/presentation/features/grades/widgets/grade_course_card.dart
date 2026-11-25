@@ -312,7 +312,7 @@ class _AtRiskBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.warning_amber_rounded,
+            Icons.warning_amber,
             size: Responsive.getIconSize(
               context,
               mobile: 12,

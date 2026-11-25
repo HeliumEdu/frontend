@@ -351,7 +351,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
       lastDate: DateTime(start.year + 5, start.month, start.day),
       confirmText: 'Select',
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     widget.onChanged(_current.copyWith(until: picked));
   }
 }

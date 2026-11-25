@@ -1,0 +1,39 @@
+{
+  "@@locale": "en",
+  "calendarNoEventsLabel": "Nothing to see here",
+  "@calendarNoEventsLabel": {
+    "description": "Shown in the Planner when a day has no classes, assignments, events or other items: for the date the Agenda view is showing (today unless the student moved to another date), and on phones below the selected day in the month view."
+  },
+  "calendarNoSelectedDateLabel": "Select a date to get started",
+  "@calendarNoSelectedDateLabel": {
+    "description": "Shown on phones below the Planner's month view when no day is selected. The Planner selects today on its own, so this rarely appears."
+  },
+  "mobileWebContinueOnWebButton": "Continue on web",
+  "@mobileWebContinueOnWebButton": {
+    "description": "Text button on the get-the-app screen that dismisses it and keeps the visitor in the phone's web browser."
+  },
+  "mobileWebNativeAppPitch": "The native app is faster, smoother, and designed for your phone.",
+  "@mobileWebNativeAppPitch": {
+    "description": "Subtitle on the screen shown to phone browser visitors, encouraging them to install the iOS or Android app instead of using the website."
+  },
+  "noteLinkTextLabel": "Link text",
+  "@noteLinkTextLabel": {
+    "description": "Label of the field for the visible text of a link, in the dialog that adds a link to a note."
+  },
+  "noteLinkUrlLabel": "Link URL",
+  "@noteLinkUrlLabel": {
+    "description": "Label of the field for the web address of a link, in the dialog that adds a link to a note."
+  },
+  "preferencesLanguageLabel": "Language",
+  "@preferencesLanguageLabel": {
+    "description": "Label of the Settings dropdown that picks the account's language, next to the time zone: the app's language on every device, and the language of emails and notifications."
+  },
+  "supportHeliumRateTitle": "Rate Helium",
+  "@supportHeliumRateTitle": {
+    "description": "Title of the row on the Keep Helium Free card in Settings that opens Helium's App Store or Google Play listing so the student can rate it. \"Helium\" is the app's name."
+  },
+  "supportHeliumRateHint": "Helps other students find Helium.",
+  "@supportHeliumRateHint": {
+    "description": "Hint under \"Rate Helium\" on the Keep Helium Free card in Settings: why a rating matters."
+  }
+}

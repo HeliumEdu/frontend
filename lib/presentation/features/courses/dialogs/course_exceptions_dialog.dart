@@ -181,7 +181,7 @@ class _CourseExceptionsDialogState
       confirmText: 'Select',
       selectableDayPredicate: (date) => _isSelectable(cancelled, date),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
     final dateOnly = HeliumDateTime.dateOnly(picked);
     _formController.markChanged();

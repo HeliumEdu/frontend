@@ -203,7 +203,7 @@ class _CopyableSnackBarContentState extends State<_CopyableSnackBarContent> {
                     Padding(
                       padding: const EdgeInsets.only(left: 12),
                       child: Icon(
-                        Icons.assignment_turned_in,
+                        Icons.assignment_turned_in_outlined,
                         size: 18,
                         color: widget.foregroundColor,
                         semanticLabel: 'Copied to clipboard',

@@ -26,7 +26,7 @@ class SettingsButton extends StatelessWidget {
         context.push('$shellPath${AppRoute.settingScreen}');
       },
       icon: Icon(
-        Icons.settings_outlined,
+        Icons.settings,
         color: context.colorScheme.primary,
       ),
       tooltip: 'Settings',

@@ -9,6 +9,7 @@ import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 enum NotesEditorLayout {
@@ -164,7 +165,18 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
   bool get _isEmbedded => widget.layout == NotesEditorLayout.embedded;
 
   void _toggleSearch() {
-    setState(() => _showSearch = !_showSearch);
+    if (_showSearch) {
+      _closeSearch();
+    } else {
+      setState(() => _showSearch = true);
+    }
+  }
+
+  void _closeSearch() {
+    setState(() => _showSearch = false);
+    if (!PlatformBehavior.usesTouchInteractions) {
+      widget.focusNode?.requestFocus();
+    }
   }
 
   @override
@@ -452,7 +464,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                   padding: EdgeInsets.only(bottom: bottomInset),
                   child: QuillSearchBar(
                     controller: widget.controller,
-                    onClose: () => setState(() => _showSearch = false),
+                    onClose: _closeSearch,
                   ),
                 ),
             ],

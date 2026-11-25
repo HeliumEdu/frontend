@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -127,12 +128,15 @@ class PlannerItemAddScreen extends MultiStepContainer {
 
   final DateTime? occurrenceStart;
 
+  final bool openedFromReminder;
+
   PlannerItemAddScreen({
     super.key,
     required super.shellPath,
     required this.isHomework,
     required super.isNew,
     required this.initialFullPath,
+    this.openedFromReminder = false,
     this.entityId,
     this.initialStepName = 'details',
     this.initialDate,
@@ -156,6 +160,7 @@ class _PlannerItemAddScreenState
     extends MultiStepContainerState<PlannerItemAddScreen> {
   final _detailsKey = GlobalKey<PlannerItemDetailsState>();
   bool _dataLoaded = false;
+  bool _deleted = false;
   final _attachmentsKey = GlobalKey<BaseAttachmentsState>();
 
   int? _currentEntityId;
@@ -195,6 +200,14 @@ class _PlannerItemAddScreenState
       DirtyDialogRegistry.unregister(_registeredPrefix!);
     }
     super.dispose();
+  }
+
+  @override
+  void closeWithoutPrompt() {
+    super.closeWithoutPrompt();
+    if (widget.openedFromReminder && _dataLoaded && !_deleted && !isReopening) {
+      FeedbackService().scheduleReviewRequestAfterReminderClose();
+    }
   }
 
   /// Registers this dialog with the dirty-dialog guard so URL-driven
@@ -514,6 +527,7 @@ class _PlannerItemAddScreenState
               '${state is EventDeleted ? 'Event' : 'Assignment'} deleted.',
               useRootMessenger: true,
             );
+            _deleted = true;
             closeWithoutPrompt();
           } else if ((state is HomeworkCreated ||
                   state is HomeworkUpdated ||

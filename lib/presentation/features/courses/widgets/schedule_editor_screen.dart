@@ -683,26 +683,26 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
-    if (pickedTime != null) {
-      _formController.markChanged();
-      setState(() {
-        if (isStart) {
-          _cycleStartTimes[day] = pickedTime;
-          final end = _cycleEndTimes[day];
-          if (end != null) {
-            _cycleEndTimes[day] =
-                DateRangeEnforcer.adjustEndTime(pickedTime, end);
-          }
-        } else {
-          _cycleEndTimes[day] = pickedTime;
-          final start = _cycleStartTimes[day];
-          if (start != null) {
-            _cycleStartTimes[day] =
-                DateRangeEnforcer.adjustStartTime(start, pickedTime);
-          }
+    if (pickedTime == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() {
+      if (isStart) {
+        _cycleStartTimes[day] = pickedTime;
+        final end = _cycleEndTimes[day];
+        if (end != null) {
+          _cycleEndTimes[day] =
+              DateRangeEnforcer.adjustEndTime(pickedTime, end);
         }
-      });
-    }
+      } else {
+        _cycleEndTimes[day] = pickedTime;
+        final start = _cycleStartTimes[day];
+        if (start != null) {
+          _cycleStartTimes[day] =
+              DateRangeEnforcer.adjustStartTime(start, pickedTime);
+        }
+      }
+    });
   }
 
   Widget _buildWeekBasedConfig(BuildContext context, Color scaffoldBgColor) {
@@ -823,10 +823,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       lastDate: lastDate,
       confirmText: 'Select',
     );
-    if (pickedDate != null) {
-      _formController.markChanged();
-      setState(() => _anchorDate = pickedDate);
-    }
+    if (pickedDate == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() => _anchorDate = pickedDate);
   }
 
   Widget _buildDatesOverride(BuildContext context, Color scaffoldBgColor) {
@@ -963,24 +963,24 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
-    if (pickedTime != null) {
-      _formController.markChanged();
-      setState(() {
-        if (isStartTime) {
-          _startTimes[dayIndex] = pickedTime;
-          if (_endTimes[dayIndex] != null) {
-            _endTimes[dayIndex] =
-                DateRangeEnforcer.adjustEndTime(pickedTime, _endTimes[dayIndex]!);
-          }
-        } else {
-          _endTimes[dayIndex] = pickedTime;
-          if (_startTimes[dayIndex] != null) {
-            _startTimes[dayIndex] =
-                DateRangeEnforcer.adjustStartTime(_startTimes[dayIndex]!, pickedTime);
-          }
+    if (pickedTime == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() {
+      if (isStartTime) {
+        _startTimes[dayIndex] = pickedTime;
+        if (_endTimes[dayIndex] != null) {
+          _endTimes[dayIndex] =
+              DateRangeEnforcer.adjustEndTime(pickedTime, _endTimes[dayIndex]!);
         }
-      });
-    }
+      } else {
+        _endTimes[dayIndex] = pickedTime;
+        if (_startTimes[dayIndex] != null) {
+          _startTimes[dayIndex] =
+              DateRangeEnforcer.adjustStartTime(_startTimes[dayIndex]!, pickedTime);
+        }
+      }
+    });
   }
 
   Future<void> _selectSingleTime(bool isStartTime) async {
@@ -990,18 +990,18 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
       confirmText: 'Select',
     );
-    if (pickedTime != null) {
-      _formController.markChanged();
-      setState(() {
-        if (isStartTime) {
-          _singleStartTime = pickedTime;
-          _singleEndTime = DateRangeEnforcer.adjustEndTime(pickedTime, _singleEndTime);
-        } else {
-          _singleEndTime = pickedTime;
-          _singleStartTime = DateRangeEnforcer.adjustStartTime(_singleStartTime, pickedTime);
-        }
-      });
-    }
+    if (pickedTime == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() {
+      if (isStartTime) {
+        _singleStartTime = pickedTime;
+        _singleEndTime = DateRangeEnforcer.adjustEndTime(pickedTime, _singleEndTime);
+      } else {
+        _singleEndTime = pickedTime;
+        _singleStartTime = DateRangeEnforcer.adjustStartTime(_singleStartTime, pickedTime);
+      }
+    });
   }
 
   String _generateDaysOfWeek() {
@@ -1049,23 +1049,23 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       lastDate: courseEnd,
       confirmText: 'Select',
     );
-    if (pickedDate != null) {
-      _formController.markChanged();
-      setState(() {
-        if (isStart) {
-          _startDate = pickedDate;
-          if (_endDate != null) {
-            _endDate = DateRangeEnforcer.adjustEndDate(pickedDate, _endDate!);
-          }
-        } else {
-          _endDate = pickedDate;
-          if (_startDate != null) {
-            _startDate =
-                DateRangeEnforcer.adjustStartDate(_startDate!, pickedDate);
-          }
+    if (pickedDate == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() {
+      if (isStart) {
+        _startDate = pickedDate;
+        if (_endDate != null) {
+          _endDate = DateRangeEnforcer.adjustEndDate(pickedDate, _endDate!);
         }
-      });
-    }
+      } else {
+        _endDate = pickedDate;
+        if (_startDate != null) {
+          _startDate =
+              DateRangeEnforcer.adjustStartDate(_startDate!, pickedDate);
+        }
+      }
+    });
   }
 
   CourseScheduleRequestModel _buildRequest() {

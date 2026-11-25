@@ -27,8 +27,8 @@ class AppConstants {
 
   static const assignmentIcon = Icons.assignment_outlined;
   static const eventIcon = Icons.event_outlined;
-  static const courseScheduleIcon = Icons.school;
-  static const externalCalendarIcon = Icons.hub;
+  static const courseScheduleIcon = Icons.school_outlined;
+  static const externalCalendarIcon = Icons.hub_outlined;
 
   static const uiAnimationDuration = Duration(milliseconds: 300);
   static const completionToggleDebounce = Duration(milliseconds: 400);

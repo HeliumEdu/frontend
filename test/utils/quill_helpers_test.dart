@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -244,6 +245,38 @@ void main() {
 
       // THEN
       expect(typed, isTrue);
+    });
+  });
+
+  group('clickToOpenNoteLink', () {
+    test('formatting attributes that are not links get no recognizer', () {
+      // GIVEN
+      final leaf = QuillText('Text');
+
+      // WHEN
+      final bold = clickToOpenNoteLink(Attribute.bold, leaf);
+      final heading = clickToOpenNoteLink(Attribute.h1, leaf);
+      final list = clickToOpenNoteLink(Attribute.ul, leaf);
+
+      // THEN
+      expect(bold, isNull);
+      expect(heading, isNull);
+      expect(list, isNull);
+    });
+
+    test('a link opens on a tap', () {
+      // GIVEN
+      final leaf = QuillText('Helium');
+
+      // WHEN
+      final recognizer = clickToOpenNoteLink(
+        const LinkAttribute('https://www.heliumedu.com'),
+        leaf,
+      );
+
+      // THEN
+      expect(recognizer, isA<TapGestureRecognizer>());
+      recognizer!.dispose();
     });
   });
 }

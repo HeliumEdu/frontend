@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +61,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
   String? _selectedFileName;
   Uint8List? _selectedFileBytes;
+  String? _importedFileName;
   bool _isImporting = false;
   bool _isExporting = false;
   bool _isImportingExample = false;
@@ -70,8 +72,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   _ImportTarget? _selectedTarget;
   bool _isLoadingTargets = false;
 
-  bool get _selectedIsIcs =>
-      _selectedFileName?.toLowerCase().endsWith('.ics') ?? false;
+  bool get _selectedIsIcs => _isIcsFileName(_importedFileName);
 
   @override
   Widget build(BuildContext context) {
@@ -431,10 +432,15 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     if (result.cancelled || result.files.isEmpty) return;
 
     final file = result.files.first;
-    final isIcs = file.name.toLowerCase().endsWith('.ics');
-    final contentError = isIcs
-        ? _validateIcsFile(file.bytes)
-        : _validateJsonFile(file.bytes);
+    final isArchive = file.name.toLowerCase().endsWith('.zip');
+    final importedFileName =
+        isArchive ? _archivedFileName(file.bytes) : file.name;
+    final isIcs = _isIcsFileName(importedFileName);
+    final contentError = isArchive
+        ? null
+        : isIcs
+            ? _validateIcsFile(file.bytes)
+            : _validateJsonFile(file.bytes);
     if (contentError != null) {
       SnackBarHelper.show(context, contentError, type: SnackType.error);
       return;
@@ -443,6 +449,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     setState(() {
       _selectedFileName = file.name;
       _selectedFileBytes = file.bytes;
+      _importedFileName = importedFileName;
       // A JSON file imports its own groups unless another destination is chosen.
       _selectedTarget = isIcs
           ? null
@@ -452,6 +459,28 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     });
 
     await _loadImportTargets();
+  }
+
+  bool _isIcsFileName(String? name) =>
+      name?.toLowerCase().endsWith('.ics') ?? false;
+
+  String? _archivedFileName(Uint8List bytes) {
+    final Archive archive;
+    try {
+      archive = ZipDecoder().decodeBytes(bytes);
+    } catch (_) {
+      return null;
+    }
+    final names = archive.files
+        .where((entry) => entry.isFile)
+        .map((entry) => entry.name)
+        .where(
+          (name) =>
+              !name.startsWith('__MACOSX/') &&
+              !name.split('/').last.startsWith('._'),
+        )
+        .toList();
+    return names.length == 1 ? names.single : null;
   }
 
   String? _validateJsonFile(Uint8List bytes) {

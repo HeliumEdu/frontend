@@ -86,7 +86,7 @@ class PlannerItemMetaRow extends StatelessWidget {
     if (_linkedNoteId(item) != null) {
       entries.add(
         _MetaEntry.iconOnly(
-          icon: Icons.library_books,
+          icon: Icons.library_books_outlined,
           color: context.colorScheme.primary,
           action: onOpenInNotebook == null
               ? null

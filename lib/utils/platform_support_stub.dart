@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('utils');
@@ -13,6 +14,40 @@ bool _isIOSAppOnMac = false;
 
 Future<void> initialize() async {
   await _detectIOSAppOnMac();
+  if (_isIOSAppOnMac) _channel.setMethodCallHandler(_onNativeCall);
+}
+
+Future<void> _onNativeCall(MethodCall call) async {
+  switch (call.method) {
+    case 'escapePressed':
+      _deliverEscape();
+    default:
+      throw MissingPluginException(call.method);
+  }
+}
+
+void _deliverEscape() {
+  const events = [
+    KeyDownEvent(
+      physicalKey: PhysicalKeyboardKey.escape,
+      logicalKey: LogicalKeyboardKey.escape,
+      timeStamp: Duration.zero,
+    ),
+    KeyUpEvent(
+      physicalKey: PhysicalKeyboardKey.escape,
+      logicalKey: LogicalKeyboardKey.escape,
+      timeStamp: Duration.zero,
+    ),
+  ];
+  for (final event in events) {
+    final focus = FocusManager.instance.primaryFocus;
+    if (focus == null) return;
+    for (final node in [focus, ...focus.ancestors]) {
+      final result =
+          node.onKeyEvent?.call(node, event) ?? KeyEventResult.ignored;
+      if (result != KeyEventResult.ignored) break;
+    }
+  }
 }
 
 Future<void> _detectIOSAppOnMac() async {

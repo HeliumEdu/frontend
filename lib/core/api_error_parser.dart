@@ -33,8 +33,12 @@ class ApiErrorParser {
   ///
   /// The [responseData] can be:
   /// - A Map with field names as keys and error messages as values
-  /// - A List of error strings
+  /// - A List of error messages
   /// - A String error message
+  ///
+  /// Field and list messages are `{"message", "code"}` objects, and a
+  /// `{"detail"}` body carries its `code` alongside; plain strings come from a
+  /// platform that predates error codes.
   static ParsedApiError parse(dynamic responseData) {
     final fieldErrors = <String, List<String>>{};
     final generalErrors = <String>[];
@@ -61,13 +65,16 @@ class ApiErrorParser {
     List<String> displayMessages,
   ) {
     data.forEach((key, value) {
+      if (key == 'code' && data.containsKey('detail')) return;
+
+      final message = value is String ? value : _messageOf(value);
       if (value is List) {
         final messages = value.expand<String>(_flatten).toList();
         fieldErrors[key] = messages;
         displayMessages.addAll(messages);
-      } else if (value is String) {
-        fieldErrors[key] = [value];
-        displayMessages.add(value);
+      } else if (message != null) {
+        fieldErrors[key] = [message];
+        displayMessages.add(message);
       } else {
         final messages = _flatten(value, key);
         fieldErrors[key] = messages;
@@ -79,6 +86,11 @@ class ApiErrorParser {
   /// Flattens nested DRF errors (`{"courses": {"1": {"start_date": [...]}}}`)
   /// into lines; without this they reach the user as a raw Dart map.
   static List<String> _flatten(dynamic value, [String prefix = '']) {
+    final message = _messageOf(value);
+    if (message != null) {
+      return [prefix.isEmpty ? message : '$prefix: $message'];
+    }
+
     if (value is Map) {
       final lines = <String>[];
       value.forEach((key, nested) {
@@ -102,26 +114,31 @@ class ApiErrorParser {
     List<String> displayMessages,
   ) {
     for (final item in data) {
-      if (item is Map<String, dynamic>) {
-        _parseMap(item, fieldErrors, displayMessages);
-      } else if (item is String) {
-        final match = _fieldPrefixPattern.firstMatch(item.trim());
+      final message = _messageOf(item) ?? item;
+      if (message is Map<String, dynamic>) {
+        _parseMap(message, fieldErrors, displayMessages);
+      } else if (message is String) {
+        final match = _fieldPrefixPattern.firstMatch(message.trim());
         if (match != null) {
           final field = match.group(1)!;
           final errorMsg = match.group(2)!;
           fieldErrors.putIfAbsent(field, () => []).add(errorMsg);
           displayMessages.add(errorMsg);
         } else {
-          generalErrors.add(item.trim());
-          displayMessages.add(item.trim());
+          generalErrors.add(message.trim());
+          displayMessages.add(message.trim());
         }
       } else {
-        final message = item.toString();
-        generalErrors.add(message);
-        displayMessages.add(message);
+        generalErrors.add(message.toString());
+        displayMessages.add(message.toString());
       }
     }
   }
+
+  static String? _messageOf(dynamic value) =>
+      value is Map && value.length == 2 && value['message'] is String && value.containsKey('code')
+          ? value['message'] as String
+          : null;
 
   static void _parseRawMessage(
     String message,

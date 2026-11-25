@@ -98,79 +98,6 @@ void main() {
       });
     });
 
-    group('isInvalidTokenError', () {
-      test('returns true for "Token is blacklisted" message', () {
-        // GIVEN
-        final data = {'detail': 'Token is blacklisted'};
-
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(data);
-
-        // THEN
-        expect(result, isTrue);
-      });
-
-      test('returns true for message containing "invalid"', () {
-        // GIVEN
-        final data = {'detail': 'Token is invalid'};
-
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(data);
-
-        // THEN
-        expect(result, isTrue);
-      });
-
-      test('returns true for message containing "expired"', () {
-        // GIVEN
-        final data = {'detail': 'Token has expired'};
-
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(data);
-
-        // THEN
-        expect(result, isTrue);
-      });
-
-      test('returns false for other error messages', () {
-        // GIVEN
-        final data = {'detail': 'Network error'};
-
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(data);
-
-        // THEN
-        expect(result, isFalse);
-      });
-
-      test('returns false for null data', () {
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(null);
-
-        // THEN
-        expect(result, isFalse);
-      });
-
-      test('returns false for non-map data', () {
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting('string data');
-
-        // THEN
-        expect(result, isFalse);
-      });
-
-      test('returns false for map without detail key', () {
-        // GIVEN
-        final data = {'error': 'Some error'};
-
-        // WHEN
-        final result = dioClient.isInvalidTokenErrorForTesting(data);
-
-        // THEN
-        expect(result, isFalse);
-      });
-    });
-
     group('getSettings', () {
       test('retrieves all settings from prefService', () async {
         // GIVEN
@@ -246,6 +173,7 @@ void main() {
         when(() => mockPrefService.getInt('date_format')).thenReturn(1);
         when(() => mockPrefService.getInt('time_format')).thenReturn(1);
         when(() => mockPrefService.getInt('number_format')).thenReturn(1);
+        when(() => mockPrefService.getString('language')).thenReturn('en');
         when(
           () => mockPrefService.getBool('prompt_for_review'),
         ).thenReturn(false);

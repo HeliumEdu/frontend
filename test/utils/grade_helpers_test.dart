@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heliumapp/config/regional_settings_notifier.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 import 'package:heliumapp/utils/grade_scale_constants.dart';
@@ -7,14 +7,16 @@ import 'package:heliumapp/utils/grade_scale_constants.dart';
 void main() {
   group('GradeHelper', () {
     group('regional number format', () {
-      tearDown(() => RegionalSettingsNotifier().update(weekStartsOn: 0, dateFormat: 0, timeFormat: 0, numberFormat: 0));
+      tearDown(() => LocaleNotifier().update(weekStartsOn: 0, dateFormat: 0, timeFormat: 0, numberFormat: 0, language: 'en', timeZone: 'UTC'));
 
       test('grades and weights display with a comma separator', () async {
-        await RegionalSettingsNotifier().update(
+        await LocaleNotifier().update(
           weekStartsOn: 0,
           dateFormat: 0,
           timeFormat: 0,
           numberFormat: RegionalFormatConstants.numberFormatComma,
+          language: 'en',
+          timeZone: 'UTC',
         );
         expect(GradeHelper.gradeForDisplay('85.5/100'), '85,50%');
         expect(GradeHelper.percentForDisplay('12.5', false), '12,5%');

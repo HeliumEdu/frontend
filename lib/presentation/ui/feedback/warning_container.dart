@@ -37,7 +37,7 @@ class WarningContainer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  icon ?? Icons.warning_amber_rounded,
+                  icon ?? Icons.warning_amber,
                   color: warningColor,
                   size: Responsive.getIconSize(
                     context,

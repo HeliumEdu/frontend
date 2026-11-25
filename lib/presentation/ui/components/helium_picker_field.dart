@@ -25,7 +25,7 @@ class HeliumDateField extends StatelessWidget {
     return _PickerFieldBox(
       label: label,
       valueText: date != null ? HeliumDateTime.formatDate(date!) : '',
-      icon: Icons.calendar_today,
+      icon: Icons.calendar_today_outlined,
       backgroundColor: backgroundColor,
       onTap: onTap,
     );

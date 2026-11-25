@@ -143,14 +143,9 @@ void initializeRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoute.setupAccountScreen,
         pageBuilder: (context, state) {
-          final autoDetectTimeZone =
-              state.uri.queryParameters['auto_detect_tz'] == 'true';
           final next = NextRoute.read(state.uri.queryParameters);
           return MaterialPage(
-            child: SetupAccountScreen(
-              autoDetectTimeZone: autoDetectTimeZone,
-              next: next,
-            ),
+            child: SetupAccountScreen(next: next),
           );
         },
       ),
@@ -469,6 +464,7 @@ Page<dynamic> _courseDialogPage(
       courseGroupId: courseGroupId,
       initialStepName: stepParam,
       initialFullPath: state.uri.toString(),
+      openedFromReminder: DeepLinkParam.isFromReminder(state.uri),
     ),
     width: useCompact
         ? double.infinity
@@ -797,6 +793,7 @@ Page<dynamic> _plannerItemDialogPage(
       isNew: parsedId.isNew,
       initialStepName: stepParam,
       initialFullPath: state.uri.toString(),
+      openedFromReminder: DeepLinkParam.isFromReminder(state.uri),
       initialDate: dialogExtra?.initialDate,
       isFromMonthView: dialogExtra?.isFromMonthView ?? false,
       occurrenceStart: dialogExtra?.occurrenceStart,

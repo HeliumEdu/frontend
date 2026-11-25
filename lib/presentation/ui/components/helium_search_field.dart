@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -33,6 +34,15 @@ class HeliumSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      onKeyEvent: _clearOnEscape,
+      child: _buildField(context),
+    );
+  }
+
+  Widget _buildField(BuildContext context) {
     return SizedBox(
       height: _height,
       child: TextField(
@@ -92,6 +102,16 @@ class HeliumSearchField extends StatelessWidget {
         ?trailing,
       ],
     );
+  }
+
+  KeyEventResult _clearOnEscape(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.escape ||
+        controller.text.isEmpty) {
+      return KeyEventResult.ignored;
+    }
+    _clear();
+    return KeyEventResult.handled;
   }
 
   void _clear() {

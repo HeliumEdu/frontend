@@ -150,7 +150,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
                         if (!item.shownOnCalendar!) ...[
                           const SizedBox(width: 8),
                           Icon(
-                            Icons.visibility_off,
+                            Icons.visibility_off_outlined,
                             size: 18,
                             color: context.colorScheme.primary,
                           ),

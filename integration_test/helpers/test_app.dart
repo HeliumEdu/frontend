@@ -768,13 +768,13 @@ void expectBrowserTitleExact(String expectedTitle) {
 
 /// Assert we're on the Planner screen.
 /// Verifies: Today button (icon), Filter/Menu icon, Search icon, and FAB are shown.
-/// [isMobile] - when true, expects menu_open icon instead of filter_alt and search icons.
+/// [isMobile] - when true, expects menu_open icon instead of filter_alt_outlined and search icons.
 void expectOnPlannerScreen({bool isMobile = false}) {
   // Use icon instead of text - text is hidden on mobile
   expect(
-    find.byIcon(Icons.calendar_today),
+    find.byIcon(Icons.calendar_today_outlined),
     findsOneWidget,
-    reason: 'Planner: Today button (calendar_today icon) should be shown',
+    reason: 'Planner: Today button (calendar_today_outlined icon) should be shown',
   );
   if (isMobile) {
     // On mobile, today button is icon-only (no text label)
@@ -791,7 +791,7 @@ void expectOnPlannerScreen({bool isMobile = false}) {
       reason: 'Planner: Today button should show text label on desktop',
     );
     expect(
-      find.byIcon(Icons.filter_alt),
+      find.byIcon(Icons.filter_alt_outlined),
       findsOneWidget,
       reason: 'Planner: Filter icon should be shown on desktop',
     );

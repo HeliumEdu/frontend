@@ -353,24 +353,24 @@ class _CourseGroupWidgetState
       confirmText: 'Select',
     );
 
-    if (picked != null) {
-      _formController.markChanged();
-      setState(() {
-        if (isStartDate) {
-          _formController.startDate = picked;
-          _formController.endDate = DateRangeEnforcer.adjustEndDate(
-            picked,
-            _formController.endDate!,
-          );
-        } else {
-          _formController.endDate = picked;
-          _formController.startDate = DateRangeEnforcer.adjustStartDate(
-            _formController.startDate!,
-            picked,
-          );
-        }
-      });
-    }
+    if (picked == null || !mounted) return;
+
+    _formController.markChanged();
+    setState(() {
+      if (isStartDate) {
+        _formController.startDate = picked;
+        _formController.endDate = DateRangeEnforcer.adjustEndDate(
+          picked,
+          _formController.endDate!,
+        );
+      } else {
+        _formController.endDate = picked;
+        _formController.startDate = DateRangeEnforcer.adjustStartDate(
+          _formController.startDate!,
+          picked,
+        );
+      }
+    });
   }
 }
 

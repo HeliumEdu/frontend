@@ -455,7 +455,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                   const SizedBox(height: 12),
                   RevealOnMount(
                     key: ValueKey(_validationErrorMessage),
-                    child: ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber_rounded),
+                    child: ErrorContainer(text: _validationErrorMessage!, icon: Icons.warning_amber),
                   ),
                 ] else if (_result != null) ...[
                   const SizedBox(height: 12),
@@ -482,7 +482,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     if (result.isAchievable) return SuccessContainer(text: _buildResultMessage(result));
     return result.state == NeededGradeState.unachievable || result.state == NeededGradeState.gpaUnreachable
         ? WarningContainer(text: _buildResultMessage(result))
-        : ErrorContainer(text: _buildResultMessage(result), icon: Icons.warning_amber_rounded);
+        : ErrorContainer(text: _buildResultMessage(result), icon: Icons.warning_amber);
   }
 
   void _onTargetChanged(int? value) {

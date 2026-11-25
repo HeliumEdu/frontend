@@ -199,7 +199,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
               ? [
                   IconButton(
                     icon: Icon(
-                      Icons.share,
+                      Icons.share_outlined,
                       color: context.colorScheme.primary,
                     ),
                     tooltip: 'Share',
@@ -213,7 +213,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                   _TrailingActionSlot(
                     child: IconButton(
                       icon: Icon(
-                        Icons.print,
+                        Icons.print_outlined,
                         color: context.colorScheme.primary,
                       ),
                       tooltip: 'Print',
@@ -348,7 +348,7 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
           title: Text(widget.title.isNotEmpty ? widget.title : 'Preview'),
           actions: [
             IconButton(
-              icon: Icon(Icons.share, color: context.colorScheme.primary),
+              icon: Icon(Icons.share_outlined, color: context.colorScheme.primary),
               tooltip: 'Share',
               onPressed: () async {
                 final bytes = await _buildPdf(_pageFormat);
@@ -360,7 +360,7 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
             ),
             _TrailingActionSlot(
               child: IconButton(
-                icon: Icon(Icons.print, color: context.colorScheme.primary),
+                icon: Icon(Icons.print_outlined, color: context.colorScheme.primary),
                 tooltip: 'Print',
                 onPressed: () async {
                   await Printing.layoutPdf(

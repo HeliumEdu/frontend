@@ -30,7 +30,6 @@ class QuillSearchBar extends StatefulWidget {
 class _QuillSearchBarState extends State<QuillSearchBar> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  final FocusNode _keyboardListenerFocusNode = FocusNode();
 
   String _searchText = '';
   List<int> _offsets = [];
@@ -52,7 +51,6 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
   void dispose() {
     _textController.dispose();
     _searchFocusNode.dispose();
-    _keyboardListenerFocusNode.dispose();
     _searchTimer?.cancel();
     super.dispose();
   }
@@ -153,6 +151,16 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
     _moveToPosition();
   }
 
+  KeyEventResult _closeOnEscape(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.escape) {
+      return KeyEventResult.ignored;
+    }
+    _clearSelection();
+    widget.onClose();
+    return KeyEventResult.handled;
+  }
+
   String get _matchText {
     if (_searchText.isEmpty) return '';
     if (_offsets.isEmpty) return '0/0';
@@ -161,15 +169,10 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: _keyboardListenerFocusNode,
-      onKeyEvent: (event) {
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.escape) {
-          _clearSelection();
-          widget.onClose();
-        }
-      },
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      onKeyEvent: _closeOnEscape,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
