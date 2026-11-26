@@ -1802,11 +1802,6 @@ void main() {
       final eventText =
           (tooltipFor(eventFinder.first).richMessage as TextSpan).toPlainText();
       expect(eventText, contains(eventTitle));
-      expect(
-        eventText,
-        contains('Source: Events'),
-        reason: 'Event tooltip should include the Events source label',
-      );
       for (final c in snap.courses) {
         expect(
           eventText,

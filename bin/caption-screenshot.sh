@@ -70,8 +70,8 @@ trap 'rm -f "$heading_png" "$subline_png" "$text_png" "$rendered_png"' EXIT
 # caption block, and the device under it, sits at the same height.
 render_text() {
   local font="$1" size="$2" text="$3" out_png="$4"
-  magick -background none -fill "$TEXT_COLOR" -font "$font" -pointsize "$size" \
-    -size "${text_width}x" -gravity center caption:"$text" "$out_png"
+  printf '%s' "$text" | magick -background none -fill "$TEXT_COLOR" -font "$font" -pointsize "$size" \
+    -size "${text_width}x" -gravity center caption:@- "$out_png"
   local line_height
   line_height=$(magick -background none -font "$font" -pointsize "$size" label:"Hg" -format "%h" info:)
   if (( $(magick identify -format "%h" "$out_png") > line_height )); then
