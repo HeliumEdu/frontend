@@ -39,7 +39,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         _log.info('... PushToken ${pushToken.id} registered');
         return pushToken;
       } else {
-        throw unexpectedStatus(response, 'Failed to register push token.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -47,7 +47,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -62,10 +62,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       if (response.statusCode == 204) {
         _log.info('... PushToken $tokenId deleted');
       } else {
-        final message = response.data is Map<String, dynamic>
-            ? (response.data['detail'] ?? 'Failed to delete push token')
-            : 'Failed to delete push token';
-        throw unexpectedStatus(response, message);
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -73,7 +70,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -91,7 +88,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
         _log.info('... fetched ${tokens.length} PushToken(s)');
         return tokens;
       } else {
-        throw unexpectedStatus(response, 'Failed to retrieve push tokens.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -99,7 +96,7 @@ class PushTokenRemoteDataSourceImpl extends PushNotificationRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

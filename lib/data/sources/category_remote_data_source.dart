@@ -83,7 +83,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         _log.info('... fetched ${categories.length} Category(ies)');
         return categories;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch categories.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -91,7 +91,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -122,7 +122,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         ));
         return category;
       } else {
-        throw unexpectedStatus(response, 'Failed to create category.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -130,7 +130,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -160,7 +160,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CategoryModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update category.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -168,7 +168,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -189,7 +189,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw unexpectedStatus(response, 'Failed to delete category.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -197,7 +197,7 @@ class CategoryRemoteDataSourceImpl extends CategoryRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

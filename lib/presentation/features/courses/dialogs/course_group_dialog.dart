@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_group_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -49,7 +50,7 @@ class _CourseGroupWidgetState
   final CourseGroupFormController _formController = CourseGroupFormController();
 
   @override
-  String get dialogTitle => 'Group';
+  String get dialogTitle => AppLocalizations.of(context).courseGroupDialogTitle;
 
   @override
   double get desktopWidth => 370;
@@ -137,7 +138,7 @@ class _CourseGroupWidgetState
             final group = state.courseGroups
                 .firstWhereOrNull((g) => g.id == widget.group!.id);
             setState(() {
-              if (group == null) errorMessage = 'Group not found.';
+              if (group == null) errorMessage = AppLocalizations.of(context).courseGroupNotFoundMessage;
               _populateScreenData(group ?? widget.group!);
               isLoading = false;
             });
@@ -171,7 +172,7 @@ class _CourseGroupWidgetState
             item: widget.group!,
             label: widget.group!.title,
             additionalWarning:
-                'Anything in this group, including classes and their assignments, attachments, notes, and other data, will also be deleted.',
+                AppLocalizations.of(context).courseGroupDeleteWarning,
             onDelete: (value) {
               setState(() => isSubmitting = true);
               context.read<CourseBloc>().add(
@@ -185,7 +186,7 @@ class _CourseGroupWidgetState
         },
         icon: Icons.delete_outlined,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
     ];
@@ -196,7 +197,7 @@ class _CourseGroupWidgetState
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: HeliumElevatedButton(
-        buttonText: 'Holidays & Breaks',
+        buttonText: AppLocalizations.of(context).courseGroupHolidaysTitle,
         backgroundColor: context.colorScheme.onSurfaceVariant,
         enabled: !isLoading && !isSubmitting,
         onPressed: _showHolidaysAndBreaks,
@@ -223,7 +224,7 @@ class _CourseGroupWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LabelAndTextFormField(
-          label: 'Title',
+          label: AppLocalizations.of(context).courseGroupTitleLabel,
           autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
@@ -245,7 +246,7 @@ class _CourseGroupWidgetState
             Expanded(
               child: HeliumCheckboxListTile(
                 title: Text(
-                  "Hide this group's classes and assignments from the Planner and Resources",
+                  AppLocalizations.of(context).courseGroupHideLabel,
                   style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,
@@ -279,7 +280,7 @@ class _CourseGroupWidgetState
         if (_formController.customGradeScale.isNotEmpty)
           GradeScaleField.option(
             id: GradeScaleTemplate.custom,
-            label: GradeScaleTemplate.summaryLabel(GradeScaleTemplate.custom),
+            label: GradeScaleTemplate.labelFor(GradeScaleTemplate.custom),
             bands: _formController.customGradeScale,
           ),
       ],
@@ -287,7 +288,7 @@ class _CourseGroupWidgetState
       bands: selected == GradeScaleTemplate.custom
           ? _formController.customGradeScale
           : GradeScaleTemplate.scales[selected]!,
-      bandsTitle: GradeScaleTemplate.summaryLabel(selected),
+      bandsTitle: GradeScaleTemplate.labelFor(selected),
       onChanged: _onGradeScaleChanged,
     );
   }
@@ -350,7 +351,7 @@ class _CourseGroupWidgetState
                 DateTime.now().add(const Duration(days: 30))),
       firstDate: HeliumDateTime.earliestPickableDate(),
       lastDate: HeliumDateTime.latestPickableDate(),
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;

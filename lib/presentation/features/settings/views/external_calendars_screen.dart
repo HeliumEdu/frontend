@@ -4,6 +4,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
@@ -62,7 +63,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
         if (state is ExternalCalendarsFetched) {
           _populateScreenData(state);
         } else if (state is ExternalCalendarCreated) {
-          SnackBarHelper.show(context, 'External calendar created.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).externalCalendarCreatedMessage);
           setState(() {
             _externalCalendars.add(state.externalCalendar);
             Sort.byTitle(_externalCalendars);
@@ -85,14 +86,14 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
             Sort.byTitle(_externalCalendars);
           });
         } else if (state is ExternalCalendarDeleted) {
-          SnackBarHelper.show(context, 'External calendar deleted.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).externalCalendarDeletedMessage);
           setState(() {
             _externalCalendars.removeWhere((g) => g.id == state.id);
           });
         } else if (state is ExternalCalendarsError &&
             state.origin == EventOrigin.screen) {
           setState(
-            () => _error = state.message ?? HeliumException.unexpectedError,
+            () => _error = state.message ?? HeliumException.unexpectedErrorMessage,
           );
         } else if (state is ExternalCalendarsError &&
             state.origin == EventOrigin.subScreen) {
@@ -108,12 +109,11 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
-              text:
-                  'External Calendars allow you to bring other calendars into Helium.',
+              text: AppLocalizations.of(context).externalCalendarsInfo,
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                label: 'Learn more',
+                label: AppLocalizations.of(context).settingsLearnMoreLabel,
                 onPressed: () => UrlHelpers.launchWebUrl(
                   AppConstants.supportExternalCalendarsUrl,
                 ),
@@ -130,7 +130,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                     onPressed: onAddCalendar,
                     icon: Icons.add,
                     showTooltip: false,
-                    label: 'Add external calendar',
+                    label: AppLocalizations.of(context).externalCalendarsAddLabel,
                   ),
                 ],
               ),
@@ -150,9 +150,10 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
               }
 
               if (_externalCalendars.isEmpty) {
-                return const EmptyCard(
+                return EmptyCard(
+                  title: AppLocalizations.of(context).emptyCardTitle,
                   icon: AppConstants.externalCalendarIcon,
-                  message: 'Click "+" to add an external calendar',
+                  message: AppLocalizations.of(context).externalCalendarsEmptyMessage,
                 );
               }
 
@@ -262,7 +263,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
               const SizedBox(width: 8),
               Semantics(
                 container: true,
-                label: 'Show on calendar',
+                label: AppLocalizations.of(context).externalCalendarShowOnCalendarLabel,
                 child: Switch.adaptive(
                   value: externalCalendar.shownOnCalendar!,
                   activeTrackColor: context.colorScheme.primary,
@@ -280,7 +281,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                   onPressed: () => _onEdit(externalCalendar),
                   icon: Icons.edit_outlined,
                   showTooltip: false,
-                  label: 'Edit',
+                  label: AppLocalizations.of(context).commonEditLabel,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -302,7 +303,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                 },
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: 'Delete',
+                label: AppLocalizations.of(context).commonDeleteLabel,
                 color: context.colorScheme.error,
               ),
             ],

@@ -49,18 +49,18 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
             return grades;
           } else {
             throw ServerException(
-              message: 'Invalid response format: missing course_groups.',
+              message: HeliumException.unexpectedErrorMessage,
               code: '200',
             );
           }
         } else {
           throw ServerException(
-            message: 'Invalid response format: expected Map.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch grades.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -68,7 +68,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -103,12 +103,12 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
           return neededGrade;
         } else {
           throw ServerException(
-            message: 'Invalid response format: expected Map.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to calculate needed grade.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -116,7 +116,7 @@ class GradeRemoteDataSourceImpl extends GradeRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

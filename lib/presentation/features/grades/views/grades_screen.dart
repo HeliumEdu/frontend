@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
@@ -17,6 +18,7 @@ import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -52,6 +54,22 @@ import 'package:heliumapp/utils/screen_dropdown_filter_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as charts;
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+enum _PaceStatus {
+  warmingUp,
+  allDone,
+  ahead,
+  onTrack,
+  behind;
+
+  String get label => switch (this) {
+    warmingUp => LocaleNotifier().localizations.gradesPaceWarmingUp,
+    allDone => LocaleNotifier().localizations.gradesPaceAllDone,
+    ahead => LocaleNotifier().localizations.gradesPaceAhead,
+    onTrack => LocaleNotifier().localizations.gradesPaceOnTrack,
+    behind => LocaleNotifier().localizations.gradesPaceBehind,
+  };
+}
 
 class GradesScreen extends StatelessWidget {
   const GradesScreen({super.key});
@@ -148,7 +166,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           if (state is GradesError && !state.background) {
             setState(() {
               isLoading = false;
-              screenError = state.message ?? HeliumException.unexpectedError;
+              screenError = state.message ?? HeliumException.unexpectedErrorMessage;
             });
           } else if (state is GradeScreenDataFetched) {
             setState(() => screenError = null);
@@ -225,9 +243,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           return EmptyCard(
             icon: Icons.bar_chart,
             title: _grades.isEmpty
-                ? "You haven't added any classes yet"
-                : 'No classes in this term yet',
-            message: 'Head over to "Classes" to get started',
+                ? AppLocalizations.of(context).coursesNoClassesTitle
+                : AppLocalizations.of(context).gradesNoClassesInTermTitle,
+            message: AppLocalizations.of(context).gradesNoClassesMessage,
             expanded: false,
           );
         }
@@ -290,7 +308,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     st,
                   );
                   return ErrorCard(
-                    message: 'An unknown error occurred loading the graph',
+                    message: AppLocalizations.of(context).gradesGraphErrorMessage,
                     source: 'grades_screen',
                     expanded: false,
                     onReload: reloadPage,
@@ -454,7 +472,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildSummaryTitle('Overall Grade'),
+          _buildSummaryTitle(AppLocalizations.of(context).gradesOverallGradeTitle),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.topCenter,
@@ -552,9 +570,9 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             Responsive.isSlimMobile(context));
     final text = [
       if (selectedGroup.gpa != null)
-        'GPA ${GradeHelper.gradePointForDisplay(selectedGroup.gpa!)}',
+        AppLocalizations.of(context).gradesTermGpaSummary(GradeHelper.gradePointForDisplay(selectedGroup.gpa!)),
       if (showsCumulativeGpa)
-        'All ${GradeHelper.gradePointForDisplay(_cumulativeGpa!)}',
+        AppLocalizations.of(context).gradesAllGpaSummary(GradeHelper.gradePointForDisplay(_cumulativeGpa!)),
     ].join(' • ');
     final hintColor = context.colorScheme.onSurface.withValues(
       alpha: AppStyles.mutedIconAlpha,
@@ -577,7 +595,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           HoverTapTarget(
             onTap: (anchorContext) => _showGpaHint(anchorContext, hint),
             color: hintColor,
-            tooltip: 'Show GPA details',
+            tooltip: AppLocalizations.of(context).gradesShowGpaDetailsTooltip,
             child: Icon(
               Icons.info_outline,
               size: hintIconSize,
@@ -607,7 +625,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const HeliumMenuTitle(title: 'GPA'),
+            HeliumMenuTitle(title: AppLocalizations.of(context).gradesGpaMenuTitle),
             const SizedBox(height: 8),
             Text(hint, style: AppStyles.standardBodyText(menuContext)),
           ],
@@ -636,22 +654,22 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
     final difference = completionPercent - timePercent;
     final isWarmingUp = selectedGroup.numHomework == 0 ||
         (timePercent == 0 && completionPercent == 0);
-    final String status;
+    final _PaceStatus status;
     final Color statusColor;
     if (isWarmingUp) {
-      status = 'Warming Up';
+      status = _PaceStatus.warmingUp;
       statusColor = context.colorScheme.outline;
     } else if (completionPercent >= 100 && timePercent >= 100) {
-      status = 'All Done';
+      status = _PaceStatus.allDone;
       statusColor = HeliumColors.urgencyColor(context, 1);
     } else if (difference > _onTrackTolerance) {
-      status = 'Ahead';
+      status = _PaceStatus.ahead;
       statusColor = HeliumColors.urgencyColor(context, 1);
     } else if (difference >= -_onTrackTolerance) {
-      status = 'On Track';
+      status = _PaceStatus.onTrack;
       statusColor = HeliumColors.urgencyColor(context, 1);
     } else {
-      status = 'Behind';
+      status = _PaceStatus.behind;
       final expectedWorkAtRiskCutoff = timePercent * (_atRiskThreshold / 100);
       statusColor = HeliumColors.urgencyColor(
         context,
@@ -664,7 +682,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: _buildSummaryTitle('Progress vs. Pace')),
+          Center(child: _buildSummaryTitle(AppLocalizations.of(context).gradesProgressPaceTitle)),
           const SizedBox(height: 16),
           // Work completion bar
           Row(
@@ -672,7 +690,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               SizedBox(
                 width: 60.0,
                 child: Text(
-                  'Work',
+                  AppLocalizations.of(context).gradesPaceWorkLabel,
                   style: AppStyles.smallSecondaryText(context),
                 ),
               ),
@@ -721,7 +739,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               SizedBox(
                 width: 60.0,
                 child: Text(
-                  'Time',
+                  AppLocalizations.of(context).gradesPaceTimeLabel,
                   style: AppStyles.smallSecondaryText(context),
                 ),
               ),
@@ -779,13 +797,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    status == 'Warming Up'
+                    status == _PaceStatus.warmingUp
                         ? Icons.hourglass_top_outlined
-                        : status == 'All Done'
+                        : status == _PaceStatus.allDone
                         ? Icons.celebration_outlined
-                        : status == 'Ahead'
+                        : status == _PaceStatus.ahead
                         ? Icons.fast_forward_outlined
-                        : status == 'Behind'
+                        : status == _PaceStatus.behind
                         ? Icons.warning_outlined
                         : Icons.check_circle_outline,
                     size: 18,
@@ -793,7 +811,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    status,
+                    status.label,
                     style: AppStyles.standardBodyTextEmphasis(context).copyWith(color: statusColor),
                   ),
                 ],
@@ -856,7 +874,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildSummaryTitle('At-Risk Classes'),
+                _buildSummaryTitle(AppLocalizations.of(context).gradesAtRiskTitle),
                 const SizedBox(height: 12),
                 Container(
                   width: _summaryCircleSize,
@@ -895,8 +913,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   const SizedBox(height: 12),
                   Text(
                     atRiskCount == 0
-                        ? 'All classes passing!'
-                        : 'below ${_atRiskThreshold.toInt()}%',
+                        ? AppLocalizations.of(context).gradesAllPassingMessage
+                        : AppLocalizations.of(context).gradesBelowThresholdLabel(_atRiskThreshold.toInt()),
                     style: AppStyles.smallSecondaryText(context).copyWith(
                       color: atRiskCount > 0
                           ? context.colorScheme.error
@@ -947,7 +965,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildSummaryTitle('Pending Impact'),
+          _buildSummaryTitle(AppLocalizations.of(context).gradesPendingImpactTitle),
           SizedBox(height: Responsive.getResponsiveValue(context, mobile: 4, desktop: 8)),
           Container(
             width: _summaryCircleSize,
@@ -987,8 +1005,8 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
           SizedBox(height: Responsive.getResponsiveValue(context, mobile: 4, desktop: 8)),
           Text(
             Responsive.isNarrowMobile(context)
-                ? 'ungraded'
-                : 'ungraded ${ungradedCount.plural('assignment')}',
+                ? AppLocalizations.of(context).gradesUngradedShortLabel
+                : AppLocalizations.of(context).gradesUngradedAssignmentsLabel(ungradedCount),
             style: AppStyles.smallSecondaryText(context).copyWith(
               color: ungradedCount > 0
                   ? context.semanticColors.warning
@@ -1035,7 +1053,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            '$displayUngraded in ${displayCourse.title}',
+                            AppLocalizations.of(context).gradesUngradedInClassLabel(displayUngraded, displayCourse.title),
                             style: AppStyles.smallSecondaryText(context).copyWith(
                               color: BadgeColors.foreground(context, displayCourse.color),
                             ),
@@ -1389,12 +1407,12 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               child: Row(
                 children: [
                   if (_graphViewMode.isGpaAcrossTerms)
-                    Text('GPA Across Terms', style: AppStyles.headingText(context))
+                    Text(AppLocalizations.of(context).gradesGpaAcrossTermsTitle, style: AppStyles.headingText(context))
                   else ...[
                     if (!Responsive.isMobile(context))
-                      Text('Grade Trend', style: AppStyles.headingText(context)),
+                      Text(AppLocalizations.of(context).gradesGradeTrendTitle, style: AppStyles.headingText(context)),
                     if (Responsive.isMobile(context) && course == null)
-                      Text('Entire Term', style: AppStyles.headingText(context)),
+                      Text(AppLocalizations.of(context).gradesEntireTermTitle, style: AppStyles.headingText(context)),
                   ],
                   if (course != null) ...[
                     const SizedBox(width: 6),
@@ -1414,7 +1432,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               PrintHidden(
                 child: Builder(
                   builder: (buttonContext) => IconButton.outlined(
-                    tooltip: 'Grade Calculator',
+                    tooltip: AppLocalizations.of(context).gradesGradeCalculatorTooltip,
                     icon: const Icon(Icons.calculate_outlined),
                     style: IconButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1436,7 +1454,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
               child: Builder(
                 builder: (buttonContext) =>
                     IconButton.outlined(
-                      icon: const Icon(Icons.settings_outlined, semanticLabel: 'Graph settings'),
+                      icon: Icon(Icons.settings_outlined, semanticLabel: AppLocalizations.of(context).gradesGraphSettingsLabel),
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         side: BorderSide(
@@ -1624,7 +1642,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     color: context.semanticColors.warning.withValues(
                       alpha: 0.1,
                     ),
-                    text: 'At-Risk Zone',
+                    text: AppLocalizations.of(context).gradesAtRiskZoneLabel,
                     textStyle: AppStyles.smallSecondaryText(context).copyWith(
                       color: context.semanticColors.warning.withValues(
                         alpha: AppStyles.increasedContrastAlpha(0.8),
@@ -1679,13 +1697,13 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'No grades yet',
+            AppLocalizations.of(context).gradesNoGradesTitle,
             textAlign: TextAlign.center,
             style: AppStyles.standardBodyText(context).copyWith(color: color),
           ),
           const SizedBox(height: 4),
           Text(
-            'Grade an assignment on the Planner and your trend shows up here.',
+            AppLocalizations.of(context).gradesNoGradesMessage,
             textAlign: TextAlign.center,
             style: AppStyles.smallSecondaryText(context).copyWith(color: color),
           ),
@@ -1929,7 +1947,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 SizedBox(width: Responsive.isMobile(context) ? 4 : 8),
                 Expanded(
                   child: Text(
-                    s.name ?? '',
+                    s.legendItemText ?? s.name ?? '',
                     style: AppStyles.smallSecondaryText(context),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1994,7 +2012,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                   if (_offersGpaAcrossTerms)
                     RadioListTile<String>(
                       title: Text(
-                        'GPA Across Terms',
+                        AppLocalizations.of(context).gradesGpaAcrossTermsTitle,
                         style: AppStyles.formText(context),
                       ),
                       value:
@@ -2005,7 +2023,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     ),
                   RadioListTile<String>(
                     title: Text(
-                      'Entire Term',
+                      AppLocalizations.of(context).gradesEntireTermTitle,
                       style: AppStyles.formText(context),
                     ),
                     value: const GradeTrendViewMode.term().radioValue,
@@ -2044,7 +2062,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             HeliumCheckboxListTile(
               controlAffinity: ListTileControlAffinity.leading,
               title: Text(
-                'Auto-adjust to graded range',
+                AppLocalizations.of(context).gradesAutoAdjustOption,
                 style: AppStyles.formText(context),
               ),
               value: _autoAdjustToGradedRange == true,
@@ -2058,7 +2076,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
             HeliumCheckboxListTile(
               controlAffinity: ListTileControlAffinity.leading,
               title: Text(
-                'Hide legend',
+                AppLocalizations.of(context).gradesHideLegendOption,
                 style: AppStyles.formText(context),
               ),
               value: _hideLegend == true,
@@ -2081,7 +2099,7 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                 ),
               ),
               title: Text(
-                'Grade preferences',
+                AppLocalizations.of(context).gradesGradePreferencesOption,
                 style: AppStyles.formText(context),
               ),
               trailing: Icon(

@@ -54,14 +54,12 @@ class DeleteCategoryEvent extends CategoryEvent {
   final int courseGroupId;
   final int courseId;
   final int categoryId;
-  final bool isLastCategory;
 
   DeleteCategoryEvent({
     required super.origin,
     required this.courseGroupId,
     required this.courseId,
     required this.categoryId,
-    required this.isLastCategory,
   });
 }
 

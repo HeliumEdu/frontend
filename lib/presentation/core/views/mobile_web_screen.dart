@@ -27,7 +27,7 @@ class MobileWebScreen extends StatefulWidget {
 
 class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
   @override
-  String get screenTitle => 'Get the Helium App';
+  String get screenTitle => AppLocalizations.of(context).mobileWebTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -67,7 +67,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Get the Helium App',
+          AppLocalizations.of(context).mobileWebTitle,
           style: AppStyles.pageTitle(context),
           textAlign: TextAlign.center,
         ),
@@ -81,22 +81,22 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
         _buildFeatureItem(
           context,
           icon: Icons.notifications_active_outlined,
-          title: 'Push notifications',
-          description: 'Stay on top of everything with reminders.',
+          title: AppLocalizations.of(context).mobileWebNotificationsTitle,
+          description: AppLocalizations.of(context).mobileWebNotificationsDescription,
         ),
         const SizedBox(height: 10),
         _buildFeatureItem(
           context,
           icon: Icons.touch_app_outlined,
-          title: 'Better mobile UX',
-          description: 'Designed for touch, gestures, and small screens.',
+          title: AppLocalizations.of(context).mobileWebTouchTitle,
+          description: AppLocalizations.of(context).mobileWebTouchDescription,
         ),
         const SizedBox(height: 10),
         _buildFeatureItem(
           context,
           icon: Icons.sync_outlined,
-          title: 'Everything stays synced',
-          description: 'Seamlessly transition between web, iOS, and Android.',
+          title: AppLocalizations.of(context).mobileWebSyncTitle,
+          description: AppLocalizations.of(context).mobileWebSyncDescription,
         ),
         const SizedBox(height: 18),
         ..._buildStoreButtonsForDetectedPlatform(),
@@ -125,12 +125,12 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
 
     final iosButton = _buildStoreButton(
       button: Buttons.apple,
-      text: 'Download on the App Store',
+      text: AppLocalizations.of(context).mobileWebAppStoreButton,
       onPressed: () => _openStore(AppConstants.iosUrl),
     );
     final androidButton = _buildStoreButton(
       button: Buttons.googleDark,
-      text: 'Get it on Google Play',
+      text: AppLocalizations.of(context).mobileWebGooglePlayButton,
       onPressed: () => _openStore(AppConstants.androidUrl),
     );
 
@@ -206,7 +206,7 @@ class _MobileWebScreenState extends BasePageScreenState<MobileWebScreen> {
     if (!opened && mounted) {
       showSnackBar(
         context,
-        'Failed to open the app store link.',
+        AppLocalizations.of(context).mobileWebStoreLinkFailedMessage,
         type: SnackType.error,
       );
     }

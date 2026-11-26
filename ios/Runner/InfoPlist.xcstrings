@@ -1,0 +1,34 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "shouldTranslate": false
+    },
+    "CFBundleName": {
+      "shouldTranslate": false
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "comment": "iOS permission prompt for saving to the photo library.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helium can save an attachment you downloaded to your photo library."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "comment": "iOS permission prompt for the photo library.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helium can save an attachment you downloaded to your photo library."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

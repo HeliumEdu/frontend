@@ -12,6 +12,7 @@ import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_calendar_tile.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -108,7 +109,7 @@ class PlannerItemTooltip extends StatelessWidget {
 
     if (isOnline) {
       rows.add(
-        const _PlannerTooltipRow.text(icon: Icons.language, text: 'Online'),
+        _PlannerTooltipRow.text(icon: Icons.language, text: AppLocalizations.of(context).plannerOnlineLabel),
       );
     } else if (location != null && location.isNotEmpty) {
       rows.add(
@@ -116,13 +117,17 @@ class PlannerItemTooltip extends StatelessWidget {
       );
     }
 
+    final course = plannerItem is HomeworkModel
+        ? courses.firstWhereOrNull((c) => c.id == plannerItem.course.id)
+        : null;
+    final calendarId = plannerItem is ExternalCalendarEventModel ? int.tryParse(plannerItem.ownerId) : null;
+    final externalCalendar = calendarId != null ? externalCalendarsById[calendarId] : null;
+
     if (plannerItem is HomeworkModel) {
-      final course = courses.firstWhereOrNull(
-        (c) => c.id == plannerItem.course.id,
-      );
-      final categoryTitle =
+      final storedCategoryTitle =
           plannerItem.category.entity?.title ??
           categoriesMap[plannerItem.category.id]?.title;
+      final categoryTitle = storedCategoryTitle == null ? null : CategoryModel.displayTitleOf(storedCategoryTitle);
 
       if (course != null) {
         rows.add(
@@ -152,23 +157,11 @@ class PlannerItemTooltip extends StatelessWidget {
           ),
         );
       }
-    } else if (plannerItem is EventModel) {
-      rows.add(
-        _PlannerTooltipRow.text(
-          icon: Icons.source_outlined,
-          text: 'Source: Events',
-          color: userSettings.eventsColor,
-        ),
-      );
     } else if (plannerItem is ExternalCalendarEventModel) {
-      final calendarId = int.tryParse(plannerItem.ownerId);
-      final externalCalendar = calendarId != null
-          ? externalCalendarsById[calendarId]
-          : null;
       rows.add(
         _PlannerTooltipRow.text(
           icon: Icons.source_outlined,
-          text: 'Source: ${externalCalendar?.title ?? 'External Calendar'}',
+          text: externalCalendar?.title ?? AppLocalizations.of(context).plannerTooltipExternalCalendarSource,
           color: externalCalendar?.color ?? plannerItem.color,
         ),
       );
@@ -203,9 +196,12 @@ class PlannerItemTooltip extends StatelessWidget {
         : plannerItem is CourseScheduleEventModel
         ? AppConstants.courseScheduleIcon
         : AppConstants.externalCalendarIcon;
-    final typeIconColor = plannerItem is CourseScheduleEventModel
-        ? plannerItem.color
-        : mutedIconColor;
+    final typeIconColor = switch (plannerItem) {
+      HomeworkModel() => course?.color ?? mutedIconColor,
+      EventModel() => userSettings.eventsColor,
+      ExternalCalendarEventModel() => externalCalendar?.color ?? plannerItem.color,
+      _ => plannerItem.color,
+    };
 
     final children = <InlineSpan>[
       WidgetSpan(

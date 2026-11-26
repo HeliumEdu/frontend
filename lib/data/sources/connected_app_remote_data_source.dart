@@ -43,7 +43,7 @@ class ConnectedAppRemoteDataSourceImpl extends ConnectedAppRemoteDataSource {
         _log.info('... fetched ${connectedApps.length} ConnectedApp(s)');
         return connectedApps;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch connected apps.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -51,7 +51,7 @@ class ConnectedAppRemoteDataSourceImpl extends ConnectedAppRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -69,7 +69,7 @@ class ConnectedAppRemoteDataSourceImpl extends ConnectedAppRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.connectedAppRevoke, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return;
       } else {
-        throw unexpectedStatus(response, 'Failed to revoke connected app.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -77,7 +77,7 @@ class ConnectedAppRemoteDataSourceImpl extends ConnectedAppRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/oauth_authorization_model.dart';
 import 'package:heliumapp/data/models/auth/oauth_scope_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -45,7 +46,7 @@ class ConnectScreen extends StatefulWidget {
 
 class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
   @override
-  String get screenTitle => 'Connect to Helium';
+  String get screenTitle => AppLocalizations.of(context).connectTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -103,7 +104,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
           } else if (state is AuthError) {
             if (_authorization == null) {
               setState(() {
-                screenError = state.message ?? HeliumException.unexpectedError;
+                screenError = state.message ?? HeliumException.unexpectedErrorMessage;
               });
             } else {
               showSnackBar(
@@ -191,7 +192,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
   ) {
     return [
       Text(
-        '${authorization.clientName} wants to access your Helium account.',
+        AppLocalizations.of(context).connectRequestMessage(authorization.clientName),
         style: AppStyles.headingText(context),
         textAlign: TextAlign.center,
       ),
@@ -217,7 +218,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
                     key: const Key(ConnectScreen.switchAccountButtonKey),
                     onPressed: isSubmitting ? null : _switchAccount,
                     child: Text(
-                      'Not you?',
+                      AppLocalizations.of(context).connectSwitchAccountButton,
                       style: AppStyles.standardBodyText(
                         context,
                       ).copyWith(color: context.colorScheme.primary),
@@ -236,7 +237,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          'It will be able to:',
+          AppLocalizations.of(context).connectScopesIntro,
           style: AppStyles.standardBodyText(context),
         ),
       ),
@@ -248,8 +249,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
       const SizedBox(height: 25),
 
       Text(
-        'Only allow this if you are connecting ${authorization.clientName} to '
-        'Helium yourself.',
+        AppLocalizations.of(context).connectWarningMessage(authorization.clientName),
         style: AppStyles.smallSecondaryText(context),
         textAlign: TextAlign.center,
       ),
@@ -258,7 +258,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
 
       HeliumElevatedButton(
         key: const Key(ConnectScreen.allowButtonKey),
-        buttonText: 'Allow',
+        buttonText: AppLocalizations.of(context).connectAllowButton,
         isLoading: _isAllowing,
         enabled: !isSubmitting,
         onPressed: () => _decide(allow: true),
@@ -278,7 +278,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
                 color: context.colorScheme.onSurface.withValues(alpha: 0.38),
               )
             : Text(
-                'Deny',
+                AppLocalizations.of(context).connectDenyButton,
                 style: AppStyles.buttonText(context).copyWith(
                   color: isSubmitting
                       ? context.colorScheme.onSurface.withValues(alpha: 0.38)
@@ -345,8 +345,7 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
   }
 
   List<Widget> _buildReturning(BuildContext context) {
-    final clientName = _authorization?.clientName ?? 'the app you came from';
-
+    final clientName = _authorization?.clientName;
     return [
       if (kIsWeb) ...[
         const LoadingIndicator(size: 48, strokeWidth: 4, expanded: false),
@@ -355,9 +354,13 @@ class _ConnectScreenState extends BasePageScreenState<ConnectScreen> {
       ],
 
       Text(
-        kIsWeb
-            ? 'Returning you to $clientName ...'
-            : 'Return to $clientName to finish.',
+        clientName == null
+            ? (kIsWeb
+                  ? AppLocalizations.of(context).connectReturningUnknownAppMessage
+                  : AppLocalizations.of(context).connectReturnUnknownAppMessage)
+            : (kIsWeb
+                  ? AppLocalizations.of(context).connectReturningMessage(clientName)
+                  : AppLocalizations.of(context).connectReturnMessage(clientName)),
         style: AppStyles.standardBodyText(
           context,
         ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),

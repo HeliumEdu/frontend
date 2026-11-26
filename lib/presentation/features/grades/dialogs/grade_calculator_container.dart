@@ -6,6 +6,7 @@ import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_dialog.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_projection_tab.dart';
@@ -69,7 +70,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
         .firstOrNull;
     _gpa = courseGroup == null ||
             widget.course.gradeScale.isEmpty ||
-            _missingCreditsHint != null
+            _hasNoCredits
         ? null
         : GradeCalculatorGpa.of(
             widget.course,
@@ -82,8 +83,10 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
     _logScreenView();
   }
 
+  bool get _hasNoCredits => widget.course.credits <= 0;
+
   String? get _missingCreditsHint =>
-      widget.course.credits <= 0 ? 'Add credits to this class to use GPA.' : null;
+      _hasNoCredits ? AppLocalizations.of(context).gradeCalculatorGpaNeedsCreditsHint : null;
 
   @override
   void dispose() {
@@ -137,7 +140,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                   children: [
                     const Icon(Icons.space_bar, color: Colors.transparent),
                     Text(
-                      'Grade Calculator',
+                      AppLocalizations.of(context).gradeCalculatorTitle,
                       style: AppStyles.pageTitle(context),
                     ),
                     IconButton(
@@ -148,7 +151,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                       icon: Icon(
                         Icons.close,
                         color: context.colorScheme.secondary,
-                        semanticLabel: 'Close',
+                        semanticLabel: AppLocalizations.of(context).commonCloseLabel,
                       ),
                     ),
                   ],
@@ -223,12 +226,12 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
       DropDownItem(
         id: GradeCalculatorMode.classGrade.index,
         value: GradeCalculatorMode.classGrade,
-        label: 'Class grade',
+        label: AppLocalizations.of(context).gradeCalculatorClassGradeOption,
       ),
       DropDownItem(
         id: GradeCalculatorMode.termGpa.index,
         value: GradeCalculatorMode.termGpa,
-        label: 'Term GPA',
+        label: AppLocalizations.of(context).gradeCalculatorTermGpaOption,
       ),
     ];
 
@@ -253,7 +256,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
           const SizedBox(height: 12),
           DropDown<GradeCalculatorMode>(
             key: ValueKey(_mode),
-            label: 'Calculate for',
+            label: AppLocalizations.of(context).gradeCalculatorCalculateForLabel,
             initialValue: modes[_mode.index],
             items: modes,
             onChanged: _gpa == null ? null : _onModeChanged,

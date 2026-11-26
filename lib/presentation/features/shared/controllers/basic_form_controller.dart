@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/presentation/ui/layout/reveal_on_mount.dart';
 
 class BasicFormController {
@@ -57,7 +58,7 @@ class BasicFormController {
 
   static String? validateRequiredField(String? value) {
     if (value == null || value.isEmpty) {
-      return 'This field is required';
+      return LocaleNotifier().localizations.formRequiredFieldError;
     }
     return null;
   }
@@ -86,7 +87,7 @@ class BasicFormController {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     if (!emailRegExp.hasMatch(value)) {
-      return 'Enter a valid email address';
+      return LocaleNotifier().localizations.formInvalidEmailError;
     }
 
     return null;
@@ -94,20 +95,20 @@ class BasicFormController {
 
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'This field is required';
+      return LocaleNotifier().localizations.formRequiredFieldError;
     }
     if (value.length < 8) {
-      return 'Password must be at least 8 characters long';
+      return LocaleNotifier().localizations.formPasswordTooShortError;
     }
     return null;
   }
 
   static String? validateConfirmPassword(String value1, String? value2) {
     if (value2 == null || value2.isEmpty) {
-      return 'Re-enter the password';
+      return LocaleNotifier().localizations.formConfirmPasswordRequiredError;
     }
     if (value2 != value1) {
-      return 'The passwords do not match';
+      return LocaleNotifier().localizations.formPasswordsMismatchError;
     }
     return null;
   }
@@ -122,7 +123,7 @@ class BasicFormController {
     );
 
     if (!urlPattern.hasMatch(value)) {
-      return 'Enter a valid URL';
+      return LocaleNotifier().localizations.formInvalidUrlError;
     }
 
     return null;

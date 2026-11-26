@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_projection_tab.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -50,6 +51,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light(),
         home: Scaffold(
           body: GradeProjectionTab(

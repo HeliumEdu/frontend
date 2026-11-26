@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:heliumapp/core/api_error_parser.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/session_health.dart';
 import 'package:logging/logging.dart';
@@ -8,11 +9,6 @@ final _log = Logger('core.dio');
 
 class DioErrorMapper {
   DioErrorMapper._();
-
-  static const _retryHint = 'Check your connection and try again.';
-  static const _unreachableMessage = 'Couldn\'t reach Helium. $_retryHint';
-  static const _timedOutMessage = 'Took too long to reach Helium. $_retryHint';
-  static const _serverErrorMessage = 'Server error. Please try again later.';
 
   static HeliumException map(DioException e, StackTrace s) {
     final responseData = e.response?.data;
@@ -32,7 +28,7 @@ class DioErrorMapper {
         _log.warning('DioException occurred, timeout', e, s);
 
         return NetworkException(
-          message: _timedOutMessage,
+          message: LocaleNotifier().localizations.networkTimedOutMessage,
           code: 'TIMEOUT',
         );
 
@@ -153,4 +149,7 @@ class DioErrorMapper {
         ? parsedError.displayMessage
         : null;
   }
+
+  static String get _unreachableMessage => LocaleNotifier().localizations.networkUnreachableMessage;
+  static String get _serverErrorMessage => LocaleNotifier().localizations.networkServerErrorMessage;
 }

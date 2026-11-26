@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/widgets/grade_category_table.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
@@ -12,6 +15,7 @@ import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
+import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -45,6 +49,8 @@ class GradeCourseCard extends StatelessWidget {
           child: Column(
             children: [
               _buildCourseSummaryArea(context),
+
+              if (course.categoriesNotCounted.isNotEmpty) _buildNotCountedRow(context),
 
               AnimatedSize(
                 duration: MotionService().effectiveDuration(
@@ -150,7 +156,7 @@ class GradeCourseCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Weighted grading',
+                  message: AppLocalizations.of(context).coursesWeightedGradingTooltip,
                   child: Icon(
                     Icons.balance,
                     size: Responsive.getIconSize(
@@ -187,7 +193,7 @@ class GradeCourseCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '${course.numHomeworkGraded} graded',
+                AppLocalizations.of(context).gradesGradedCount(course.numHomeworkGraded),
                 style: AppStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(
                     alpha: 0.6,
@@ -198,6 +204,46 @@ class GradeCourseCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNotCountedRow(BuildContext context) {
+    final categories = course.categoriesNotCounted;
+    final count = categories.fold(0, (sum, c) => sum + c.numHomeworkGraded);
+    final mutedColor = context.colorScheme.onSurface.withValues(
+      alpha: AppStyles.increasedContrastAlpha(AppStyles.mutedTextAlpha),
+    );
+    final iconSize = Responsive.getIconSize(
+      context,
+      mobile: 14,
+      tablet: 16,
+      desktop: 18,
+    );
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      minLeadingWidth: 0,
+      horizontalTitleGap: 8,
+      leading: Icon(Icons.info_outline, size: iconSize, color: mutedColor),
+      title: Text(
+        AppLocalizations.of(context).gradesNotCountedMessage(count),
+        style: AppStyles.standardBodyText(context).copyWith(color: mutedColor),
+      ),
+      trailing: PrintHidden(
+        child: Icon(Icons.chevron_right, size: iconSize, color: mutedColor),
+      ),
+      onTap: () => context.go(
+        Uri(
+          path: AppRoute.plannerScreen,
+          queryParameters: {
+            DeepLinkParam.view: PlannerView.todos.name,
+            DeepLinkParam.status: PlannerFilterStatus.graded.name,
+            DeepLinkParam.course: '${course.id}',
+            DeepLinkParam.category: [for (final c in categories) c.title],
+          },
+        ).toString(),
+      ),
     );
   }
 
@@ -286,7 +332,7 @@ class GradeExpandButton extends StatelessWidget {
           Icons.keyboard_arrow_down,
           color: context.colorScheme.primary,
           size: iconSize,
-          semanticLabel: isExpanded ? 'Collapse' : 'Expand',
+          semanticLabel: isExpanded ? AppLocalizations.of(context).gradesCollapseLabel : AppLocalizations.of(context).gradesExpandLabel,
         ),
       ),
       onPressed: onPressed,
@@ -323,7 +369,7 @@ class _AtRiskBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'At-Risk',
+            AppLocalizations.of(context).gradesAtRiskBadge,
             style: AppStyles.smallSecondaryText(context).copyWith(
               color: context.colorScheme.error,
               fontWeight: FontWeight.w600,

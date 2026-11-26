@@ -4,6 +4,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 
 import '../../../../mocks/mock_models.dart';
@@ -30,6 +31,8 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light(),
         home: Scaffold(
           body: GestureDetector(
@@ -119,6 +122,8 @@ void main() {
     BuildContext? anchor;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light(),
         home: Scaffold(
           body: Center(
@@ -163,6 +168,8 @@ void main() {
     Future<Size> metaRowSize({required bool tappable}) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: Scaffold(
             body: Center(

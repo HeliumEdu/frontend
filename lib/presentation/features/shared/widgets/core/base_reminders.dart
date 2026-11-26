@@ -4,6 +4,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/provider_helpers.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
@@ -42,7 +43,7 @@ abstract class BaseReminders extends StatelessWidget {
     required this.entityId,
     required this.isEdit,
     required this.userSettings,
-    this.headerTitle = 'Reminders',
+    required this.headerTitle,
   });
 
   BaseRemindersContent buildContent();
@@ -79,7 +80,7 @@ abstract class BaseRemindersContent extends StatefulWidget {
     required this.entityId,
     required this.isEdit,
     required this.userSettings,
-    this.headerTitle = 'Reminders',
+    required this.headerTitle,
   });
 
   @override
@@ -129,14 +130,14 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             _error = null;
           });
         } else if (state is ReminderCreated) {
-          SnackBarHelper.show(context, 'Reminder saved.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).reminderSavedMessage);
 
           setState(() {
             reminders.add(state.reminder);
             Sort.byMessage(reminders);
           });
         } else if (state is ReminderUpdated) {
-          SnackBarHelper.show(context, 'Reminder saved.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).reminderSavedMessage);
 
           setState(() {
             reminders[reminders.indexWhere((c) => c.id == state.reminder.id)] =
@@ -144,7 +145,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
             Sort.byMessage(reminders);
           });
         } else if (state is ReminderDeleted) {
-          SnackBarHelper.show(context, 'Reminder deleted.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).reminderDeletedMessage);
 
           setState(() {
             reminders.removeWhere((c) => c.id == state.id);
@@ -153,7 +154,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
           if (isLoading && state.origin == EventOrigin.subScreen) {
             setState(() {
               isLoading = false;
-              _error = state.message ?? HeliumException.unexpectedError;
+              _error = state.message ?? HeliumException.unexpectedErrorMessage;
             });
           } else if (reminders.isEmpty && state.origin != EventOrigin.screen) {
             setState(() => isLoading = false);
@@ -198,7 +199,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
               },
               icon: Icons.add,
               showTooltip: false,
-              label: 'Add reminder',
+              label: AppLocalizations.of(context).remindersAddLabel,
             ),
           ],
         ),
@@ -220,9 +221,10 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
               }
 
               if (reminders.isEmpty) {
-                return const EmptyCard(
+                return EmptyCard(
+                  title: AppLocalizations.of(context).emptyCardTitle,
                   icon: Icons.notifications_outlined,
-                  message: 'Click "+" to add a reminder',
+                  message: AppLocalizations.of(context).remindersEmptyMessage,
                   expanded: false,
                 );
               }
@@ -272,7 +274,11 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${ReminderConstants.itemForType(reminder.type).value} ${reminderOffset(reminder)} before',
+                      switch (ReminderConstants.itemForType(reminder.type).value) {
+                        'Email' => AppLocalizations.of(context).reminderEmailSummary(reminderOffset(reminder)),
+                        'Push' => AppLocalizations.of(context).reminderPushSummary(reminderOffset(reminder)),
+                        final value => throw ArgumentError.value(value, 'type'),
+                      },
                       style: AppStyles.standardBodyTextLight(context).copyWith(
                         color: context.colorScheme.onSurface.withValues(
                           alpha: 0.9,
@@ -297,7 +303,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                   onPressed: () => _onEdit(reminder),
                   icon: Icons.edit_outlined,
                   showTooltip: false,
-                  label: 'Edit',
+                  label: AppLocalizations.of(context).commonEditLabel,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -319,7 +325,7 @@ abstract class BaseReminderWidgetState<T extends BaseRemindersContent>
                 },
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: 'Delete',
+                label: AppLocalizations.of(context).commonDeleteLabel,
                 color: context.colorScheme.error,
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -87,10 +88,7 @@ class CourseScheduleRemoteDataSourceImpl
         _log.info('... fetched CourseSchedules count: $count');
         return count > 0;
       } else {
-        throw unexpectedStatus(
-          response,
-          'Failed to fetch CourseSchedules count.',
-        );
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -127,12 +125,12 @@ class CourseScheduleRemoteDataSourceImpl
           return schedules;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch schedules.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -140,7 +138,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -159,7 +157,7 @@ class CourseScheduleRemoteDataSourceImpl
       );
 
       if (schedulesResponse.data.length == 0) {
-        throw NotFoundException(message: 'No Schedule found for Class.');
+        throw NotFoundException(message: LocaleNotifier().localizations.courseScheduleNotFoundMessage);
       }
 
       final scheduleId = schedulesResponse.data[0]['id'];
@@ -178,7 +176,7 @@ class CourseScheduleRemoteDataSourceImpl
         );
         return CourseScheduleModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch schedule details.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -186,7 +184,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -211,7 +209,7 @@ class CourseScheduleRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return schedule;
       } else {
-        throw unexpectedStatus(response, 'Failed to create class schedule.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -219,7 +217,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -249,7 +247,7 @@ class CourseScheduleRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return CourseScheduleModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update class schedule.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -257,7 +255,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -285,7 +283,7 @@ class CourseScheduleRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return CourseScheduleModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update exceptions.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -293,7 +291,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -322,7 +320,7 @@ class CourseScheduleRemoteDataSourceImpl
         );
         return schedules;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch schedules.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -330,7 +328,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 
@@ -355,7 +353,7 @@ class CourseScheduleRemoteDataSourceImpl
         _log.info('... CourseSchedule $scheduleId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete class schedule.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -363,7 +361,7 @@ class CourseScheduleRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError, cause: e);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage, cause: e);
     }
   }
 }

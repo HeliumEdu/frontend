@@ -359,34 +359,6 @@ void main() {
       });
     });
 
-    group('getActiveDays', () {
-      test('returns abbreviated day names for active days', () {
-        // GIVEN - MWF schedule
-        final schedule = CourseScheduleModel.fromJson(
-          givenCourseScheduleJson(daysOfWeek: '0101010'),
-        );
-
-        // WHEN
-        final days = schedule.getActiveDays();
-
-        // THEN
-        expect(days, equals(['Mon', 'Wed', 'Fri']));
-      });
-
-      test('returns empty list when no days active', () {
-        // GIVEN
-        final schedule = CourseScheduleModel.fromJson(
-          givenCourseScheduleJson(daysOfWeek: '0000000'),
-        );
-
-        // WHEN
-        final days = schedule.getActiveDays();
-
-        // THEN
-        expect(days, isEmpty);
-      });
-    });
-
     group('exceptions', () {
       test('parses the schedule\'s own cancellations', () {
         // GIVEN

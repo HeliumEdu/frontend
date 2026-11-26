@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/notification/notification_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -24,7 +25,23 @@ final _log = Logger('utils');
 
 enum PlannerItemType { event, homework, external, courseSchedule }
 
-enum PlannerView { month, week, threeDay, day, agenda, todos }
+enum PlannerView {
+  month,
+  week,
+  threeDay,
+  day,
+  agenda,
+  todos;
+
+  String get label => switch (this) {
+    month => LocaleNotifier().localizations.plannerViewMonth,
+    week => LocaleNotifier().localizations.plannerViewWeek,
+    threeDay => LocaleNotifier().localizations.plannerViewThreeDay,
+    day => LocaleNotifier().localizations.plannerViewDay,
+    agenda => LocaleNotifier().localizations.plannerViewAgenda,
+    todos => LocaleNotifier().localizations.plannerViewTodos,
+  };
+}
 
 enum PlannerFilterType {
   assignments('Assignments'),
@@ -34,6 +51,13 @@ enum PlannerFilterType {
 
   const PlannerFilterType(this.value);
   final String value;
+
+  String get label => switch (this) {
+    assignments => LocaleNotifier().localizations.plannerFilterTypeAssignments,
+    events => LocaleNotifier().localizations.plannerFilterTypeEvents,
+    classSchedules => LocaleNotifier().localizations.plannerFilterTypeClassSchedules,
+    externalCalendars => LocaleNotifier().localizations.plannerFilterTypeExternalCalendars,
+  };
 }
 
 enum PlannerFilterStatus {
@@ -45,12 +69,15 @@ enum PlannerFilterStatus {
 
   const PlannerFilterStatus(this.value);
   final String value;
-}
 
-/// Added to a save's confirmation when the assignment lands outside the dates
-/// the Todos view shows.
-const outsideTodosWindowNote =
-    "It's outside your groups' dates, so it won't show in Todos.";
+  String get label => switch (this) {
+    complete => LocaleNotifier().localizations.plannerFilterStatusComplete,
+    incomplete => LocaleNotifier().localizations.plannerFilterStatusIncomplete,
+    graded => LocaleNotifier().localizations.plannerFilterStatusGraded,
+    ungraded => LocaleNotifier().localizations.plannerFilterStatusUngraded,
+    overdue => LocaleNotifier().localizations.plannerFilterStatusOverdue,
+  };
+}
 
 class PlannerHelper {
   static final List<int> weekStartsOnRemap = [7, 1, 2, 3, 4, 5, 6];

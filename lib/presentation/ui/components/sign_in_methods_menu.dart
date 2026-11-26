@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -49,7 +50,7 @@ class _SignInMethodsMenuContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const HeliumMenuTitle(title: 'Sign-in Methods'),
+          HeliumMenuTitle(title: AppLocalizations.of(context).signInMethodsMenuTitle),
           const SizedBox(height: 8),
           for (final provider in providers)
             _buildProviderRow(context, provider),
@@ -70,7 +71,7 @@ class _SignInMethodsMenuContent extends StatelessWidget {
       action: HeliumIconButton(
         onPressed: () => onRemove(provider),
         icon: Icons.link_off,
-        label: 'Remove ${provider.label}',
+        label: AppLocalizations.of(context).signInMethodRemoveLabel(provider.label),
         color: context.colorScheme.error,
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/search_helpers.dart';
@@ -230,7 +231,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                           icon: Icon(
                             Icons.keyboard_arrow_down,
                             color: iconColor,
-                            semanticLabel: 'Show options',
+                            semanticLabel: AppLocalizations.of(context).dropdownShowOptionsLabel,
                           ),
                           mouseCursor: SystemMouseCursors.basic,
                           hoverColor: Colors.transparent,

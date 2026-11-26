@@ -18,6 +18,7 @@ import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/models/planner/request/event_request_model.dart';
 import 'package:heliumapp/data/models/planner/request/homework_request_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -28,6 +29,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/recurrence_picke
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
+import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
@@ -57,6 +59,7 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart' as tz;
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 
 final _log = Logger('presentation.widgets');
 
@@ -183,7 +186,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
   });
 
   @override
-  String get itemNoun => _isEvent ? 'event' : 'assignment';
+  String get conflictItem => _isEvent ? 'event' : 'assignment';
 
   /// Whether the assignment last submitted falls outside the dates the Todos
   /// view shows.
@@ -216,7 +219,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
             isLoading &&
             state.matches(homeworkId: _homeworkId, eventId: _eventId)) {
           setState(() {
-            _error = state.message ?? HeliumException.unexpectedError;
+            _error = state.message ?? HeliumException.unexpectedErrorMessage;
             isLoading = false;
           });
         }
@@ -280,20 +283,20 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Details', style: AppStyles.featureText(context)),
+                      Text(AppLocalizations.of(context).plannerItemDetailsStep, style: AppStyles.featureText(context)),
                       if (!widget.isEdit && _courses.isNotEmpty)
                         SegmentedButton<bool>(
                           showSelectedIcon: false,
-                          segments: const [
+                          segments: [
                             ButtonSegment<bool>(
                               value: false,
-                              tooltip: 'Assignment',
-                              icon: Icon(AppConstants.assignmentIcon),
+                              tooltip: AppLocalizations.of(context).plannerItemAssignmentTooltip,
+                              icon: const Icon(AppConstants.assignmentIcon),
                             ),
                             ButtonSegment<bool>(
                               value: true,
-                              tooltip: 'Event',
-                              icon: Icon(AppConstants.eventIcon),
+                              tooltip: AppLocalizations.of(context).plannerItemEventTooltip,
+                              icon: const Icon(AppConstants.eventIcon),
                             ),
                           ],
                           selected: {_isEvent},
@@ -316,7 +319,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
                     key: const Key(PlannerItemFormController.titleField),
-                    label: 'Title',
+                    label: AppLocalizations.of(context).plannerItemTitleLabel,
                     autofocus: PlatformBehavior.autofocusesOnOpen,
                     focusNode: _titleFocusNode,
                     controller: formController.titleController,
@@ -331,7 +334,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                     _buildNoClassesNotice(),
                   if (!_isEvent) ...[
                     DropDown(
-                      label: 'Class',
+                      label: AppLocalizations.of(context).plannerItemClassLabel,
                       initialValue: _courseItems.firstWhereOrNull(
                         (c) => c.id == formController.selectedCourse,
                       ),
@@ -349,7 +352,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                       Expanded(
                         child: HeliumCheckboxListTile(
                           title: Text(
-                            'All day',
+                            AppLocalizations.of(context).plannerItemAllDayLabel,
                             style: AppStyles.formLabel(context),
                           ),
                           value: formController.isAllDay,
@@ -370,7 +373,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                       Expanded(
                         child: HeliumCheckboxListTile(
                           title: Text(
-                            'Show end',
+                            AppLocalizations.of(context).plannerItemShowEndLabel,
                             style: AppStyles.formLabel(context),
                           ),
                           value: formController.showEndDateTime,
@@ -424,7 +427,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
             Expanded(
               child: _buildDatePicker(
                 context,
-                'Start date',
+                AppLocalizations.of(context).plannerItemStartDateLabel,
                 formController.startDate,
                 () => _selectDate(context, true),
               ),
@@ -434,7 +437,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               Expanded(
                 child: _buildDatePicker(
                   context,
-                  'End date',
+                  AppLocalizations.of(context).plannerItemEndDateLabel,
                   formController.endDate,
                   () => _selectDate(context, false),
                 ),
@@ -449,7 +452,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               Expanded(
                 child: _buildTimePicker(
                   context,
-                  'Start time',
+                  AppLocalizations.of(context).plannerItemStartTimeLabel,
                   formController.startTime,
                   () => _selectTime(context, true),
                 ),
@@ -459,7 +462,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 Expanded(
                   child: _buildTimePicker(
                     context,
-                    'End time',
+                    AppLocalizations.of(context).plannerItemEndTimeLabel,
                     formController.endTime,
                     () => _selectTime(context, false),
                   ),
@@ -498,23 +501,18 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropDown(
-          label: 'Category',
+          label: AppLocalizations.of(context).plannerItemCategoryLabel,
           initialValue: _categoryItems.firstWhereOrNull(
             (c) => c.id == formController.selectedCategory,
           ),
-          items: _categoryItems
-              .where(
-                (category) =>
-                    category.value?.course == formController.selectedCourse,
-              )
-              .toList(),
+          items: _selectedCourseCategoryItems(),
           onChanged: (value) {
             formController.markChanged();
             _selectCategory(value!.id);
           },
         ),
         const SizedBox(height: 14),
-        Text('Resources', style: AppStyles.formLabel(context)),
+        Text(AppLocalizations.of(context).plannerItemResourcesLabel, style: AppStyles.formLabel(context)),
         const SizedBox(height: 9),
         SelectField<ResourceModel>(
           items: filteredResources,
@@ -525,11 +523,14 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           },
           enabled: formController.selectedCourse != null &&
               filteredResources.isNotEmpty,
-          buttonLabel: 'Select resources',
+          buttonLabel: AppLocalizations.of(context).plannerItemSelectResourcesButton,
           labelBuilder: (item, onDelete) => ResourceTitleLabel(
             title: item.title,
             userSettings: widget.userSettings,
-            onDelete: onDelete,
+            deleteAction: LabelDeleteAction(
+              onPressed: onDelete,
+              label: AppLocalizations.of(context).commonRemoveLabel,
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -542,7 +543,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Priority', style: AppStyles.formLabel(context)),
+          Text(AppLocalizations.of(context).plannerItemPriorityLabel, style: AppStyles.formLabel(context)),
           const SizedBox(height: 9),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
@@ -582,12 +583,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       padding: const EdgeInsets.only(bottom: 14),
       child: InfoContainer(
         text:
-            'Once you\'ve created at least one Class shown on the Planner, '
-            'you can add Assignments from here too.',
+            AppLocalizations.of(context).plannerItemNoClassesInfo,
         trailing: HeliumIconButton(
           icon: Icons.school,
           backgroundColor: context.colorScheme.onSurfaceVariant,
-          label: 'Add a class',
+          label: AppLocalizations.of(context).plannerItemAddClassLabel,
           onPressed: () =>
               widget.onNavigateRequested?.call(AppRoute.coursesScreen),
         ),
@@ -618,7 +618,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 width: 140,
                 child: HeliumCheckboxListTile(
                   key: const Key(PlannerItemFormController.completeField),
-                  title: Text('Complete', style: AppStyles.formLabel(context)),
+                  title: Text(AppLocalizations.of(context).plannerItemCompleteLabel, style: AppStyles.formLabel(context)),
                   value: formController.isCompleted,
                   onChanged: (value) {
                     formController.markChanged();
@@ -635,7 +635,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 Expanded(
                   child: LabelAndTextFormField(
                     key: const Key(PlannerItemFormController.gradeField),
-                    hintText: 'Grade',
+                    hintText: AppLocalizations.of(context).plannerItemGradeHint,
                     controller: formController.gradeController,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,/]')),
@@ -708,7 +708,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     } else {
       SnackBarHelper.show(
         context,
-        'Fix the highlighted fields, then try again.',
+        AppLocalizations.of(context).plannerItemFixFieldsMessage,
         type: SnackType.error,
       );
     }
@@ -794,7 +794,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       context: context,
       action: RecurrenceScopeAction.edit,
       isEvent: _isEvent,
-      thisDetail: 'It keeps its reminders.',
+      thisDetail: AppLocalizations.of(context).plannerKeepsRemindersDetail,
     );
     if (scope == null) return null;
     return scope == RecurrenceScope.thisOccurrence ? _SeriesSave.thisOccurrence : _SeriesSave.all;
@@ -1019,7 +1019,8 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         );
       }
       _courseSchedules = state.courseSchedules;
-      _categories = state.categories;
+      _categories = [...state.categories];
+      Sort.byCategoryTitle(_categories);
       _weightedCourseIds = _categories
           .where((c) => c.weight > 0)
           .map((c) => c.course)
@@ -1031,9 +1032,9 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
               value: c,
               label: _weightedCourseIds.contains(c.course)
                   ? (c.weight > 0
-                      ? '${c.title} (${HeliumNumber.formatPercent(c.weight, fractionDigits: 0)})'
-                      : '${c.title} (Not Graded)')
-                  : c.title,
+                      ? AppLocalizations.of(context).plannerItemWeightedCategoryLabel(c.displayTitle, HeliumNumber.formatPercent(c.weight, fractionDigits: 0))
+                      : AppLocalizations.of(context).plannerItemUngradedCategoryLabel(c.displayTitle))
+                  : c.displayTitle,
               iconData: Icons.category_outlined,
               iconColor: c.color,
             ),
@@ -1186,7 +1187,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;
@@ -1264,7 +1265,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           ? formController.startTime
           : formController.endTime,
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;
@@ -1314,7 +1315,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     _log.warning('Planner item class could not be resolved; action aborted');
     SnackBarHelper.show(
       context,
-      'This class is no longer available. Close and reopen this assignment.',
+      AppLocalizations.of(context).plannerItemClassUnavailableMessage,
       type: SnackType.error,
     );
   }
@@ -1410,11 +1411,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
             .firstOrNull;
 
         if (matchingSchedule != null) {
-          formController.startTime = matchingSchedule.getStartTimeForDay(
-            HeliumDateTime.formatDayNameShort(formController.startDate),
+          formController.startTime = matchingSchedule.getStartTimeForDayIndex(
+            formController.startDate.weekday % DateTime.daysPerWeek,
           );
-          formController.endTime = matchingSchedule.getEndTimeForDay(
-            HeliumDateTime.formatDayNameShort(formController.endDate),
+          formController.endTime = matchingSchedule.getEndTimeForDayIndex(
+            formController.endDate.weekday % DateTime.daysPerWeek,
           );
         } else {
           const noon = TimeOfDay(hour: 12, minute: 0);
@@ -1423,6 +1424,15 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         }
       }
     });
+  }
+
+  List<DropDownItem<CategoryModel>> _selectedCourseCategoryItems() {
+    final items = _categoryItems
+        .where((category) => category.value?.course == formController.selectedCourse)
+        .toList();
+    final uncategorizedIndex = items.indexWhere((category) => category.value!.isUncategorized);
+    if (uncategorizedIndex > 0) items.insert(uncategorizedIndex, DropDownItem(id: -1, isDivider: true));
+    return items;
   }
 
   void _selectCategory(int categoryId) {
@@ -1466,7 +1476,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       parentContext: context,
       item: _plannerItem!,
       label: _plannerItem!.title,
-      additionalWarning: 'Its attachments and note will also be deleted.',
+      additionalWarning: AppLocalizations.of(context).plannerDeletesAttachmentsNoteDetail,
       onDelete: onDelete,
     );
   }
@@ -1501,7 +1511,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
       context: context,
       action: RecurrenceScopeAction.delete,
       isEvent: _isEvent,
-      allDetail: 'Its attachments and note will also be deleted.',
+      allDetail: AppLocalizations.of(context).plannerDeletesAttachmentsNoteDetail,
     );
     if (scope == null || !mounted) return;
 

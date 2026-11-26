@@ -86,9 +86,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y lcov
-      - name: Check localization
-        run: make check-l10n
+      - name: Check
+        run: make check
       - name: Test
+        if: ${{ !cancelled() }}
         run: make test coverage
       - name: Upload test coverage
         if: ${{ !cancelled() }}

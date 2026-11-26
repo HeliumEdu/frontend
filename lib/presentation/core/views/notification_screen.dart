@@ -18,6 +18,7 @@ import 'package:heliumapp/data/models/planner/reminder_model.dart';
 import 'package:heliumapp/data/models/planner/request/reminder_request_model.dart';
 import 'package:heliumapp/data/repositories/reminder_repository_impl.dart';
 import 'package:heliumapp/data/sources/reminder_remote_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -107,7 +108,7 @@ class _NotificationsScreenState
   bool _isDismissingAll = false;
 
   @override
-  String get screenTitle => 'Notifications';
+  String get screenTitle => AppLocalizations.of(context).notificationsTitle;
 
   @override
   IconData get icon => Icons.notifications;
@@ -133,7 +134,7 @@ class _NotificationsScreenState
         style: IconButton.styleFrom(
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        tooltip: 'Dismiss all',
+        tooltip: AppLocalizations.of(context).notificationsDismissAllTooltip,
         onPressed: isEnabled ? _dismissAllReminders : null,
         icon: Icon(
           Icons.clear_all,
@@ -214,7 +215,7 @@ class _NotificationsScreenState
               _isDismissingAll = false;
               if (state.origin == EventOrigin.screen) {
                 isLoading = false;
-                screenError = state.message ?? HeliumException.unexpectedError;
+                screenError = state.message ?? HeliumException.unexpectedErrorMessage;
               }
             });
             if (state.origin != EventOrigin.screen) {
@@ -247,7 +248,7 @@ class _NotificationsScreenState
               );
             } else {
               if (reminder.dismissed) {
-                showSnackBar(context, 'Reminder dismissed.');
+                showSnackBar(context, AppLocalizations.of(context).notificationsReminderDismissedMessage);
               }
               context.read<NotificationCountBloc>().add(
                 RemoveReminderEvent(
@@ -264,7 +265,7 @@ class _NotificationsScreenState
               ),
             );
           } else if (state is AllRemindersDismissed) {
-            showSnackBar(context, 'All Reminders dismissed.');
+            showSnackBar(context, AppLocalizations.of(context).notificationsAllRemindersDismissedMessage);
             if (!_isSlidingAll) _clearNotifications();
             setState(() => _isDismissingAll = false);
           }
@@ -320,9 +321,9 @@ class _NotificationsScreenState
                       minHeight: constraints.maxHeight,
                     ),
                     child: EmptyCard(
+                      title: AppLocalizations.of(context).emptyCardTitle,
                       icon: icon,
-                      message:
-                          'Reminders will appear here when they are due',
+                      message: AppLocalizations.of(context).notificationsEmptyMessage,
                       expanded: false,
                     ),
                   ),
@@ -655,7 +656,7 @@ class _NotificationsScreenState
                         minimumSize: Size.zero,
                       ),
                       constraints: const BoxConstraints(),
-                      tooltip: 'Dismiss reminder',
+                      tooltip: AppLocalizations.of(context).notificationsDismissReminderLabel,
                       onPressed: () => _dismissReminder(notification),
                       icon: Icon(
                         Icons.close,
@@ -681,7 +682,7 @@ class _NotificationsScreenState
     return _withDismissAllSlide(
       Semantics(
         customSemanticsActions: {
-          const CustomSemanticsAction(label: 'Dismiss reminder'): () =>
+          CustomSemanticsAction(label: AppLocalizations.of(context).notificationsDismissReminderLabel): () =>
               _dismissReminder(notification),
         },
         child: Dismissible(

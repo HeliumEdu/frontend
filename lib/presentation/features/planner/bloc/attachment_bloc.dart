@@ -1,10 +1,10 @@
 import 'package:bloc/bloc.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/domain/repositories/attachment_repository.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
 
 class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
   final AttachmentRepository attachmentRepository;
@@ -57,7 +57,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     } catch (e) {
       emit(
         AttachmentsFetchFailed(
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           eventId: event.eventId,
           homeworkId: event.homeworkId,
           courseId: event.courseId,
@@ -115,7 +115,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
         AttachmentsError(
           message: distinctMessages.length == 1
               ? distinctMessages.first
-              : '${failedFilenames.length} ${failedFilenames.length.plural('attachment')} failed to upload',
+              : LocaleNotifier().localizations.attachmentsUploadFailedCount(failedFilenames.length),
           failedFilenames: failedFilenames,
         ),
       );
@@ -142,7 +142,7 @@ class AttachmentBloc extends Bloc<AttachmentEvent, AttachmentState> {
     } on HeliumException catch (e) {
       emit(AttachmentsError(message: e.message));
     } catch (e) {
-      emit(AttachmentsError(message: HeliumException.unexpectedError));
+      emit(AttachmentsError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 }

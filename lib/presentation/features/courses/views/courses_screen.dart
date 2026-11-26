@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_state.dart';
 import 'package:heliumapp/presentation/ui/components/notes_viewer.dart';
@@ -88,7 +89,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
         isNew: true,
       );
     } else {
-      showSnackBar(context, 'Create a group first.', type: SnackType.info);
+      showSnackBar(context, AppLocalizations.of(context).coursesCreateGroupFirstMessage, type: SnackType.info);
     }
   };
 
@@ -178,7 +179,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           } else if (state is CoursesScreenDataFetched) {
             _populateScreenData(state);
           } else if (state is CourseGroupCreated) {
-            showSnackBar(context, 'Group created.');
+            showSnackBar(context, AppLocalizations.of(context).courseGroupCreatedMessage);
 
             setState(() {
               _courseGroups.add(state.courseGroup);
@@ -197,7 +198,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           } else if (state is CourseGroupConflict) {
             _replaceCourseGroup(state.latest);
           } else if (state is CourseGroupDeleted) {
-            showSnackBar(context, 'Group deleted.');
+            showSnackBar(context, AppLocalizations.of(context).courseGroupDeletedMessage);
 
             setState(() {
               _courseGroups.removeWhere((g) => g.id == state.id);
@@ -241,7 +242,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
               ),
             );
           } else if (state is CourseDeleted) {
-            showSnackBar(context, 'Class deleted.');
+            showSnackBar(context, AppLocalizations.of(context).courseDeletedMessage);
 
             setState(() {
               for (final courses in _coursesMap.values) {
@@ -452,11 +453,11 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
         if (_courseGroups.isEmpty) {
           return EmptyCard(
             icon: Icons.school,
-            title: "You haven't added any groups yet",
-            message: 'Click "+ Add Group" to get started',
+            title: AppLocalizations.of(context).coursesNoGroupsTitle,
+            message: AppLocalizations.of(context).coursesNoGroupsMessage,
             expanded: false,
             action: HeliumElevatedButton(
-              buttonText: 'Where to Start',
+              buttonText: AppLocalizations.of(context).coursesWhereToStartButton,
               icon: Icons.menu_book_outlined,
               backgroundColor: context.colorScheme.onSurfaceVariant,
               fullWidth: false,
@@ -473,12 +474,12 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
           return EmptyCard(
             icon: Icons.school,
             title: hasClassesElsewhere
-                ? 'No classes in this group yet'
-                : "You haven't added any classes yet",
-            message: 'Click "+" to get started',
+                ? AppLocalizations.of(context).coursesNoClassesInGroupTitle
+                : AppLocalizations.of(context).coursesNoClassesTitle,
+            message: AppLocalizations.of(context).commonAddToGetStartedMessage,
             expanded: false,
             action: HeliumElevatedButton(
-              buttonText: 'Where to Start',
+              buttonText: AppLocalizations.of(context).coursesWhereToStartButton,
               icon: Icons.menu_book_outlined,
               backgroundColor: context.colorScheme.onSurfaceVariant,
               fullWidth: false,
@@ -620,7 +621,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchMailUrl(course.teacherEmail);
                         },
                         icon: Icons.email_outlined,
-                        label: 'Email teacher',
+                        label: AppLocalizations.of(context).plannerEmailTeacherLabel,
                         color: context.semanticColors.info,
                       ),
                     ),
@@ -633,7 +634,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           UrlHelpers.launchWebUrl(course.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        label: 'Launch class website',
+                        label: AppLocalizations.of(context).plannerLaunchClassWebsiteLabel,
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -645,7 +646,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                         onPressed: () => _onEdit(course),
                         icon: Icons.edit_outlined,
                         showTooltip: false,
-                        label: 'Edit',
+                        label: AppLocalizations.of(context).commonEditLabel,
                       ),
                     ),
                   ],
@@ -685,7 +686,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                               ),
                               const SizedBox(width: 4),
                               SelectableText(
-                                'Online',
+                                AppLocalizations.of(context).plannerOnlineLabel,
                                 style: AppStyles.standardBodyText(
                                   context,
                                 ).copyWith(
@@ -758,7 +759,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '$categoryCount ${categoryCount.plural('category', 'categories')}',
+                              AppLocalizations.of(context).coursesCategoryCount(categoryCount),
                               style: AppStyles.smallSecondaryText(
                                 context,
                               ).copyWith(
@@ -770,7 +771,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                             if (course.hasWeightedGrading == true) ...[
                               const SizedBox(width: 6),
                               Tooltip(
-                                message: 'Weighted grading',
+                                message: AppLocalizations.of(context).coursesWeightedGradingTooltip,
                                 child: Icon(
                                   Icons.balance,
                                   size: Responsive.getIconSize(
@@ -800,7 +801,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
                           context,
                           icon: Icons.table_rows_outlined,
                           text: gradeScaleLabel,
-                          tooltip: 'Grade scale',
+                          tooltip: AppLocalizations.of(context).coursesGradeScaleTooltip,
                         ),
                       ],
                       if (attachmentCount > 0) ...[
@@ -958,7 +959,7 @@ class _CoursesScreenState extends BasePageScreenState<_CoursesProvidedScreen> {
 
   String _formatCredits(double credits) {
     final formatted = HeliumNumber.format(credits, fractionDigits: 1, trimZeros: true);
-    return '$formatted ${credits.plural('credit')}';
+    return AppLocalizations.of(context).coursesCreditCount(credits, formatted);
   }
 
   List<Container> _buildCourseScheduleContainers(CourseModel course) {

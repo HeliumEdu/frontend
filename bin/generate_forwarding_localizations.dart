@@ -23,25 +23,6 @@ import 'package:analyzer/dart/element/type.dart';
 /// Usage: dart bin/generate_forwarding_localizations.dart [output path]
 const _outputPath = 'lib/utils/forwarding_localizations.dart';
 
-const _binaryOperators = {
-  '+',
-  '-',
-  '*',
-  '/',
-  '~/',
-  '%',
-  '<',
-  '>',
-  '<=',
-  '>=',
-  '&',
-  '|',
-  '^',
-  '<<',
-  '>>',
-  '>>>',
-};
-
 const _literalDefault = r"^(true|false|null|-?\d+(\.\d+)?|'[^'\\$]*')$";
 
 const _targets = [
@@ -264,66 +245,17 @@ String _renderMember(ExecutableElement member, _ImportScope scope) {
   if (member is GetterElement) {
     signature = '$returnType get $name';
     body = 'base.$name';
-  } else if (member is SetterElement) {
-    final value = parameters.single;
-    signature = 'set $name(${_renderType(value.type, scope)} ${value.name})';
-    body = 'base.$name = ${value.name}';
-  } else if (member is MethodElement && member.isOperator) {
-    signature =
-        '$returnType operator ${_operatorToken(name)}${_renderParameters(parameters, scope)}';
-    body = _renderOperatorCall(name, parameters);
-  } else if (member is MethodElement) {
-    final typeParameters = _renderTypeParameters(member.typeParameters, scope);
-    final typeArguments = member.typeParameters.isEmpty
-        ? ''
-        : '<${member.typeParameters.map((p) => p.name).join(', ')}>';
-    signature =
-        '$returnType $name$typeParameters${_renderParameters(parameters, scope)}';
-    body = 'base.$name$typeArguments${_renderArguments(parameters)}';
+  } else if (member is MethodElement &&
+      !member.isOperator &&
+      member.typeParameters.isEmpty) {
+    signature = '$returnType $name${_renderParameters(parameters, scope)}';
+    body = 'base.$name${_renderArguments(parameters)}';
   } else {
     throw ForwardingGenerationException(
       'unsupported member kind ${member.runtimeType} for $name',
     );
   }
   return '  @override\n  $signature => $body;';
-}
-
-String _operatorToken(String name) => name == 'unary-' ? '-' : name;
-
-String _renderOperatorCall(
-  String name,
-  List<FormalParameterElement> parameters,
-) {
-  final names = parameters.map((p) => p.name!).toList();
-  if (name == '[]') {
-    return 'base[${names.single}]';
-  }
-  if (name == '[]=') {
-    return 'base[${names[0]}] = ${names[1]}';
-  }
-  if (name == 'unary-' || name == '~') {
-    return '${_operatorToken(name)}base';
-  }
-  if (_binaryOperators.contains(name)) {
-    return 'base $name ${names.single}';
-  }
-  throw ForwardingGenerationException('unsupported operator $name');
-}
-
-String _renderTypeParameters(
-  List<TypeParameterElement> typeParameters,
-  _ImportScope scope,
-) {
-  if (typeParameters.isEmpty) {
-    return '';
-  }
-  final rendered = typeParameters.map((p) {
-    final bound = p.bound;
-    return bound == null
-        ? p.name!
-        : '${p.name} extends ${_renderType(bound, scope)}';
-  });
-  return '<${rendered.join(', ')}>';
 }
 
 String _renderParameters(
@@ -384,9 +316,7 @@ String _renderType(DartType type, _ImportScope scope) {
     DynamicType() => 'dynamic',
     VoidType() => 'void',
     NeverType() => 'Never$suffix',
-    TypeParameterType() => '${type.element.name}$suffix',
     InterfaceType() => _renderInterfaceType(type, scope) + suffix,
-    FunctionType() => _renderFunctionType(type, scope) + suffix,
     _ => throw ForwardingGenerationException(
       'unsupported type ${type.runtimeType}: $type',
     ),
@@ -402,12 +332,6 @@ String _renderTypeArguments(List<DartType> typeArguments, _ImportScope scope) =>
     typeArguments.isEmpty
     ? ''
     : '<${typeArguments.map((t) => _renderType(t, scope)).join(', ')}>';
-
-String _renderFunctionType(FunctionType type, _ImportScope scope) {
-  final returnType = _renderType(type.returnType, scope);
-  final typeParameters = _renderTypeParameters(type.typeParameters, scope);
-  return '$returnType Function$typeParameters${_renderParameters(type.formalParameters, scope)}';
-}
 
 Future<String> _format(String source) async {
   final process = await Process.start(Platform.resolvedExecutable, [

@@ -5,6 +5,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -107,7 +108,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         } else if (state is CourseSchedulesFetched) {
           setState(() => _schedules = state.schedules);
         } else if (state is CourseScheduleCreated) {
-          SnackBarHelper.show(context, 'Schedule saved.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).scheduleSavedMessage);
           setState(() => _schedules = [..._schedules, state.schedule]);
         } else if (state
             case CourseScheduleUpdated(:final schedule) ||
@@ -118,7 +119,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
             if (index >= 0) _schedules[index] = schedule;
           });
         } else if (state is CourseScheduleDeleted) {
-          SnackBarHelper.show(context, 'Schedule deleted.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).scheduleDeletedMessage);
           setState(() => _schedules.removeWhere((s) => s.id == state.id));
         } else if (state is CourseExceptionsUpdated &&
             state.course.id == widget.courseId) {
@@ -133,7 +134,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         } else if (_isFetchFailure(state)) {
           setState(() {
             _error = (state as CoursesError).message ??
-                HeliumException.unexpectedError;
+                HeliumException.unexpectedErrorMessage;
             _isLoading = false;
           });
         }
@@ -199,7 +200,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Schedules', style: AppStyles.featureText(context)),
+            Text(AppLocalizations.of(context).courseSchedulesTitle, style: AppStyles.featureText(context)),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -211,7 +212,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
                   onPressed: _onAdd,
                   icon: Icons.add,
                   showTooltip: false,
-                  label: 'Add schedule',
+                  label: AppLocalizations.of(context).scheduleAddLabel,
                 ),
               ],
             ),
@@ -225,10 +226,11 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
 
   Widget _buildList(BuildContext context) {
     if (_schedules.isEmpty) {
-      return const EmptyCard(
+      return EmptyCard(
+        title: AppLocalizations.of(context).emptyCardTitle,
         expanded: false,
         icon: Icons.date_range_outlined,
-        message: 'Click "+" to add a schedule',
+        message: AppLocalizations.of(context).scheduleEmptyMessage,
       );
     }
 
@@ -294,7 +296,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
     final actionHeight =
         Responsive.getIconSize(context, mobile: 20, tablet: 22, desktop: 24) + 12;
     return HeliumElevatedButton(
-      buttonText: 'Cancellations',
+      buttonText: AppLocalizations.of(context).courseCancellationsTitle,
       backgroundColor: context.colorScheme.onSurfaceVariant,
       fullWidth: false,
       minHeight: actionHeight,
@@ -334,7 +336,7 @@ class _CourseScheduleContentState extends State<_CourseScheduleContent> {
   }
 
   String _scopeLabel(CourseScheduleModel schedule) {
-    final rotation = ScheduleTemplate.summaryLabel(schedule);
+    final rotation = ScheduleTemplate.labelFor(schedule);
     final meetings = rotation == null
         ? schedule.meetingsLabel()
         : '$rotation: ${schedule.meetingsLabel()}';

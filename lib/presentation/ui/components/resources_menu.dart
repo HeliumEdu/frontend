@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
@@ -42,7 +43,7 @@ class ResourcesMenuContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const HeliumMenuTitle(title: 'Resources'),
+          HeliumMenuTitle(title: AppLocalizations.of(context).resourcesMenuTitle),
           const SizedBox(height: 8),
           for (final resource in resources) _buildResourceRow(context, resource),
         ],
@@ -62,7 +63,7 @@ class ResourcesMenuContent extends StatelessWidget {
           : HeliumIconButton(
               onPressed: () => UrlHelpers.launchWebUrl(website.toString()),
               icon: Icons.launch_outlined,
-              label: "Launch resource's website",
+              label: AppLocalizations.of(context).resourcesMenuLaunchWebsiteLabel,
               color: context.semanticColors.success,
             ),
     );

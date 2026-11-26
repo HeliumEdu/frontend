@@ -12,6 +12,7 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/widgets/planner_item_meta_row.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
@@ -49,17 +50,16 @@ final _log = Logger('presentation.widgets');
 
 /// Column definitions with responsive visibility breakpoints
 enum TodosColumn {
-  completed(label: '', mobileWidth: 44, fixedWidth: 48, isCheckbox: true),
-  title(label: 'Title', mobileWidth: 70, desktopWidth: 95),
-  due(label: 'Due', mobileWidth: 154, slimMobileWidth: 124, desktopWidth: 166),
-  className(label: 'Class', minViewportWidth: 650, fixedWidth: 120),
-  category(label: 'Category', minViewportWidth: 950, fixedWidth: 129),
-  priority(label: 'Priority', minViewportWidth: 1150, fixedWidth: 116),
-  grade(label: 'Grade', mobileWidth: 98, fixedWidth: 106),
-  meta(label: '', minViewportWidth: 1050, fixedWidth: 108);
+  completed(mobileWidth: 44, fixedWidth: 48, isCheckbox: true),
+  title(mobileWidth: 70, desktopWidth: 95),
+  due(mobileWidth: 154, slimMobileWidth: 124, desktopWidth: 166),
+  className(minViewportWidth: 650, fixedWidth: 120),
+  category(minViewportWidth: 950, fixedWidth: 129),
+  priority(minViewportWidth: 1150, fixedWidth: 116),
+  grade(mobileWidth: 98, fixedWidth: 106),
+  meta(minViewportWidth: 1050, fixedWidth: 108);
 
   const TodosColumn({
-    required this.label,
     this.fixedWidth,
     this.mobileWidth,
     this.slimMobileWidth,
@@ -68,7 +68,6 @@ enum TodosColumn {
     this.isCheckbox = false,
   });
 
-  final String label;
   final double? fixedWidth;
   final double? mobileWidth;
   final double? slimMobileWidth;
@@ -85,6 +84,16 @@ enum TodosColumn {
     if (desktopWidth != null) return desktopWidth;
     return fixedWidth;
   }
+
+  String get label => switch (this) {
+    completed || meta => '',
+    title => LocaleNotifier().localizations.todosTitleColumn,
+    due => LocaleNotifier().localizations.todosDueColumn,
+    className => LocaleNotifier().localizations.todosClassColumn,
+    category => LocaleNotifier().localizations.todosCategoryColumn,
+    priority => LocaleNotifier().localizations.todosPriorityColumn,
+    grade => LocaleNotifier().localizations.todosGradeColumn,
+  };
 }
 
 class TodosDataGrid extends StatefulWidget {
@@ -253,8 +262,8 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                               SnackBarHelper.show(
                                 context,
                                 result.saved
-                                    ? 'Exported ${export.filename}'
-                                    : result.errorMessage ?? 'Nothing exported',
+                                    ? AppLocalizations.of(context).todosExportedMessage(export.filename)
+                                    : result.errorMessage ?? AppLocalizations.of(context).todosNothingExportedMessage,
                                 type: result.saved
                                     ? SnackType.success
                                     : SnackType.error,
@@ -285,7 +294,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
                         maintainAnimation: true,
                         maintainState: true,
                         child: Text(
-                          'Export CSV',
+                          AppLocalizations.of(context).todosExportCsvButton,
                           style: AppStyles.smallSecondaryText(context).copyWith(
                             color: isDisabled
                                 ? context.colorScheme.onSurface.withValues(alpha: 0.38)
@@ -340,8 +349,8 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
     final buffer = StringBuffer();
     buffer.writeln(_csvRow([
-      'Completed', 'Title', 'Due', 'Class', 'Category', 'Priority', 'Grade',
-      if (hasResources) 'Resources',
+      AppLocalizations.of(context).todosCompletedColumn, AppLocalizations.of(context).todosTitleColumn, AppLocalizations.of(context).todosDueColumn, AppLocalizations.of(context).todosClassColumn, AppLocalizations.of(context).todosCategoryColumn, AppLocalizations.of(context).todosPriorityColumn, AppLocalizations.of(context).todosGradeColumn,
+      if (hasResources) AppLocalizations.of(context).todosResourcesColumn,
     ]));
 
     for (final homework in homeworks) {
@@ -358,11 +367,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       final gradeValue = GradeHelper.parseGrade(homework.currentGrade);
 
       buffer.writeln(_csvRow([
-        isCompleted ? 'Yes' : 'No',
+        isCompleted ? AppLocalizations.of(context).todosCsvYes : AppLocalizations.of(context).todosCsvNo,
         homework.title,
         dateText,
         course?.title ?? '',
-        category?.title ?? '',
+        category?.displayTitle ?? '',
         homework.priority > 0 ? (homework.priority / 10).round().toString() : '',
         isCompleted && gradeValue != null
             ? HeliumNumber.format(gradeValue, fractionDigits: 2)
@@ -379,7 +388,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
 
     return (
       bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
-      filename: 'Helium_todos_$date.csv',
+      filename: LocaleNotifier().localizations.todosCsvFilename(date),
     );
   }
 
@@ -540,7 +549,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           child: Icon(
             Icons.check_box_outline_blank,
             size: _headerCheckboxIconSize,
-            semanticLabel: 'Completed',
+            semanticLabel: AppLocalizations.of(context).todosCompletedColumn,
             color: context.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
@@ -568,11 +577,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
     final hasAssignments = widget.dataSource.allHomeworks.isNotEmpty;
 
     if (!hasAssignments) {
-      return const EmptyCard(
+      return EmptyCard(
         expanded: false,
         icon: Icons.assignment_outlined,
-        title: "You haven't added any assignments yet",
-        message: 'Click "+" to get started',
+        title: AppLocalizations.of(context).todosEmptyTitle,
+        message: AppLocalizations.of(context).commonAddToGetStartedMessage,
       );
     }
 
@@ -587,7 +596,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No assignments match the applied filters or search',
+            AppLocalizations.of(context).todosNoMatchesMessage,
             style: AppStyles.standardBodyTextLight(context).copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
             ),
@@ -642,7 +651,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         endSwipeActionsBuilder: (context, row, rowIndex) {
           final homework = _dataSource.getHomeworkFromRow(row);
           return Semantics(
-            label: 'Delete',
+            label: AppLocalizations.of(context).commonDeleteLabel,
             button: true,
             child: GestureDetector(
               onTap: () => unawaited(
@@ -835,6 +844,15 @@ class TodosDataSource extends BaseDataGridSource {
   }
 
   @override
+  void sortDataGridRows(List<DataGridRow> rows) {
+    super.sortDataGridRows(rows);
+    if (sortedColumns.firstOrNull?.name != 'category') return;
+    final uncategorized = rows.where(_isUncategorized).toList();
+    rows.removeWhere(_isUncategorized);
+    rows.addAll(uncategorized);
+  }
+
+  @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
     try {
       final homework = getHomeworkFromRow(row);
@@ -917,6 +935,9 @@ class TodosDataSource extends BaseDataGridSource {
     return _homeworks.elementAtOrNull(index);
   }
 
+  static bool _isUncategorized(DataGridRow row) =>
+      row.getCells().firstWhere((c) => c.columnName == '_categoryUncategorized').value == true;
+
   void _rebuildRows() {
     final courses = _dataSource.courses ?? [];
     final categoriesMap = _dataSource.categoriesMap ?? {};
@@ -943,7 +964,7 @@ class TodosDataSource extends BaseDataGridSource {
         }
 
         final courseTitle = course.title.toLowerCase();
-        final categoryTitle = category?.title.toLowerCase() ?? '';
+        final categoryTitle = category?.displayTitle.toLowerCase() ?? '';
 
         rows.add(DataGridRow(cells: [
           DataGridCell<int>(columnName: 'completed', value: isCompleted ? 1 : 0),
@@ -965,6 +986,7 @@ class TodosDataSource extends BaseDataGridSource {
           DataGridCell<Color>(columnName: '_courseColor', value: course.color),
           DataGridCell<int?>(columnName: '_categoryId', value: category?.id),
           DataGridCell<Color?>(columnName: '_categoryColor', value: category?.color),
+          DataGridCell<bool>(columnName: '_categoryUncategorized', value: category?.isUncategorized ?? false),
         ]));
       } catch (e, st) {
         ErrorHelpers.logAndReport(
@@ -982,7 +1004,7 @@ class TodosDataSource extends BaseDataGridSource {
   CourseModel _fallbackCourse() {
     return CourseModel(
       id: 0,
-      title: 'Unknown',
+      title: LocaleNotifier().localizations.todosUnknownClassLabel,
       color: FallbackConstants.fallbackColor,
       room: '',
       website: null,
@@ -1091,7 +1113,7 @@ class TodosDataSource extends BaseDataGridSource {
         child: Checkbox(
           value: isCompleted,
           onChanged: (_) => _toggleCompleted(homework),
-          semanticLabel: 'Complete ${homework.title}',
+          semanticLabel: LocaleNotifier().localizations.plannerCompleteItemLabel(homework.title),
           materialTapTargetSize: isTouch ? MaterialTapTargetSize.padded : MaterialTapTargetSize.shrinkWrap,
           visualDensity: isTouch ? VisualDensity.standard : VisualDensity.compact,
           activeColor: checkColor,
@@ -1175,9 +1197,8 @@ class TodosDataSource extends BaseDataGridSource {
             )
           : dateWidget,
     );
-    return hasReminders ? Tooltip(message: 'Has reminders', child: cell) : cell;
+    return hasReminders ? Tooltip(message: LocaleNotifier().localizations.todosHasRemindersTooltip, child: cell) : cell;
   }
-
 
   Widget _buildClassCell(CourseModel course) {
     return Container(
@@ -1203,7 +1224,7 @@ class TodosDataSource extends BaseDataGridSource {
       ),
       alignment: Alignment.centerLeft,
       child: CategoryTitleLabel(
-        title: category.title,
+        title: category.displayTitle,
         color: category.color,
         compact: true,
       ),
@@ -1323,7 +1344,7 @@ class TodosDataSource extends BaseDataGridSource {
           onPressed: () {
             UrlHelpers.launchMailUrl(course.teacherEmail);
           },
-          label: 'Email teacher',
+          label: LocaleNotifier().localizations.plannerEmailTeacherLabel,
           icon: Icons.email_outlined,
           color: _context.colorScheme.onSurface,
         ),
@@ -1336,7 +1357,7 @@ class TodosDataSource extends BaseDataGridSource {
           onPressed: () {
             UrlHelpers.launchWebUrl(course.website.toString());
           },
-          label: 'Launch class website',
+          label: LocaleNotifier().localizations.plannerLaunchClassWebsiteLabel,
           icon: Icons.launch_outlined,
           color: _context.colorScheme.onSurface,
         ),
@@ -1349,7 +1370,7 @@ class TodosDataSource extends BaseDataGridSource {
           onPressed: () => _onTap(homework),
           icon: Icons.edit_outlined,
           showTooltip: false,
-          label: 'Edit',
+          label: LocaleNotifier().localizations.commonEditLabel,
           color: _context.colorScheme.onSurface,
         ),
       );

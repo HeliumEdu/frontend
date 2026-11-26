@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
@@ -20,7 +21,7 @@ class _GradeScaleDialog extends StatelessWidget {
       backgroundColor: context.colorScheme.surface,
       title: SizedBox(
         width: Responsive.getDialogWidth(context),
-        child: Text('$title Grade Scale', style: AppStyles.headingText(context)),
+        child: Text(AppLocalizations.of(context).gradeScaleDialogTitle(title), style: AppStyles.headingText(context)),
       ),
       content: SizedBox(
         width: Responsive.getDialogWidth(context),
@@ -33,9 +34,9 @@ class _GradeScaleDialog extends StatelessWidget {
             },
             children: [
               _buildRow(context, [
-                'Grade',
-                if (hasLabels) 'Letter',
-                'Points',
+                AppLocalizations.of(context).gradeScaleGradeColumn,
+                if (hasLabels) AppLocalizations.of(context).gradeScaleLetterColumn,
+                AppLocalizations.of(context).gradeScalePointsColumn,
               ], isHeader: true),
               for (final band in bands.reversed)
                 _buildRow(context, [
@@ -50,7 +51,7 @@ class _GradeScaleDialog extends StatelessWidget {
       actions: [
         HeliumElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
-          buttonText: 'Close',
+          buttonText: AppLocalizations.of(context).gradeScaleCloseButton,
         ),
       ],
     );

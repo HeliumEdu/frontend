@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -126,7 +127,7 @@ Widget _buildContent(
                         icon: Icon(
                           Icons.close,
                           color: menuContext.colorScheme.secondary,
-                          semanticLabel: 'Close',
+                          semanticLabel: AppLocalizations.of(menuContext).commonCloseLabel,
                         ),
                       ),
                   ],

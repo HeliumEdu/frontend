@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
@@ -57,7 +58,7 @@ class HeliumSearchField extends StatelessWidget {
         style: AppStyles.formText(context),
         textAlignVertical: TextAlignVertical.center,
         decoration: AppStyles.formFieldDecoration(context).copyWith(
-          hintText: 'Search ...',
+          hintText: AppLocalizations.of(context).commonSearchHint,
           hintStyle: AppStyles.formHint(context),
           isDense: true,
           prefixIcon:
@@ -92,7 +93,7 @@ class HeliumSearchField extends StatelessWidget {
             // Keyed so removing it never hands its element to [trailing].
             key: const ValueKey('search_clear'),
             icon: Icons.close,
-            tooltip: 'Clear',
+            tooltip: AppLocalizations.of(context).commonClearTooltip,
             borderRadius: BorderRadiusDirectional.horizontal(
               start: _cornerRadius,
               end: trailing == null ? _cornerRadius : Radius.zero,

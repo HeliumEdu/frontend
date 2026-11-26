@@ -9,7 +9,7 @@ class CourseReminders extends BaseReminders {
     required super.entityId,
     required super.isEdit,
     required super.userSettings,
-    super.headerTitle,
+    required super.headerTitle,
   });
 
   @override
@@ -28,7 +28,7 @@ class _CourseRemindersContent extends BaseRemindersContent {
     required super.entityId,
     required super.isEdit,
     required super.userSettings,
-    super.headerTitle,
+    required super.headerTitle,
   });
 
   @override

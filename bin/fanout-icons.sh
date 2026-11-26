@@ -4,7 +4,7 @@
 # icons and favicons.
 # Platform and connector then copy theirs from www with their sync-assets.
 #
-# Requires: ImageMagick 7+ (magick) or ImageMagick 6 (convert).
+# Requires: ImageMagick 7+ (magick).
 
 set -euo pipefail
 
@@ -13,12 +13,6 @@ source "$REPO/bin/image-helpers.sh"
 WWW_PUBLIC="$REPO/../www/public"
 ICON_192="$REPO/web/icons/Icon-192.png"
 ICON_512="$REPO/web/icons/Icon-512.png"
-
-if command -v magick >/dev/null; then
-  IM=(magick)
-else
-  IM=(convert)
-fi
 
 report() {
   local dst="$1" changed="$2"
@@ -31,34 +25,23 @@ report() {
 
 # Resizing the same icon with another tool shifts a few pixels, so outputs within
 # resampling noise of the existing file count as unchanged.
-looks_unchanged() {
-  local candidate="$1" dst="$2"
-  [[ -f "$dst" ]] || return 1
-  local rmse
-  rmse=$("${IM_COMPARE[@]}" -metric RMSE "${candidate}[-1]" "${dst}[-1]" null: 2>&1) || true
-  [[ "$rmse" =~ \(([0-9.e-]+)\) ]] || return 1
-  awk -v normalized="${BASH_REMATCH[1]}" 'BEGIN { exit !(normalized < 0.06) }'
-}
+RESAMPLING_TOLERANCE=0.06
 
 copy() {
   local src="$1" dst="$2"
-  if looks_unchanged "$src" "$dst"; then
-    report "$dst" false
-  else
-    cp -f "$src" "$dst"
+  if copy_if_changed "$src" "$dst" "$RESAMPLING_TOLERANCE"; then
     report "$dst" true
+  else
+    report "$dst" false
   fi
 }
 
 install_rendered() {
   local rendered="$1" dst="$2"
-  if looks_unchanged "$rendered" "$dst"; then
-    rm -f "$rendered"
-    report "$dst" false
-  else
-    chmod 644 "$rendered"
-    mv -f "$rendered" "$dst"
+  if replace_if_changed "$rendered" "$dst" "$RESAMPLING_TOLERANCE"; then
     report "$dst" true
+  else
+    report "$dst" false
   fi
 }
 
@@ -66,7 +49,7 @@ resize() {
   local size="$1" dst="$2"
   local rendered
   rendered=$(mktemp -t icon.XXXXXX).png
-  "${IM[@]}" "$ICON_512" -resize "${size}x${size}" "${PNG_STABLE[@]}" "$rendered"
+  magick "$ICON_512" -resize "${size}x${size}" "${PNG_STABLE[@]}" "$rendered"
   install_rendered "$rendered" "$dst"
 }
 
@@ -75,7 +58,7 @@ favicon_ico() {
   local dst="$1"
   local rendered
   rendered=$(mktemp -t favicon.XXXXXX).ico
-  "${IM[@]}" "$ICON_512" -crop 472x472+20+28 +repage -define icon:auto-resize=16,32 "$rendered"
+  magick "$ICON_512" -crop 472x472+20+28 +repage -define icon:auto-resize=16,32 "$rendered"
   install_rendered "$rendered" "$dst"
 }
 
@@ -92,5 +75,5 @@ if [[ -d "$WWW_PUBLIC" ]]; then
   favicon_ico "$WWW_PUBLIC/favicon.ico"
   echo "Run 'make sync-assets' in platform and connector to pick up the www icons."
 else
-  echo "⚠ $WWW_PUBLIC not found; skipping the www icons"
+  echo "⚠ $WWW_PUBLIC not found; skipping the www icons" >&2
 fi

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -13,6 +14,7 @@ import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_clear_example_data.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -22,62 +24,23 @@ import 'package:heliumapp/utils/snack_bar_helpers.dart';
 
 const String gettingStartedDismissButtonKey = 'getting_started_dismiss_button';
 
-class _OnboardingCard {
-  final String title;
-  final String description;
-  final IconData icon;
-  final List<String> imagePaths;
-  final bool stackedDevices;
-  final String? overlayImagePath;
-
-  const _OnboardingCard({
-    required this.title,
-    required this.description,
-    required this.icon,
-    this.imagePaths = const [],
-    this.stackedDevices = false,
-    this.overlayImagePath,
-  });
-}
-
-const _cards = [
-  _OnboardingCard(
-    title: 'Welcome to Helium!',
-    description:
-        "We've preloaded your account with an example schedule so you can "
-        'see Helium in action. Take your time exploring — click through '
-        'to see what you can do.',
+enum _OnboardingCard {
+  welcome(
     icon: Icons.rocket_launch_outlined,
     imagePaths: ['assets/img/onboarding_month_view.png'],
   ),
-  _OnboardingCard(
-    title: 'One Planner, every view',
-    description:
-        'Switch between Month, Week, Day, Agenda, and Todos views. '
-        'Open for details, drag to reschedule, filter, search, sort '
-        '— everything you need to stay on top of your '
-        'schedule.',
+  planner(
     icon: Icons.calendar_month_outlined,
     imagePaths: [
       'assets/img/onboarding_week_view.png',
       'assets/img/onboarding_todos.png',
     ],
   ),
-  _OnboardingCard(
-    title: 'Organized by class',
-    description:
-        'View Classes to see how your schedules, categories, and '
-        'assignments connect. Track deadlines, class times, locations, '
-        'and Resources — all in one place.',
+  classes(
     icon: Icons.school_outlined,
     imagePaths: ['assets/img/onboarding_class_manager.png'],
   ),
-  _OnboardingCard(
-    title: 'Know your grades',
-    description:
-        'Visit Grades to see your scores by class, category, '
-        'and term in real time. Know where to focus, what is '
-        'piling up, and calculate what you need to score on the final.',
+  grades(
     icon: Icons.bar_chart_outlined,
     imagePaths: [
       'assets/img/onboarding_grades_dashboard.png',
@@ -85,44 +48,56 @@ const _cards = [
     ],
     overlayImagePath: 'assets/img/onboarding_grade_calculator_square.png',
   ),
-  _OnboardingCard(
-    title: 'Notes for anything',
-    description:
-        'Write notes linked to anything in your Planner — lecture '
-        'summaries, paper drafts, whatever else. Format like a doc, search '
-        'everything, '
-        'and print when you need a hard copy.',
+  notes(
     icon: Icons.library_books_outlined,
     imagePaths: ['assets/img/onboarding_notebook.png'],
   ),
-  _OnboardingCard(
-    title: 'Sync with other calendars',
-    description:
-        'Use External Calendars to pull in events from Google, '
-        'Apple, or other calendars. Enable Feeds to share your Helium '
-        'schedule back to those other apps.',
+  sync(
     icon: Icons.sync_outlined,
     imagePaths: ['assets/img/onboarding_external_calendars.png'],
   ),
-  _OnboardingCard(
-    title: 'Available everywhere',
-    description:
-        'Native apps for iOS and Android, plus web in any modern '
-        'browser. Your schedule and notes stay in sync no matter which '
-        'device you use — always right there.',
-    icon: Icons.devices_outlined,
-    stackedDevices: true,
-  ),
-  _OnboardingCard(
-    title: 'Ready when you are',
-    description:
-        'This welcome returns on every device until you clear the example '
-        'data. Until then, feel free to explore it and get a feel for '
-        'everything Helium has to offer.',
+  devices(icon: Icons.devices_outlined, stackedDevices: true),
+  ready(
     icon: Icons.cleaning_services_outlined,
     imagePaths: ['assets/img/onboarding_reminders.png'],
-  ),
-];
+  );
+
+  final IconData icon;
+  final List<String> imagePaths;
+  final bool stackedDevices;
+  final String? overlayImagePath;
+
+  const _OnboardingCard({
+    required this.icon,
+    this.imagePaths = const [],
+    this.stackedDevices = false,
+    this.overlayImagePath,
+  });
+
+  String get title => switch (this) {
+    welcome => LocaleNotifier().localizations.gettingStartedWelcomeTitle,
+    planner => LocaleNotifier().localizations.gettingStartedPlannerTitle,
+    classes => LocaleNotifier().localizations.gettingStartedClassesTitle,
+    grades => LocaleNotifier().localizations.gettingStartedGradesTitle,
+    notes => LocaleNotifier().localizations.gettingStartedNotesTitle,
+    sync => LocaleNotifier().localizations.gettingStartedSyncTitle,
+    devices => LocaleNotifier().localizations.gettingStartedDevicesTitle,
+    ready => LocaleNotifier().localizations.gettingStartedReadyTitle,
+  };
+
+  String get description => switch (this) {
+    welcome => LocaleNotifier().localizations.gettingStartedWelcomeDescription,
+    planner => LocaleNotifier().localizations.gettingStartedPlannerDescription,
+    classes => LocaleNotifier().localizations.gettingStartedClassesDescription,
+    grades => LocaleNotifier().localizations.gettingStartedGradesDescription,
+    notes => LocaleNotifier().localizations.gettingStartedNotesDescription,
+    sync => LocaleNotifier().localizations.gettingStartedSyncDescription,
+    devices => LocaleNotifier().localizations.gettingStartedDevicesDescription,
+    ready => LocaleNotifier().localizations.gettingStartedReadyDescription,
+  };
+}
+
+const _cards = _OnboardingCard.values;
 
 const double _onboardingImageAspectRatio = 1880 / 1000;
 
@@ -219,7 +194,7 @@ class _GettingStartedDialogWidgetState
           if (!context.mounted) return;
           SnackBarHelper.show(
             context,
-            'Failed to delete example schedule: ${state.message}',
+            AppLocalizations.of(context).gettingStartedClearExampleDataFailedMessage('${state.message}'),
             type: SnackType.error,
           );
         }
@@ -403,7 +378,10 @@ class _GettingStartedDialogWidgetState
                             duration: AppConstants.uiAnimationDuration,
                             curve: Curves.easeInOut,
                           ),
-                    icon: const Icon(Icons.chevron_left, semanticLabel: 'Previous'),
+                    icon: Icon(
+                      Icons.chevron_left,
+                      semanticLabel: AppLocalizations.of(context).gettingStartedPreviousLabel,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 36,
@@ -422,7 +400,7 @@ class _GettingStartedDialogWidgetState
                 final isActive = index == _currentPage;
                 return Semantics(
                   button: true,
-                  label: 'Go to page ${index + 1}',
+                  label: AppLocalizations.of(context).gettingStartedGoToPageLabel(index + 1),
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
@@ -477,7 +455,10 @@ class _GettingStartedDialogWidgetState
                             duration: AppConstants.uiAnimationDuration,
                             curve: Curves.easeInOut,
                           ),
-                    icon: const Icon(Icons.chevron_right, semanticLabel: 'Next'),
+                    icon: Icon(
+                      Icons.chevron_right,
+                      semanticLabel: AppLocalizations.of(context).gettingStartedNextLabel,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 36,
@@ -510,7 +491,7 @@ class _GettingStartedDialogWidgetState
             width: buttonWidth,
             child: HeliumElevatedButton(
               key: const Key(gettingStartedDismissButtonKey),
-              buttonText: "I'll explore first",
+              buttonText: AppLocalizations.of(context).gettingStartedExploreButton,
               enabled: !isLoading,
               onPressed: () => Navigator.pop(context),
             ),
@@ -540,7 +521,7 @@ class _GettingStartedDialogWidgetState
               child: CircularProgressIndicator(strokeWidth: 2.5),
             )
           : const Icon(Icons.cleaning_services_outlined, size: 16),
-      label: const Text('Clear Example Data'),
+      label: Text(AppLocalizations.of(context).gettingStartedClearExampleDataButton),
       style: HeliumElevatedButton.outlinedStyle(context.colorScheme),
     );
   }

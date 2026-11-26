@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
@@ -59,7 +60,7 @@ class AttachmentDownloads {
     if (latest == null) {
       SnackBarHelper.show(
         context,
-        '"${attachment.title}" was deleted.',
+        AppLocalizations.of(context).attachmentDeletedElsewhereMessage(attachment.title),
         type: SnackType.error,
       );
       return;
@@ -72,7 +73,7 @@ class AttachmentDownloads {
     if (!context.mounted || result.cancelled) return;
 
     if (result.saved) {
-      SnackBarHelper.show(context, '"${latest.title}" downloaded.');
+      SnackBarHelper.show(context, AppLocalizations.of(context).attachmentDownloadedMessage(latest.title));
     } else {
       SnackBarHelper.show(
         context,
@@ -111,11 +112,11 @@ class _AttachmentsMenuContentState extends State<AttachmentsMenuContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const HeliumMenuTitle(title: 'Attachments'),
+          HeliumMenuTitle(title: AppLocalizations.of(context).attachmentsMenuTitle),
           if (widget.groups.isEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'No attachments',
+              AppLocalizations.of(context).attachmentsMenuEmptyMessage,
               style: AppStyles.standardBodyTextLight(context),
             ),
           ],
@@ -141,7 +142,7 @@ class _AttachmentsMenuContentState extends State<AttachmentsMenuContent> {
         enabled: !_downloading.contains(attachment.id),
         icon: Icons.download_outlined,
         showTooltip: false,
-        label: 'Download',
+        label: AppLocalizations.of(context).commonDownloadLabel,
         color: context.semanticColors.success,
       ),
     );
@@ -169,7 +170,7 @@ class AttachmentCountButton extends StatelessWidget {
     return HoverTapTarget(
       onTap: onPressed,
       color: color,
-      tooltip: 'Show attachments',
+      tooltip: AppLocalizations.of(context).attachmentsShowTooltip,
       hitPadding: hitPadding,
       child: Row(
         mainAxisSize: MainAxisSize.min,

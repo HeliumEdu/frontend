@@ -38,7 +38,7 @@ class ConnectedAppBloc extends Bloc<ConnectedAppEvent, ConnectedAppState> {
       emit(
         ConnectedAppsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -60,7 +60,7 @@ class ConnectedAppBloc extends Bloc<ConnectedAppEvent, ConnectedAppState> {
       emit(
         ConnectedAppsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }

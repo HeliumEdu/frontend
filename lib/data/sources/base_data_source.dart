@@ -22,6 +22,6 @@ abstract class BaseDataSource {
   /// Dio's `validateStatus` turns every non-2xx into a `DioException` before we
   /// get here, so reaching this means the backend's status contract changed —
   /// keep the tripwire rather than assuming the body is usable.
-  ServerException unexpectedStatus(Response<dynamic> response, String message) =>
-      ServerException(message: message, code: response.statusCode.toString());
+  ServerException unexpectedStatus(Response<dynamic> response) =>
+      ServerException(message: HeliumException.unexpectedErrorMessage, code: response.statusCode.toString());
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
 
 Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
@@ -9,18 +10,19 @@ Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
   required Function(T) onDelete,
   String? additionalWarning,
 }) async {
-  final trimmed = label.trim();
-  final quotedLabel = trimmed.isEmpty ? 'this item' : '"$trimmed"';
-  final warning = (additionalWarning?.isNotEmpty ?? false)
-      ? '$additionalWarning '
-      : '';
-
+  final l10n = AppLocalizations.of(parentContext);
+  final name = label.trim();
+  final hasWarning = additionalWarning?.isNotEmpty ?? false;
   final confirmed = await showConfirmActionDialog(
     context: parentContext,
-    title: 'Confirm Delete',
-    message:
-        'Are you sure you want to delete $quotedLabel? ${warning}This action cannot be undone.',
-    actionText: 'Delete',
+    title: l10n.confirmDeleteTitle,
+    message: name.isEmpty
+        ? (hasWarning ? l10n.confirmDeleteUnnamedWarningMessage(additionalWarning!) : l10n.confirmDeleteUnnamedMessage)
+        : (hasWarning
+              ? l10n.confirmDeleteNamedWarningMessage(name, additionalWarning!)
+              : l10n.confirmDeleteNamedMessage(name)),
+    actionText: l10n.commonDeleteButton,
+    cancelText: l10n.commonCancelButton,
   );
   if (confirmed) onDelete(item);
   return confirmed;

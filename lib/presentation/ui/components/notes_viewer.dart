@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
@@ -65,7 +66,7 @@ class _NotesViewerState extends State<NotesViewer> {
       constraints: const BoxConstraints(maxHeight: 150),
       child: HeliumQuillEditor(
         controller: _controller,
-        semanticsLabel: 'Note',
+        semanticsLabel: AppLocalizations.of(context).noteSemanticsLabel,
         focusNode: _focusNode,
         config: QuillEditorConfig(
           showCursor: false,

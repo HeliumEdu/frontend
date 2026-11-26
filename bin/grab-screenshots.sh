@@ -9,7 +9,7 @@
 #   android/fastlane/metadata/android/en-US/images/phoneScreenshots/
 #   android/fastlane/metadata/android/en-US/images/tenInchScreenshots/
 #
-# Captions live in bin/screenshot-captions.tsv, keyed by shot name.
+# Captions live in bin/screenshot-captions.csv, keyed by shot name.
 #
 # Filenames are prefixed with a 2-digit ordinal (01-, 02-, ...) matching each
 # shot's position in the PHONE_SHOTS / TABLET_SHOTS arrays — fastlane uploads
@@ -25,7 +25,7 @@
 #   - xcrun simctl (Xcode CLT)        for iOS capture
 #   - adb (Android Platform Tools)    for Android capture
 #   - fastlane frameit                for device framing
-#   - ImageMagick 7+ (magick) or 6 (convert) for Pixel Tablet composite
+#   - ImageMagick 7+ (magick)            for Pixel Tablet composite
 #   - flutter, and the "iPhone 17 Pro" / "iPhone Duo" / "iPad Pro 13-inch (M5)"
 #     simulators and Pixel_5 / Pixel_Tablet AVDs
 
@@ -42,14 +42,6 @@ WORKDIR=$(mktemp -d)
 mkdir -p "$IOS_DEST" "$ANDROID_PHONE_DEST" "$ANDROID_TABLET_DEST" \
   "$FRAMED_ROOT/ios" "$FRAMED_ROOT/android-phone" "$FRAMED_ROOT/android-tablet"
 trap 'stop_device; rm -rf "$WORKDIR"' EXIT
-
-# ─── pre-flight: frameit frames must be downloaded ───────────────────────
-FRAMEIT_DIR="${HOME}/.fastlane/frameit/latest"
-if [[ ! -f "$FRAMEIT_DIR/Apple iPhone Duo Inner Night Sky.png" ]]; then
-  echo "✗ iPhone Duo frame not found at $FRAMEIT_DIR" >&2
-  echo "  Run: make screenshots" >&2
-  exit 1
-fi
 
 # ─── shot lists per device class ─────────────────────────────────────────
 PHONE_SHOTS=(month-view grades edit-note todos agenda edit-assignment create-account)
@@ -248,7 +240,7 @@ device_dir_for() {
 
 # Keeps the plain framed shot and writes its captioned store copy to dest.
 finish_framed() {
-  local framed="$1"  # framed png in $WORKDIR
+  local framed="$1"
   local slug="$2"
   local dest="$3"
   local name
@@ -270,9 +262,9 @@ finish_framed() {
 }
 
 frame_and_move() {
-  local raw="$1"     # raw png in $WORKDIR
-  local slug="$2"    # e.g. 01-month-view_iphone
-  local dest="$3"    # destination dir
+  local raw="$1"
+  local slug="$2"
+  local dest="$3"
   local framed="${slug}_framed.png"
   local platform=ios
   [[ "$slug" == *_pixel-phone ]] && platform=android
@@ -298,7 +290,6 @@ frame_and_move() {
 # Pixel Tablet — frameit's catalog has no modern Android tablet frame.
 # Source frame: jamesjingyi/mockup-device-frames (Porcelain colorway),
 # rotated to portrait and tinted dark to match the Pixel 5 phone frame.
-# Frame's screen area: 1731×2747 at offset +200+200 (portrait).
 PIXEL_TABLET_FRAME="$REPO/bin/frame-pixel-tablet.png"
 
 composite_pixel_tablet() {
@@ -307,23 +298,10 @@ composite_pixel_tablet() {
   local dest="$3"
   local framed="$WORKDIR/${slug}_framed.png"
 
-  if [[ ! -f "$PIXEL_TABLET_FRAME" ]]; then
-    echo "  ✗ Pixel Tablet frame missing at $PIXEL_TABLET_FRAME"
-    mv "$raw" "$dest/${slug}.png"
-    return 1
-  fi
-
-  if command -v magick >/dev/null; then
-    magick "$PIXEL_TABLET_FRAME" \
-      \( "$raw" -resize 1731x2747! \) \
-      -gravity northwest -geometry +200+200 -composite \
-      "$framed"
-  else
-    convert "$PIXEL_TABLET_FRAME" \
-      \( "$raw" -resize 1731x2747! \) \
-      -gravity northwest -geometry +200+200 -composite \
-      "$framed"
-  fi
+  magick "$PIXEL_TABLET_FRAME" \
+    \( "$raw" -resize 1731x2747! \) \
+    -gravity northwest -geometry +200+200 -composite \
+    "$framed"
   rm -f "$raw"
   finish_framed "$framed" "$slug" "$dest"
 }
@@ -332,7 +310,7 @@ composite_pixel_tablet() {
 prompt_and_capture() {
   local capture_fn="$1"
   local device_slug="$2"
-  local frame_mode="$3"   # "frameit" | "pixel-tablet" | "none"
+  local frame_mode="$3"
   local dest="$4"
   local index="$5"
   local shot="$6"
@@ -368,12 +346,8 @@ prompt_and_capture() {
   fi
 
   case "$frame_mode" in
-    frameit)      frame_and_move "$raw" "$slug" "$dest" || true ;;
-    pixel-tablet) composite_pixel_tablet "$raw" "$slug" "$dest" || true ;;
-    none|*)
-      mv "$raw" "$dest/${slug}.png"
-      echo "  ✓ $dest/${slug}.png (no frame)"
-      ;;
+    frameit)      frame_and_move "$raw" "$slug" "$dest" ;;
+    pixel-tablet) composite_pixel_tablet "$raw" "$slug" "$dest" ;;
   esac
 }
 
@@ -430,30 +404,8 @@ run_device "iPad Pro 13\" M5" "ipad"         capture_ios     "frameit"      "$IO
 run_device "Pixel 5"          "pixel-phone"  capture_android "frameit"      "$ANDROID_PHONE_DEST"  "${PHONE_SHOTS[@]}"
 run_device "Pixel Tablet"     "pixel-tablet" capture_android "pixel-tablet" "$ANDROID_TABLET_DEST" "${TABLET_SHOTS[@]}"
 
-# ─── frame any remaining raw screenshots in dest ────────────────────────
-# Catches files from a prior run where framing failed (e.g. frameit wasn't
-# initialized). Looks for NN-*_iphone.png / NN-*_ipad.png without _framed.
 echo ""
 echo "════════════════════════════════════════════════════════════"
-echo "Checking for un-framed raw screenshots in $IOS_DEST ..."
-echo "════════════════════════════════════════════════════════════"
-FRAMED_COUNT=0
-for raw in "$IOS_DEST"/*.png; do
-  [[ -f "$raw" ]] || continue
-  basename="$(basename "$raw" .png)"
-  # Skip framed files
-  [[ "$basename" == *_framed ]] && continue
-  echo "  Framing $basename ..."
-  mv "$raw" "$WORKDIR/${basename}.png"
-  frame_and_move "$WORKDIR/${basename}.png" "$basename" "$IOS_DEST"
-  ((FRAMED_COUNT++))
-done
-if [[ "$FRAMED_COUNT" -eq 0 ]]; then
-  echo "  (none found)"
-fi
-
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "Capture done. Scaling iPhone and iPad shots to App Store dimensions ..."
+echo "Capture done. Copying device mockups and press shots ..."
 echo "════════════════════════════════════════════════════════════"
 "$(dirname "${BASH_SOURCE[0]}")/scale-for-appstore.sh"

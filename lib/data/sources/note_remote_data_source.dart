@@ -94,12 +94,12 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
           return notes;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch notes.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -107,7 +107,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -129,7 +129,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         _log.info('... Note $id fetched');
         return NoteModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch note.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -137,7 +137,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -157,7 +157,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.noteCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return note;
       } else {
-        throw unexpectedStatus(response, 'Failed to create note.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -165,7 +165,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -193,7 +193,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return null;
       } else {
-        throw unexpectedStatus(response, 'Failed to update note.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -201,7 +201,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -217,7 +217,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
         _log.info('... Note $noteId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete note.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -225,7 +225,7 @@ class NoteRemoteDataSourceImpl extends NoteRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

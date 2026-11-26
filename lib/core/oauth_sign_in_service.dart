@@ -4,6 +4,7 @@ import 'dart:io'
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/google_account_store.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/last_oauth_provider_store.dart';
@@ -114,7 +115,7 @@ class OAuthSignInService {
       if (firebaseIdToken == null) {
         _log.severe('Firebase did not provide an ID token');
         throw HeliumException(
-          message: 'Sign in with $providerName failed.',
+          message: LocaleNotifier().localizations.authProviderSignInFailedMessage(providerName),
         );
       }
 
@@ -143,25 +144,25 @@ class OAuthSignInService {
         final email = e.email;
         if (credential == null || email == null) {
           throw HeliumException(
-            message: 'That email is already registered with a different sign-in method. Sign in that way instead.',
+            message: LocaleNotifier().localizations.authEmailUsesOtherMethodMessage,
           );
         }
         _pendingLink = (provider: provider, credential: credential, email: email);
         throw HeliumException(
           message:
-              'That email is already registered with a different sign-in method. Sign in that way to link $providerName too.',
+              LocaleNotifier().localizations.authEmailUsesOtherMethodLinkMessage(providerName),
           code: linkRequiredCode,
         );
       }
       _log.warning('Firebase Auth exception: ${e.code}');
       throw HeliumException(
-        message: 'Sign in with $providerName failed.',
+        message: LocaleNotifier().localizations.authProviderSignInFailedMessage(providerName),
       );
     } on FirebaseException catch (e) {
       // Reached only when Firebase failed to initialize during app boot
       _log.warning('Firebase exception: ${e.code}');
       throw HeliumException(
-        message: 'Sign in with $providerName is temporarily unavailable.',
+        message: LocaleNotifier().localizations.authProviderUnavailableMessage(providerName),
       );
     } on GoogleSignInException catch (e) {
       _log.warning('GoogleSignInException caught - code: ${e.code}');
@@ -172,7 +173,7 @@ class OAuthSignInService {
       }
       _log.warning('Google Sign-In exception: ${e.code}');
       throw HeliumException(
-        message: 'Sign in with $providerName failed.',
+        message: LocaleNotifier().localizations.authProviderSignInFailedMessage(providerName),
       );
     } catch (e, s) {
       _log.severe(
@@ -185,7 +186,7 @@ class OAuthSignInService {
         rethrow;
       }
 
-      throw HeliumException(message: 'Sign in with $providerName failed.');
+      throw HeliumException(message: LocaleNotifier().localizations.authProviderSignInFailedMessage(providerName));
     }
   }
 
@@ -278,7 +279,7 @@ class OAuthSignInService {
     if (googleAuth.idToken == null) {
       _log.severe('Google Sign-In did not provide an ID token');
       throw HeliumException(
-        message: 'Sign in with Google failed.',
+        message: LocaleNotifier().localizations.authProviderSignInFailedMessage(OAuthProvider.google.label),
       );
     }
 

@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_schedule_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
@@ -124,7 +125,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
   bool get _isDayCycle => _isRotating && !_isWeekBased;
 
   @override
-  String get dialogTitle => 'Schedule';
+  String get dialogTitle => AppLocalizations.of(context).scheduleEditorTitle;
 
   @override
   BasicFormController get formController => _formController;
@@ -256,7 +257,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
             final schedule = state.schedules
                 .firstWhereOrNull((s) => s.id == widget.schedule!.id);
             setState(() {
-              if (schedule == null) errorMessage = 'Schedule not found.';
+              if (schedule == null) errorMessage = AppLocalizations.of(context).scheduleNotFoundMessage;
               _loadSchedule(schedule ?? widget.schedule);
               isLoading = false;
             });
@@ -284,7 +285,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       style: IconButton.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      tooltip: 'Learn more',
+      tooltip: AppLocalizations.of(context).commonLearnMoreTooltip,
       onPressed: () =>
           UrlHelpers.launchWebUrl(AppConstants.supportSchedulesUrl),
       icon: Icon(
@@ -379,11 +380,11 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
   String? _validate() {
     if (_isRotating && _anchorDate == null) {
       return _isWeekBased
-          ? 'Select the date the first week begins.'
-          : 'Select the date of cycle Day 1.';
+          ? AppLocalizations.of(context).scheduleAnchorWeekRequired
+          : AppLocalizations.of(context).scheduleAnchorDayRequired;
     }
     if (_isDayCycle && _cycleMeets.isEmpty) {
-      return 'Select at least one meeting day for the cycle.';
+      return AppLocalizations.of(context).scheduleCycleDaysRequired;
     }
     return null;
   }
@@ -421,9 +422,9 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
   Widget _buildModeSelector(BuildContext context) {
     return Center(
       child: SegmentedButton<bool>(
-        segments: const [
-          ButtonSegment<bool>(value: false, label: Text('Weekly')),
-          ButtonSegment<bool>(value: true, label: Text('Rotating')),
+        segments: [
+          ButtonSegment<bool>(value: false, label: Text(AppLocalizations.of(context).scheduleWeeklyOption)),
+          ButtonSegment<bool>(value: true, label: Text(AppLocalizations.of(context).scheduleRotatingOption)),
         ],
         style: _segmentedStyle(context),
         selected: {_isRotating},
@@ -440,7 +441,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Class Days', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).scheduleClassDaysTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 14),
         Center(
           child: WeekdaySelector(
@@ -451,12 +452,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         if (_selectedDays.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            _variesByDay ? 'Class Times' : 'Class Time',
+            _variesByDay ? AppLocalizations.of(context).scheduleClassTimesTitle : AppLocalizations.of(context).scheduleClassTimeTitle,
             style: AppStyles.featureText(context),
           ),
           const SizedBox(height: 14),
           HeliumCheckboxListTile(
-            title: Text('Varies by day', style: AppStyles.formLabel(context)),
+            title: Text(AppLocalizations.of(context).scheduleVariesByDayLabel, style: AppStyles.formLabel(context)),
             value: _variesByDay,
             onChanged: _onVariesByDayChanged,
             controlAffinity: ListTileControlAffinity.leading,
@@ -487,7 +488,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Rotation', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).scheduleRotationTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 14),
         DropDown<int>(
           initialValue: templateItems.firstWhere(
@@ -521,7 +522,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           SizedBox(
             width: 170,
             child: SpinnerField(
-              label: 'Cycle length (days)',
+              label: AppLocalizations.of(context).scheduleCycleLengthLabel,
               controller: _cycleLengthController,
               minValue: 2,
               maxValue: ScheduleTemplate.maxCycleLength.toDouble(),
@@ -533,9 +534,9 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           ),
           const SizedBox(height: 14),
         ],
-        _buildAnchorField(context, 'Cycle Day 1 falls on', scaffoldBgColor),
+        _buildAnchorField(context, AppLocalizations.of(context).scheduleCycleDayOneLabel, scaffoldBgColor),
         const SizedBox(height: 24),
-        Text('Class Days', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).scheduleClassDaysTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 14),
         for (int day = 1; day <= cycleLength; day++)
           _buildCycleDayRow(context, day, scaffoldBgColor),
@@ -565,9 +566,9 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
 
   String _cycleDayLabel(int day) {
     if (_template == ScheduleTemplate.abDay) {
-      return day == 1 ? 'A Day' : 'B Day';
+      return day == 1 ? AppLocalizations.of(context).scheduleADay : AppLocalizations.of(context).scheduleBDay;
     }
-    return 'Day $day';
+    return AppLocalizations.of(context).scheduleCycleDayLabel(day);
   }
 
   Widget _buildCycleDayRow(BuildContext context, int day, Color bgColor) {
@@ -667,7 +668,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         ? (_cycleStartTimes[day] ?? _defaultCycleStart)
         : (_cycleEndTimes[day] ?? _defaultCycleEnd);
     return HeliumTimeField(
-      label: isStart ? 'Start' : 'End',
+      label: isStart ? AppLocalizations.of(context).scheduleStartLabel : AppLocalizations.of(context).scheduleEndLabel,
       time: time,
       backgroundColor: bgColor,
       onTap: () => _selectCycleTime(day, isStart),
@@ -681,7 +682,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           ? (_cycleStartTimes[day] ?? _defaultCycleStart)
           : (_cycleEndTimes[day] ?? _defaultCycleEnd),
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -713,7 +714,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         const SizedBox(height: 14),
         _buildAnchorField(
           context,
-          'Week ${_weekOffsetLabel(0)} begins on',
+          AppLocalizations.of(context).scheduleWeekBeginsOnLabel(_weekOffsetLabel(0)),
           scaffoldBgColor,
         ),
         _buildAnchorPreview(context),
@@ -729,11 +730,10 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Which week', style: AppStyles.formLabel(context)),
+        Text(AppLocalizations.of(context).scheduleWhichWeekLabel, style: AppStyles.formLabel(context)),
         const SizedBox(height: 4),
         Text(
-          'The week this class meets on — the A/B or odd/even week pattern, '
-          'every other week.',
+          AppLocalizations.of(context).scheduleWhichWeekDescription,
           style: AppStyles.smallSecondaryText(context),
         ),
         const SizedBox(height: 12),
@@ -743,7 +743,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
               for (int i = 0; i < interval; i++)
                 ButtonSegment<int>(
                   value: i,
-                  label: Text('Week ${_weekOffsetLabel(i)}'),
+                  label: Text(AppLocalizations.of(context).scheduleWeekOption(_weekOffsetLabel(i))),
                 ),
             ],
             style: _segmentedStyle(context),
@@ -787,8 +787,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Text(
-        'This schedule (Week ${_weekOffsetLabel(_weekOffset)}) meets the week '
-        'of $dates.',
+        AppLocalizations.of(context).scheduleWeekPreview(_weekOffsetLabel(_weekOffset), dates),
         style: AppStyles.smallSecondaryText(context),
       ),
     );
@@ -821,7 +820,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       initialDate: initial,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedDate == null || !mounted) return;
 
@@ -837,12 +836,12 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 24),
-        Text('Class Dates', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).scheduleClassDatesTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 14),
         HeliumCheckboxListTile(
-          title: Text('Custom range', style: AppStyles.formLabel(context)),
+          title: Text(AppLocalizations.of(context).scheduleCustomRangeLabel, style: AppStyles.formLabel(context)),
           subtitle: Text(
-            'Limit this schedule to just part of the term.',
+            AppLocalizations.of(context).scheduleCustomRangeDescription,
             style: AppStyles.smallSecondaryText(context),
           ),
           value: _overrideDates,
@@ -906,7 +905,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            CalendarConstants.dayNames[dayIndex],
+            HeliumDateTime.weekdayNames[dayIndex],
             style: AppStyles.formLabel(context).copyWith(color: context.colorScheme.primary),
           ),
           const SizedBox(height: 12),
@@ -941,7 +940,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
         : (isStart ? _startTimes[dayIndex] : _endTimes[dayIndex]);
 
     return HeliumTimeField(
-      label: isStart ? 'Start' : 'End',
+      label: isStart ? AppLocalizations.of(context).scheduleStartLabel : AppLocalizations.of(context).scheduleEndLabel,
       time: time,
       backgroundColor: bgColor,
       onTap: () {
@@ -961,7 +960,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           ? (_startTimes[dayIndex] ?? _singleStartTime)
           : (_endTimes[dayIndex] ?? _singleEndTime),
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -988,7 +987,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       context: context,
       initialTime: isStartTime ? _singleStartTime : _singleEndTime,
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -1047,7 +1046,7 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           : (_endDate ?? courseEnd),
       firstDate: courseStart,
       lastDate: courseEnd,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedDate == null || !mounted) return;
 

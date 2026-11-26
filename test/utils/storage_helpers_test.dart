@@ -138,7 +138,7 @@ void main() {
         expect(result.errors, hasLength(1));
         expect(result.errors.first.reason, PickedFileErrorReason.fileTooLarge);
         expect(result.errors.first.name, 'huge.bin');
-        expect(result.errors.first.userMessage, contains('10 MB'));
+        expect(result.errors.first.displayMessage, contains('10 MB'));
       });
 
       test('produces one fileTooLarge error per oversized file', () async {
@@ -219,7 +219,7 @@ void main() {
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
         expect(result.errors.first.reason, PickedFileErrorReason.readError);
-        expect(result.errors.first.userMessage, contains('unreadable.bin'));
+        expect(result.errors.first.displayMessage, contains('unreadable.bin'));
       });
     });
 
@@ -281,7 +281,7 @@ void main() {
         expect(result.files, isEmpty);
         expect(result.errors, hasLength(1));
         expect(result.errors.first.reason, PickedFileErrorReason.wrongFileType);
-        expect(result.errors.first.userMessage, 'Please select a JSON file');
+        expect(result.errors.first.displayMessage, 'Please select a JSON file');
       });
 
       test('accepts file whose extension matches allowedExtension', () async {
@@ -334,14 +334,14 @@ void main() {
       });
     });
 
-    group('PickedFileError.userMessage', () {
+    group('PickedFileError.displayMessage', () {
       test('fileTooLarge with maxUploadSize includes file name and MB cap', () {
         const error = PickedFileError(
           name: 'big.bin',
           reason: PickedFileErrorReason.fileTooLarge,
           maxUploadSize: _testMaxUploadSize,
         );
-        expect(error.userMessage, 'File size cannot exceed 10 MB: big.bin');
+        expect(error.displayMessage, 'File size cannot exceed 10 MB: big.bin');
       });
 
       test('fileTooLarge without maxUploadSize falls back to generic message', () {
@@ -350,7 +350,7 @@ void main() {
           reason: PickedFileErrorReason.fileTooLarge,
         );
         expect(
-          error.userMessage,
+          error.displayMessage,
           'File size exceeded the allowed limit: big.bin',
         );
       });
@@ -361,7 +361,7 @@ void main() {
           reason: PickedFileErrorReason.readError,
         );
         expect(
-          error.userMessage,
+          error.displayMessage,
           'An error occurred while reading the file: broken.bin',
         );
       });
@@ -372,7 +372,7 @@ void main() {
           reason: PickedFileErrorReason.wrongFileType,
           allowedExtensions: ['json'],
         );
-        expect(error.userMessage, 'Please select a JSON file');
+        expect(error.displayMessage, 'Please select a JSON file');
       });
 
       test('wrongFileType without allowedExtension uses generic message', () {
@@ -380,7 +380,7 @@ void main() {
           name: 'wrong.bin',
           reason: PickedFileErrorReason.wrongFileType,
         );
-        expect(error.userMessage, 'Invalid file type');
+        expect(error.displayMessage, 'Invalid file type');
       });
     });
 

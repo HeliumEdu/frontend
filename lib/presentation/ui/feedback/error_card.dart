@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -73,7 +74,7 @@ class _ErrorCardState extends State<ErrorCard> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200),
               child: HeliumElevatedButton(
-                buttonText: 'Reload',
+                buttonText: AppLocalizations.of(context).commonReloadButton,
                 onPressed: widget.onReload,
               ),
             ),
@@ -81,7 +82,7 @@ class _ErrorCardState extends State<ErrorCard> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200),
               child: HeliumElevatedButton(
-                buttonText: 'Support Portal',
+                buttonText: AppLocalizations.of(context).commonSupportPortalButton,
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
                 onPressed: () =>

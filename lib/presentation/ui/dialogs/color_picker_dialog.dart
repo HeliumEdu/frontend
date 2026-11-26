@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -83,7 +84,10 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             itemBuilder: (color, isCurrentColor, changeColor) {
               return Semantics(
                 button: true,
-                label: 'Color ${HeliumColors.preferredColors.indexOf(color) + 1} of ${HeliumColors.preferredColors.length}',
+                label: AppLocalizations.of(context).colorPickerSwatchLabel(
+                  HeliumColors.preferredColors.indexOf(color) + 1,
+                  HeliumColors.preferredColors.length,
+                ),
                 child: InkWell(
                   onTap: changeColor,
                   borderRadius: BorderRadius.circular(4),
@@ -140,7 +144,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Custom color',
+                  AppLocalizations.of(context).colorPickerCustomButton,
                   style: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
                 ),
                 const SizedBox(width: 8),
@@ -188,7 +192,7 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
                 color: context.colorScheme.primary,
               ),
               label: Text(
-                'Presets',
+                AppLocalizations.of(context).colorPickerPresetsButton,
                 style: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
               ),
             ),
@@ -197,14 +201,14 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
               child: HeliumElevatedButton(
                 onPressed: widget.onCancel,
                 backgroundColor: context.colorScheme.outline,
-                buttonText: 'Cancel',
+                buttonText: AppLocalizations.of(context).commonCancelButton,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: HeliumElevatedButton(
                 onPressed: () => widget.onSelect(pickerColor),
-                buttonText: 'Select',
+                buttonText: AppLocalizations.of(context).commonSelectButton,
               ),
             ),
           ],

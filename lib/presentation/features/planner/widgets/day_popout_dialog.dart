@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -69,7 +70,7 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
                         icon: Icon(
                           Icons.close,
                           color: context.colorScheme.secondary,
-                          semanticLabel: 'Close',
+                          semanticLabel: AppLocalizations.of(context).commonCloseLabel,
                         ),
                       ),
                     ],
@@ -92,8 +93,9 @@ class _PlannerDayPopOutDialogState extends State<PlannerDayPopOutDialog> {
                       return GestureDetector(
                         onTap: () {
                           Feedback.forTap(context);
+                          final dialogRoute = ModalRoute.of(context)!;
                           if (widget.onPlannerItemTap(context, plannerItem)) {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).removeRoute(dialogRoute);
                           }
                         },
                         child: widget.itemBuilder(

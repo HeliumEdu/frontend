@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/shadow_container.dart';
@@ -42,7 +43,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
         borderColor: context.colorScheme.outline.withValues(alpha: 0.2),
         child: HeliumElevatedButton(
           onPressed: onCreate!,
-          buttonText: 'Add Group',
+          buttonText: AppLocalizations.of(context).groupAddButton,
           icon: Icons.add,
         ),
       );
@@ -61,7 +62,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
               Navigator.pop(context);
               onCreate!();
             },
-            buttonText: 'Add Group',
+            buttonText: AppLocalizations.of(context).groupAddButton,
             icon: Icons.add,
           ),
         ),
@@ -117,7 +118,7 @@ class GroupDropdown<T extends BaseTitledModel> extends StatelessWidget {
               },
               icon: Icons.edit_outlined,
               showTooltip: false,
-              label: 'Edit',
+              label: AppLocalizations.of(context).commonEditLabel,
             ),
             const SizedBox(width: 8),
           ];

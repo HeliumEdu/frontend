@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 
@@ -21,7 +22,7 @@ mixin ConflictResolvingDialog<W extends StatefulWidget, T extends BaseModel>
       context,
       onLoadLatest: _loadLatest,
       onOverwrite: _overwrite,
-      message: ConflictMessage.changedAt(latest.version),
+      message: ConflictMessage.changedAt(AppLocalizations.of(context), latest.version),
     );
   }
 

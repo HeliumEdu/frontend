@@ -10,6 +10,7 @@ import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill/src/common/utils/link_validator.dart';
 // ignore: implementation_imports
 import 'package:flutter_quill/src/editor/raw_editor/keyboard_shortcuts/editor_keyboard_shortcut_actions.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/error_helpers.dart';
 import 'package:heliumapp/utils/forwarding_localizations.dart';
@@ -107,7 +108,7 @@ Delta editorDeltaFor(Map<String, dynamic>? notes) =>
 Document _unrenderableNotePlaceholder() {
   return Document.fromJson([
     {
-      'insert': 'This note is not in a valid format and cannot be loaded.',
+      'insert': LocaleNotifier().localizations.notesInvalidFormatMessage,
       'attributes': {'italic': true},
     },
     {'insert': '\n'},

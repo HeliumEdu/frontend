@@ -15,7 +15,7 @@ class EmptyCard extends StatelessWidget {
     super.key,
     required this.icon,
     required this.message,
-    this.title = 'Nothing to see here',
+    required this.title,
     this.expanded = true,
     this.action,
   });

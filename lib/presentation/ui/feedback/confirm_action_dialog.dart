@@ -16,7 +16,7 @@ Future<bool> showConfirmActionDialog({
   required String title,
   required String message,
   required String actionText,
-  String cancelText = 'Cancel',
+  required String cancelText,
   IconData? icon,
   ConfirmActionStyle style = ConfirmActionStyle.destructive,
   bool dismissible = true,

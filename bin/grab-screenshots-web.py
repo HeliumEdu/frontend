@@ -48,16 +48,16 @@ APP_URL = os.environ.get("APP_URL", "https://app.heliumedu.com")
 PROFILE = Path.home() / ".helium-screenshots/chrome"
 PAGE_SETTLE_SECONDS = 5
 
-# Feature shots: 1144x760 at 1.8x (90% zoom on a 2x display), cropped to 1880x1000.
+# Feature shots: 90% zoom on a 2x display, cropped.
 FEATURE_SIZE = (1144, 760)
 FEATURE_SCALE = 1.8
 FEATURE_CROP = (1880, 1000)
 
-# The calculator square is the same dialog at 2x, center-cropped with a margin of dimmed background.
+# The calculator square is the same dialog, center-cropped with a margin of dimmed background.
 SQUARE_SCALE = 2
 SQUARE_CROP = (1000, 1160)
 
-# Press shots and the laptop frame: 1440x840 at 2x (2880x1680), uncropped.
+# Press shots and the laptop frame, uncropped.
 PRESS_SIZE = (1440, 840)
 PRESS_SCALE = 2
 LAPTOP_VIEWPORT_ORIGIN = (51, 209)
@@ -95,9 +95,6 @@ SETUP_NOTES = {
 # Shots whose www filename differs from the name shown in the prompt.
 OUTPUT_NAMES = {"edit-assignment": "assignment-planner"}
 
-# Shots taken before signing in, in the FEATURE_SHOTS shape.
-LOGGED_OUT_SHOTS = []
-
 # (slug, route)
 PRESS_SHOTS = [
     ("month-view", "/planner"),
@@ -123,7 +120,6 @@ class Browser:
     def __init__(self, page, cdp):
         self.page = page
         self.cdp = cdp
-        self.signed_in = True
 
     def fit_window(self, size):
         """Sizes the real window so its page area matches the emulated viewport."""
@@ -153,7 +149,7 @@ class Browser:
         self.emulate(size, scale)
         self.page.goto(f"{APP_URL}{route}")
         time.sleep(PAGE_SETTLE_SECONDS)
-        while self.signed_in and is_signed_out(self.page):
+        while is_signed_out(self.page):
             print(f"\n{BANNER}\n  Sign in\n{BANNER}")
             ask("Signed out. Sign in with your Helium email and password in that window, then press Enter "
                 "(Google sign-in only works from the sign-in step at the start; 'q' to quit and rerun): ")
@@ -273,13 +269,12 @@ class Session:
             self.context.close()
 
 
-def run_device(session, label, dest, capture, shots, signed_in=True):
+def run_device(session, label, dest, capture, shots):
     print(f"\n{BANNER}\n  {label}  ({len(shots)} screenshots → {dest})\n{BANNER}")
     if ask(f"Press Enter to open the browser for {label} ('s' to skip this device): ") == "s":
         print(f"Skipping {label}.")
         return
     browser = session.open_browser()
-    browser.signed_in = signed_in
     for shot in shots:
         capture(browser, *shot)
 
@@ -330,9 +325,6 @@ def main():
         session = Session(playwright)
         try:
             sign_in_with_plain_chrome()
-            if LOGGED_OUT_SHOTS:
-                run_device(session, "Web: signed-out shots (1144x760 @1.8x)", FEATURE_DEST, capture_feature,
-                           LOGGED_OUT_SHOTS, signed_in=False)
             run_device(session, "Web: marketing site feature shots (1144x760 @1.8x)", FEATURE_DEST, capture_feature,
                        FEATURE_SHOTS)
             run_device(session, "Web: press kit full-app shots (1440x840 @2x)", PRESS_DEST, capture_press, PRESS_SHOTS)

@@ -43,7 +43,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -70,7 +70,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -105,7 +105,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -127,7 +127,7 @@ class ExternalCalendarBloc
       emit(
         ExternalCalendarsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }

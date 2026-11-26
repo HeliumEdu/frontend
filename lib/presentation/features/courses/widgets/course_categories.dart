@@ -4,6 +4,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/category_dialog.dart';
@@ -100,21 +101,21 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
         if (state is CategoriesFetched) {
           setState(() {
             _categories = state.categories;
-            Sort.byTitle(_categories);
+            Sort.byCategoryTitle(_categories);
             isLoading = false;
             _error = null;
           });
         } else if (state is CategoriesError &&
             state.origin == EventOrigin.screen) {
           setState(() {
-            _error = state.message ?? HeliumException.unexpectedError;
+            _error = state.message ?? HeliumException.unexpectedErrorMessage;
             isLoading = false;
           });
         } else if (state is CategoryCreated) {
-          SnackBarHelper.show(context, 'Category saved.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).categorySavedMessage);
           setState(() {
             _categories.add(state.category);
-            Sort.byTitle(_categories);
+            Sort.byCategoryTitle(_categories);
           });
         } else if (state
             case CategoryUpdated(:final category) ||
@@ -123,10 +124,10 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
           setState(() {
             _categories[_categories.indexWhere((c) => c.id == category.id)] =
                 category;
-            Sort.byTitle(_categories);
+            Sort.byCategoryTitle(_categories);
           });
         } else if (state is CategoryDeleted) {
-          SnackBarHelper.show(context, 'Category deleted.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).categoryDeletedMessage);
           setState(() {
             _categories.removeWhere((c) => c.id == state.id);
           });
@@ -160,7 +161,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Categories', style: AppStyles.featureText(context)),
+            Text(AppLocalizations.of(context).courseCategoriesTitle, style: AppStyles.featureText(context)),
             HeliumIconButton(
               onPressed: () {
                 showCategoryDialog(
@@ -172,7 +173,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
               },
               icon: Icons.add,
               showTooltip: false,
-              label: 'Add category',
+              label: AppLocalizations.of(context).categoryAddLabel,
             ),
           ],
         ),
@@ -194,10 +195,11 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
               }
 
               if (_categories.isEmpty) {
-                return const EmptyCard(
+                return EmptyCard(
+                  title: AppLocalizations.of(context).emptyCardTitle,
                   expanded: false,
                   icon: Icons.category_outlined,
-                  message: 'Click "+" to add a category',
+                  message: AppLocalizations.of(context).categoryEmptyMessage,
                 );
               }
 
@@ -217,6 +219,12 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
       itemCount: _categories.length,
       itemBuilder: (context, index) {
         final category = _categories[index];
+        if (category.isUncategorized && index > 0) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [const Divider(height: 20), _buildCategoryCard(context, category)],
+          );
+        }
         return _buildCategoryCard(context, category);
       },
     );
@@ -235,14 +243,14 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CategoryTitleLabel(
-                      title: category.title,
+                      title: category.displayTitle,
                       color: category.color,
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
                         Tooltip(
-                          message: 'Weight',
+                          message: AppLocalizations.of(context).categoryWeightTooltip,
                           child: Icon(
                             Icons.balance,
                             size: Responsive.getIconSize(
@@ -272,7 +280,7 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                         if (category.numHomework != null) ...[
                           const SizedBox(width: 16),
                           Tooltip(
-                            message: 'Assignments',
+                            message: AppLocalizations.of(context).categoryAssignmentsTooltip,
                             child: Icon(
                               Icons.assignment_outlined,
                               size: Responsive.getIconSize(
@@ -301,42 +309,44 @@ class _CourseCategoriesContentState extends State<_CourseCategoriesContent> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              if (PlannerHelper.shouldShowEditButton(context) || !category.isUncategorized)
+                const SizedBox(width: 8),
               if (PlannerHelper.shouldShowEditButton(context)) ...[
                 HeliumIconButton(
                   onPressed: () => _onEdit(category),
                   icon: Icons.edit_outlined,
                   showTooltip: false,
-                  label: 'Edit',
+                  label: AppLocalizations.of(context).commonEditLabel,
                 ),
-                const SizedBox(width: 8),
+                if (!category.isUncategorized) const SizedBox(width: 8),
               ],
-              HeliumIconButton(
-                onPressed: () {
-                  showConfirmDeleteDialog(
-                    parentContext: context,
-                    item: category,
-                    label: category.title,
-                    additionalWarning:
-                        'Any assignments associated with this category will be moved to "Uncategorized".',
-                    onDelete: (c) {
-                      context.read<CategoryBloc>().add(
-                        DeleteCategoryEvent(
-                          origin: EventOrigin.screen,
-                          courseGroupId: widget.courseGroupId,
-                          courseId: widget.courseId,
-                          categoryId: c.id,
-                          isLastCategory: _categories.length == 1,
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: Icons.delete_outline,
-                showTooltip: false,
-                label: 'Delete',
-                color: context.colorScheme.error,
-              ),
+              if (!category.isUncategorized)
+                HeliumIconButton(
+                  onPressed: () {
+                    showConfirmDeleteDialog(
+                      parentContext: context,
+                      item: category,
+                      label: category.displayTitle,
+                      additionalWarning: AppLocalizations.of(context).categoryDeleteWarning(
+                        AppLocalizations.of(context).categoryUncategorizedTitle,
+                      ),
+                      onDelete: (c) {
+                        context.read<CategoryBloc>().add(
+                          DeleteCategoryEvent(
+                            origin: EventOrigin.screen,
+                            courseGroupId: widget.courseGroupId,
+                            courseId: widget.courseId,
+                            categoryId: c.id,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  icon: Icons.delete_outline,
+                  showTooltip: false,
+                  label: AppLocalizations.of(context).commonDeleteLabel,
+                  color: context.colorScheme.error,
+                ),
             ],
           ),
         ),

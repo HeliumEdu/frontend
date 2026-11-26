@@ -84,12 +84,12 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
           return events;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch events.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -97,7 +97,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -119,7 +119,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... Event $id fetched');
         return EventModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch event.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -127,7 +127,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -147,7 +147,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'new'}));
         return event;
       } else {
-        throw unexpectedStatus(response, 'Failed to create event.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -155,7 +155,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -178,7 +178,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.eventCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'clone'}));
         return event;
       } else {
-        throw unexpectedStatus(response, 'Failed to clone event.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -186,7 +186,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -212,7 +212,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return EventModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update event.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -220,7 +220,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -237,7 +237,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... Event $eventId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete event.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -245,7 +245,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -261,7 +261,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
         _log.info('... all Events deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete all events.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -269,7 +269,7 @@ class EventRemoteDataSourceImpl extends EventRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

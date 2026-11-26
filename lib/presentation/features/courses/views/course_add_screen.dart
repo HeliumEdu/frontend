@@ -8,6 +8,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/feedback_service.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_state.dart';
@@ -264,9 +265,10 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   }
 
   @override
-  String get entityName => 'Class';
+  String get screenTitle => hasSavedEntity
+      ? AppLocalizations.of(context).courseEditTitle
+      : AppLocalizations.of(context).courseAddTitle;
 
-  @override
   bool get hasSavedEntity => _currentCourseId != null;
 
   @override
@@ -282,7 +284,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
     ];
@@ -432,7 +434,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               final willClose = _willCloseAfterSave();
               showSnackBar(
                 context,
-                'Class created.',
+                AppLocalizations.of(context).courseCreatedMessage,
                 useRootMessenger: willClose,
               );
               _useCreatedCourse(state.course);
@@ -440,7 +442,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
               _navigateAfterSave();
             }
           } else if (state is CourseDeleted) {
-            showSnackBar(context, 'Class deleted.', useRootMessenger: true);
+            showSnackBar(context, AppLocalizations.of(context).courseDeletedMessage, useRootMessenger: true);
             _deleted = true;
             closeWithoutPrompt();
           } else if (state is CourseUpdated &&
@@ -508,7 +510,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
   late final List<MultiStepDefinition> _steps = [
     MultiStepDefinition(
       icon: Icons.list,
-      tooltip: 'Details',
+      tooltip: AppLocalizations.of(context).courseDetailsStep,
       stepScreenType: ScreenType.entityPage,
       builder: (context) => CourseDetails(
         key: _detailsKey,
@@ -523,7 +525,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.date_range_outlined,
-      tooltip: 'Schedules',
+      tooltip: AppLocalizations.of(context).courseSchedulesTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseSchedule(
         courseGroupId: _currentCourseGroupId!,
@@ -535,18 +537,18 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.notifications_outlined,
-      tooltip: 'Schedule reminders',
+      tooltip: AppLocalizations.of(context).courseScheduleRemindersStep,
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseReminders(
         entityId: _currentCourseId!,
         isEdit: widget.isEdit || _currentCourseId != null,
         userSettings: userSettings,
-        headerTitle: 'Schedule Reminders',
+        headerTitle: AppLocalizations.of(context).courseScheduleRemindersTitle,
       ),
     ),
     MultiStepDefinition(
       icon: Icons.category_outlined,
-      tooltip: 'Categories',
+      tooltip: AppLocalizations.of(context).courseCategoriesTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseCategories(
         courseGroupId: _currentCourseGroupId!,
@@ -558,7 +560,7 @@ class _CourseAddScreenState extends MultiStepContainerState<CourseAddScreen> {
     ),
     MultiStepDefinition(
       icon: Icons.attachment,
-      tooltip: 'Attachments',
+      tooltip: AppLocalizations.of(context).attachmentsTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => CourseAttachments(
         contentKey: _attachmentsKey,

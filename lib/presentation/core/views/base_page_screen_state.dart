@@ -9,6 +9,7 @@ import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/time_zone_database_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
@@ -109,16 +110,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
 
   bool get enablePrintFlexColumn => false;
 
-  /// The kind of item an add-or-edit screen works on, such as 'Class', or
-  /// null for any other screen.
-  String? get entityName => null;
-
-  /// Whether the screen's item has been saved, so the screen edits it rather
-  /// than adds it.
-  bool get hasSavedEntity => false;
-
-  String get screenTitle =>
-      entityName == null ? '' : '${hasSavedEntity ? 'Edit' : 'Add'} $entityName';
+  String get screenTitle => '';
 
   IconData? get icon => null;
 
@@ -262,7 +254,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             _userSettings = settings;
             if (settings == null || !timeZoneDatabaseReady) {
               settingsLoaded = false;
-              settingsError = HeliumException.unexpectedError;
+              settingsError = HeliumException.unexpectedErrorMessage;
             } else {
               settingsLoaded = true;
               settingsError = null;
@@ -286,7 +278,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
               if (!_sessionEnded) {
                 settingsError = error is HeliumException
                     ? error.displayMessage
-                    : HeliumException.unexpectedError;
+                    : HeliumException.unexpectedErrorMessage;
               }
               if (_reloadRequested) {
                 _reloadRequested = false;
@@ -378,7 +370,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
                         message:
                             settingsError ??
                             infoFailure?.message ??
-                            HeliumException.unexpectedError,
+                            HeliumException.unexpectedErrorMessage,
                         source: _blockingErrorSource(
                           settingsFailed: settingsError != null,
                           infoFailed: infoFailure != null,
@@ -502,7 +494,7 @@ abstract class BasePageScreenState<T extends StatefulWidget> extends State<T> {
             tablet: 22,
             desktop: 24,
           ),
-          semanticLabel: 'Add',
+          semanticLabel: AppLocalizations.of(context).pageAddLabel,
         ),
       ),
     );

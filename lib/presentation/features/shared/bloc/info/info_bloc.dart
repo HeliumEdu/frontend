@@ -35,7 +35,7 @@ class InfoBloc extends Bloc<InfoEvent, InfoState> {
     } catch (e, s) {
       _log.severe('Unexpected error loading /info/', e, s);
       if (!isRefresh) {
-        emit(InfoLoadFailed(message: HeliumException.unexpectedError));
+        emit(InfoLoadFailed(message: HeliumException.unexpectedErrorMessage));
       }
     }
   }

@@ -52,23 +52,6 @@ void main() {
     });
   });
 
-  group('PluralExtension', () {
-    test('returns plural for 0', () {
-      expect(0.plural('item'), 'items');
-    });
-
-    test('returns singular for 1', () {
-      expect(1.plural('item'), 'item');
-    });
-
-    test('returns plural for 2', () {
-      expect(2.plural('item'), 'items');
-    });
-
-    test('uses custom plural word', () {
-      expect(2.plural('box', 'boxes'), 'boxes');
-    });
-  });
   group('HeliumNumber', () {
     group('detectNumberFormat', () {
       test('detects a point for US, UK, and Japanese locales', () {

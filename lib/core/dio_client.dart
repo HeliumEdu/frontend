@@ -791,7 +791,7 @@ class DioClient {
       if (context != null && context.mounted) {
         SnackBarHelper.show(
           context,
-          message ?? 'Please sign in to continue.',
+          message ?? LocaleNotifier().localizations.authSignInToContinueMessage,
           seconds: 4,
           type: SnackType.error,
         );

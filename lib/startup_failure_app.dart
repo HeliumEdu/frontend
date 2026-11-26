@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/core/motion_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
+import 'package:heliumapp/utils/locale_helpers.dart';
 
 /// Stands in for `HeliumApp` when a hard startup dependency fails, so the app
 /// reports it instead of hanging on the splash screen.
@@ -23,12 +26,16 @@ class StartupFailureApp extends StatelessWidget {
       theme: AppTheme.light(reduceMotion: reduceMotion),
       darkTheme: AppTheme.dark(reduceMotion: reduceMotion),
       themeMode: ThemeMode.system,
+      locale: LocaleNotifier().appLocale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localeListResolutionCallback: HeliumLocale.resolve,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: Scaffold(
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: ErrorCard(
-              message: HeliumException.unexpectedError,
+              message: HeliumException.unexpectedErrorMessage,
               source: 'startup_failure_app',
               expanded: false,
               onReload: onReload,

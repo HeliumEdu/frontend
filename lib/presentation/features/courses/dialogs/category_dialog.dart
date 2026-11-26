@@ -4,10 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/request/category_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
@@ -42,10 +44,12 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
   final CategoryFormController _formController = CategoryFormController();
 
   @override
-  String get dialogTitle => 'Category';
+  String get dialogTitle => AppLocalizations.of(context).categoryDialogTitle;
 
   @override
   BasicFormController get formController => _formController;
+
+  bool get _isUncategorized => widget.category?.isUncategorized ?? false;
 
   @override
   void initState() {
@@ -71,7 +75,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
   }
 
   void _populateScreenData(CategoryModel category) {
-    _formController.titleController.text = category.title;
+    _formController.titleController.text = category.displayTitle;
     _formController.weightController.text = category.weight == 0
         ? ''
         : HeliumNumber.format(category.weight, trimZeros: true);
@@ -109,7 +113,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
             final category = state.categories
                 .firstWhereOrNull((c) => c.id == widget.category!.id);
             setState(() {
-              if (category == null) errorMessage = 'Category not found.';
+              if (category == null) errorMessage = AppLocalizations.of(context).categoryNotFoundMessage;
               _populateScreenData(category ?? widget.category!);
               isLoading = false;
             });
@@ -135,9 +139,10 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LabelAndTextFormField(
-          label: 'Title',
+          label: AppLocalizations.of(context).categoryTitleLabel,
           autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
+          readOnly: _isUncategorized,
           validator: BasicFormController.validateRequiredField,
           onChanged: (_) => _formController.markChanged(),
           onFieldSubmitted: (value) => handleSubmit(),
@@ -146,20 +151,37 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 120,
-              child: SpinnerField(
-                label: 'Weight (%)',
-                controller: _formController.weightController,
-                minValue: 0,
-                maxValue: 100,
-                allowDecimal: true,
-                onChanged: (_) => _formController.markChanged(),
+            if (!_isUncategorized)
+              SizedBox(
+                width: 120,
+                child: SpinnerField(
+                  label: AppLocalizations.of(context).categoryWeightLabel,
+                  controller: _formController.weightController,
+                  minValue: 0,
+                  maxValue: 100,
+                  allowDecimal: true,
+                  onChanged: (_) => _formController.markChanged(),
+                ),
+              )
+            else if (_formController.weightController.text.isNotEmpty)
+              SizedBox(
+                width: 120,
+                child: LabelAndTextFormField(
+                  label: AppLocalizations.of(context).categoryWeightLabel,
+                  controller: _formController.weightController,
+                  readOnly: true,
+                  suffixIcon: HeliumIconButton(
+                    onPressed: _clearWeight,
+                    icon: Icons.close,
+                    label: AppLocalizations.of(context).categoryRemoveWeightLabel,
+                    filled: false,
+                  ),
+                ),
               ),
-            ),
-            SizedBox(width: Responsive.isNarrowMobile(context) ? 24 : 50),
+            if (!_isUncategorized || _formController.weightController.text.isNotEmpty)
+              SizedBox(width: Responsive.isNarrowMobile(context) ? 24 : 50),
             ColorSelector(
-              label: 'Color',
+              label: AppLocalizations.of(context).commonColorLabel,
               selectedColor: _formController.selectedColor,
               onColorSelected: (color) {
                 _formController.markChanged();
@@ -172,6 +194,11 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
         ),
       ],
     );
+  }
+
+  void _clearWeight() {
+    _formController.markChanged();
+    setState(() => _formController.weightController.clear());
   }
 
   @override
@@ -189,7 +216,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
       }
 
       final request = CategoryRequestModel(
-        title: _formController.titleController.text.trim(),
+        title: _isUncategorized ? CategoryModel.uncategorizedTitle : _formController.titleController.text.trim(),
         weight: weightValue,
         color: HeliumColors.colorToHex(_formController.selectedColor),
       );

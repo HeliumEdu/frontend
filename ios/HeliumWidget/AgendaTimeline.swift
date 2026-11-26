@@ -19,6 +19,7 @@ struct AgendaContent {
   let today: String
   let todayLabel: String?
   let days: [String: AgendaDay]
+  let strings: Bundle
 
   var isEmpty: Bool { groups.isEmpty }
 
@@ -28,7 +29,7 @@ struct AgendaContent {
     (groups.first(where: \.isOverdue)?.items.count ?? 0) + olderOverdueCount
   }
 
-  init(snapshot: AgendaSnapshot, at date: Date) {
+  init(snapshot: AgendaSnapshot, at date: Date, strings: Bundle) {
     let calendar = AgendaCalendar(timeZoneIdentifier: snapshot.timeZone)
     let today = calendar.day(of: date)
     var overdue: [AgendaItem] = []
@@ -41,7 +42,7 @@ struct AgendaContent {
         overdue.append(item)
         continue
       }
-      let title = calendar.groupTitle(for: item, today: today, days: snapshot.days)
+      let title = calendar.groupTitle(for: item, today: today, days: snapshot.days, strings: strings)
       if let index = upcoming.firstIndex(where: { $0.title == title }) {
         upcoming[index].items.append(item)
       } else {
@@ -51,12 +52,13 @@ struct AgendaContent {
 
     groups =
       (overdue.isEmpty && snapshot.olderOverdueCount == 0
-        ? [] : [AgendaGroup(title: "Overdue", isOverdue: true, items: overdue)])
+        ? [] : [AgendaGroup(title: String(localized: "Overdue", bundle: strings), isOverdue: true, items: overdue)])
       + upcoming.map { AgendaGroup(title: $0.title, isOverdue: false, items: $0.items) }
     olderOverdueCount = snapshot.olderOverdueCount
     self.today = today
     todayLabel = snapshot.days[today]?.date
     days = snapshot.days
+    self.strings = strings
 
     let age = date.timeIntervalSince(snapshot.generatedAt)
     staleDays = age > Self.staleAfter ? Int(age / Self.staleAfter) : nil
@@ -84,13 +86,13 @@ struct AgendaCalendar {
     dayFormatter.string(from: date)
   }
 
-  func groupTitle(for item: AgendaItem, today: String, days: [String: AgendaDay]) -> String {
+  func groupTitle(for item: AgendaItem, today: String, days: [String: AgendaDay], strings: Bundle) -> String {
     let daysAhead = calendar.dateComponents(
       [.day], from: dayFormatter.date(from: today)!, to: dayFormatter.date(from: item.day)!
     ).day!
     switch daysAhead {
-    case ...0: return "Today"
-    case 1: return "Tomorrow"
+    case ...0: return String(localized: "Today", bundle: strings)
+    case 1: return String(localized: "Tomorrow", bundle: strings)
     case 2...6: return days[item.day]!.weekday
     default: return days[item.day]!.date
     }
@@ -107,11 +109,13 @@ struct AgendaEntry: TimelineEntry {
   let state: AgendaState
   let content: AgendaContent?
 
+  var strings: Bundle { state.strings }
+
   init(date: Date, state: AgendaState) {
     self.date = date
     self.state = state
     if case .loaded(let snapshot) = state {
-      content = AgendaContent(snapshot: snapshot, at: date)
+      content = AgendaContent(snapshot: snapshot, at: date, strings: state.strings)
     } else {
       content = nil
     }

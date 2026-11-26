@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/google_account_store.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_bottom_sheet.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -72,7 +73,7 @@ class _GoogleAccountConfirmContent extends StatelessWidget {
               ),
             const SizedBox(height: 16),
             HeliumElevatedButton(
-              buttonText: 'Continue as $label',
+              buttonText: AppLocalizations.of(context).googleAccountContinueButton(label),
               onPressed: () {
                 Feedback.forTap(context);
                 Navigator.of(context).pop(true);
@@ -87,7 +88,7 @@ class _GoogleAccountConfirmContent extends StatelessWidget {
                   Feedback.forTap(context);
                   Navigator.of(context).pop(false);
                 },
-                child: const Text('Not you? Use a different account'),
+                child: Text(AppLocalizations.of(context).googleAccountUseDifferentButton),
               ),
             ),
           ],

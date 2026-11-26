@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_editor.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
@@ -297,7 +298,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
         Row(
           children: [
             ExcludeSemantics(
-              child: Text('Notes', style: AppStyles.formLabel(context)),
+              child: Text(AppLocalizations.of(context).notesEditorLabel, style: AppStyles.formLabel(context)),
             ),
             const Spacer(),
             if (widget.onOpenInNotebook != null)
@@ -309,7 +310,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                   color: context.colorScheme.primary,
                 ),
                 label: Text(
-                  'Open in Notebook',
+                  AppLocalizations.of(context).notesOpenInNotebookButton,
                   style: AppStyles.smallSecondaryText(context).copyWith(color: context.colorScheme.primary),
                 ),
               ),
@@ -348,7 +349,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
                   ),
                   child: HeliumQuillEditor(
                     controller: widget.controller,
-                    semanticsLabel: 'Notes',
+                    semanticsLabel: AppLocalizations.of(context).notesEditorLabel,
                     focusNode: widget.focusNode,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(12.0),
@@ -433,7 +434,7 @@ class _NotesEditorState extends State<NotesEditor> with WidgetsBindingObserver {
               Expanded(
                 child: HeliumQuillEditor(
                   controller: widget.controller,
-                  semanticsLabel: 'Note',
+                  semanticsLabel: AppLocalizations.of(context).noteSemanticsLabel,
                   focusNode: widget.focusNode,
                   config: QuillEditorConfig(
                     padding: isCompact

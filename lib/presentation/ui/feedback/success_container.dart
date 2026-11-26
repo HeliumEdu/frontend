@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -62,7 +63,11 @@ class SuccessContainer extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton(
               onPressed: onDismiss,
-              icon: Icon(Icons.close, color: successColor, semanticLabel: 'Dismiss'),
+              icon: Icon(
+                Icons.close,
+                color: successColor,
+                semanticLabel: AppLocalizations.of(context).commonDismissLabel,
+              ),
               iconSize: Responsive.getIconSize(
                 context,
                 mobile: 16,

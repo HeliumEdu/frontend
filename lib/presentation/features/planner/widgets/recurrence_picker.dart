@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
@@ -39,14 +40,6 @@ class RecurrencePicker extends StatefulWidget {
 
 class _RecurrencePickerState extends State<RecurrencePicker> {
   static const _customId = -1;
-
-  static const _frequencyLabels = {
-    RecurrenceFrequency.none: 'Does not repeat',
-    RecurrenceFrequency.daily: 'Daily',
-    RecurrenceFrequency.weekly: 'Weekly',
-    RecurrenceFrequency.monthly: 'Monthly',
-    RecurrenceFrequency.yearly: 'Yearly',
-  };
 
   static const _gap = 12.0;
   static const _countFieldWidth = 104.0;
@@ -98,7 +91,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
           children: [
             Expanded(
               child: DropDown<RecurrenceFrequency>(
-                label: 'Repeat',
+                label: AppLocalizations.of(context).recurrenceRepeatLabel,
                 initialValue: frequencyItems.firstWhere(
                   (item) => item.id == (draft == null ? _customId : draft.frequency.index),
                 ),
@@ -127,24 +120,47 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   }
 
   List<DropDownItem<RecurrenceFrequency>> get _frequencyItems => [
-        if (widget.draft == null) DropDownItem(id: _customId, label: 'Custom'),
+        if (widget.draft == null) DropDownItem(id: _customId, label: AppLocalizations.of(context).recurrenceCustomOption),
         for (final frequency in RecurrenceFrequency.values)
-          DropDownItem(id: frequency.index, value: frequency, label: _frequencyLabels[frequency]),
+          DropDownItem(id: frequency.index, value: frequency, label: _frequencyLabel(frequency)),
       ];
+
+  String _frequencyLabel(RecurrenceFrequency frequency) {
+    final l10n = AppLocalizations.of(context);
+    return switch (frequency) {
+      RecurrenceFrequency.none => l10n.recurrenceFrequencyNone,
+      RecurrenceFrequency.daily => l10n.recurrenceFrequencyDaily,
+      RecurrenceFrequency.weekly => l10n.recurrenceFrequencyWeekly,
+      RecurrenceFrequency.monthly => l10n.recurrenceFrequencyMonthly,
+      RecurrenceFrequency.yearly => l10n.recurrenceFrequencyYearly,
+    };
+  }
+
+  String _intervalUnitLabel(RecurrenceFrequency frequency, int interval) {
+    final l10n = AppLocalizations.of(context);
+    return switch (frequency) {
+      RecurrenceFrequency.daily => l10n.recurrenceIntervalUnitDays(interval),
+      RecurrenceFrequency.weekly => l10n.recurrenceIntervalUnitWeeks(interval),
+      RecurrenceFrequency.monthly => l10n.recurrenceIntervalUnitMonths(interval),
+      RecurrenceFrequency.yearly => l10n.recurrenceIntervalUnitYears(interval),
+      RecurrenceFrequency.none => '',
+    };
+  }
 
   List<DropDownItem<RecurrenceEnd>> get _endItems => [
         DropDownItem(
           id: RecurrenceEnd.defaultEnd.index,
           value: RecurrenceEnd.defaultEnd,
-          label: widget.isEvent ? 'Never' : 'End of class',
+          label: widget.isEvent ? AppLocalizations.of(context).recurrenceEndNeverOption : AppLocalizations.of(context).recurrenceEndOfClassOption,
         ),
-        DropDownItem(id: RecurrenceEnd.onDate.index, value: RecurrenceEnd.onDate, label: 'On date'),
-        DropDownItem(id: RecurrenceEnd.afterCount.index, value: RecurrenceEnd.afterCount, label: 'After'),
+        DropDownItem(id: RecurrenceEnd.onDate.index, value: RecurrenceEnd.onDate, label: AppLocalizations.of(context).recurrenceEndOnDateOption),
+        DropDownItem(id: RecurrenceEnd.afterCount.index, value: RecurrenceEnd.afterCount, label: AppLocalizations.of(context).recurrenceEndAfterOption),
       ];
 
   bool _intervalFitsBesideRepeat(BuildContext context, double width) {
-    final widestUnit =
-        HeliumRecurrence.intervalUnits.values.map((unit) => _textWidth(context, '${unit}s')).reduce(math.max);
+    final widestUnit = HeliumRecurrence.repeatingFrequencies
+        .map((frequency) => _textWidth(context, _intervalUnitLabel(frequency, 2)))
+        .reduce(math.max);
     return (width - _gap) / 2 >= _countFieldWidth + _unitGap + widestUnit;
   }
 
@@ -160,13 +176,12 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   }
 
   Widget _buildIntervalField(BuildContext context, RecurrenceDraft draft) {
-    final unit = HeliumRecurrence.intervalUnits[draft.frequency]!;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Flexible(
           child: SpinnerField(
-            label: 'Every',
+            label: AppLocalizations.of(context).recurrenceEveryLabel,
             controller: _intervalController,
             minValue: 1,
             maxValue: 99,
@@ -186,9 +201,9 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
                   maintainSize: true,
                   maintainAnimation: true,
                   maintainState: true,
-                  child: Text('${unit}s', style: AppStyles.formText(context)),
+                  child: Text(_intervalUnitLabel(draft.frequency, 2), style: AppStyles.formText(context)),
                 ),
-                Text(draft.interval == 1 ? unit : '${unit}s', style: AppStyles.formText(context)),
+                Text(_intervalUnitLabel(draft.frequency, draft.interval), style: AppStyles.formText(context)),
               ],
             ),
           ),
@@ -231,9 +246,9 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
 
   Widget _buildLastDayOfMonthTile(BuildContext context, RecurrenceDraft draft) {
     return HeliumCheckboxListTile(
-      title: Text('On the last day of the month', style: AppStyles.formLabel(context)),
+      title: Text(AppLocalizations.of(context).recurrenceLastDayOfMonthLabel, style: AppStyles.formLabel(context)),
       subtitle: Text(
-        'Otherwise, months without day ${widget.localStart.day} are skipped.',
+        AppLocalizations.of(context).recurrenceLastDayOfMonthDescription(widget.localStart.day),
         style: AppStyles.smallSecondaryTextLight(context),
       ),
       value: draft.lastDayOfMonth,
@@ -250,7 +265,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
       children: [
         Expanded(
           child: DropDown<RecurrenceEnd>(
-            label: 'Ends',
+            label: AppLocalizations.of(context).recurrenceEndsLabel,
             initialValue: endItems.firstWhere((item) => item.value == draft.end),
             items: endItems,
             onChanged: _onEndChanged,
@@ -260,7 +275,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
           const SizedBox(width: _gap),
           Expanded(
             child: HeliumDateField(
-              label: 'End date',
+              label: AppLocalizations.of(context).recurrenceEndDateLabel,
               date: draft.until ?? widget.localStart,
               onTap: _selectUntilDate,
             ),
@@ -274,7 +289,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
               child: SizedBox(
                 width: _countFieldWidth,
                 child: SpinnerField(
-                  label: 'Occurrences',
+                  label: AppLocalizations.of(context).recurrenceOccurrencesLabel,
                   controller: _countController,
                   minValue: 1,
                   maxValue: 366,
@@ -349,7 +364,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
       initialDate: current.isBefore(start) ? start : current,
       firstDate: start,
       lastDate: DateTime(start.year + 5, start.month, start.day),
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (picked == null || !mounted) return;
     widget.onChanged(_current.copyWith(until: picked));

@@ -3,6 +3,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -55,7 +56,7 @@ class GradeCategoryTable extends StatelessWidget {
     bool hasWeightedGrading,
   ) {
     final sortedCategories = [...course.categories];
-    Sort.byTitle(sortedCategories);
+    Sort.byGradeCategoryTitle(sortedCategories);
     final totalBreakdown = course.categories.fold<double>(
       0,
       (sum, cat) =>
@@ -82,7 +83,7 @@ class GradeCategoryTable extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Text(
-                  'Category',
+                  AppLocalizations.of(context).gradesCategoryColumn,
                   style: AppStyles.standardBodyText(context),
                   softWrap: false,
                   overflow: TextOverflow.ellipsis,
@@ -97,7 +98,7 @@ class GradeCategoryTable extends StatelessWidget {
                     desktop: _contributionColDesktop,
                   ),
                   child: Text(
-                    'Contribution',
+                    AppLocalizations.of(context).gradesContributionColumn,
                     textAlign: TextAlign.center,
                     style: AppStyles.standardBodyText(context),
                   ),
@@ -108,7 +109,7 @@ class GradeCategoryTable extends StatelessWidget {
                       ? _gradedColTablet
                       : _gradedColDesktop,
                   child: Text(
-                    'Graded',
+                    AppLocalizations.of(context).gradesGradedColumn,
                     textAlign: TextAlign.center,
                     style: AppStyles.standardBodyText(context),
                   ),
@@ -118,7 +119,7 @@ class GradeCategoryTable extends StatelessWidget {
                     ? _averageColMobile
                     : _averageColDesktop,
                 child: Text(
-                  'Average',
+                  AppLocalizations.of(context).gradesAverageColumn,
                   textAlign: TextAlign.right,
                   style: AppStyles.standardBodyText(context),
                 ),
@@ -170,7 +171,7 @@ class GradeCategoryTable extends StatelessWidget {
                   child: SizedBox(
                     height: Responsive.isMobile(context) ? 26 : null,
                     child: CategoryTitleLabel(
-                      title: category.title,
+                      title: category.displayTitle,
                       color: category.color,
                       compact: Responsive.isMobile(context),
                     ),
@@ -208,7 +209,7 @@ class GradeCategoryTable extends StatelessWidget {
                   ? _gradedColTablet
                   : _gradedColDesktop,
               child: SelectableText(
-                '${category.numHomeworkGraded} of ${category.numHomework}',
+                AppLocalizations.of(context).gradesGradedOfTotal(category.numHomeworkGraded, category.numHomework),
                 textAlign: TextAlign.center,
                 style: AppStyles.standardBodyText(context).copyWith(
                   color: context.colorScheme.onSurface.withValues(alpha: 0.7),

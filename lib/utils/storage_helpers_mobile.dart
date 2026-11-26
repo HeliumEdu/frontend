@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
 import 'package:logging/logging.dart';
@@ -132,7 +133,7 @@ Future<DownloadStatus> _downloadFileIOS(String url, String filename) async {
     final result = await SharePlus.instance.share(
       ShareParams(
         files: [XFile(filePath)],
-        subject: 'Save $filename',
+        subject: LocaleNotifier().localizations.storageSaveFileSubject(filename),
         sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
       ),
     );
@@ -190,7 +191,7 @@ Future<DownloadStatus> _downloadBytesIOS(Uint8List bytes, String filename) async
     final result = await SharePlus.instance.share(
       ShareParams(
         files: [XFile(filePath)],
-        subject: 'Save $filename',
+        subject: LocaleNotifier().localizations.storageSaveFileSubject(filename),
         sharePositionOrigin: const Rect.fromLTWH(0, 0, 100, 100),
       ),
     );

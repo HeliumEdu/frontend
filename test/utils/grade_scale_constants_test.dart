@@ -24,10 +24,10 @@ void main() {
     test('summarizes a scale by its preset, or as Custom', () {
       // WHEN/THEN
       for (final MapEntry(key: template, value: label) in GradeScaleTemplate.labels.entries) {
-        expect(GradeScaleTemplate.summaryLabel(template), label);
+        expect(GradeScaleTemplate.labelFor(template), label);
       }
       expect(
-        GradeScaleTemplate.summaryLabel(GradeScaleTemplate.custom),
+        GradeScaleTemplate.labelFor(GradeScaleTemplate.custom),
         'Custom',
       );
     });

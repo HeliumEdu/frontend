@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -134,7 +135,7 @@ class SpinnerField extends StatelessWidget {
             Expanded(
               child: IconButton(
                 onPressed: () => _increment(),
-                icon: const Icon(Icons.arrow_drop_up, semanticLabel: 'Increase value'),
+                icon: Icon(Icons.arrow_drop_up, semanticLabel: AppLocalizations.of(context).spinnerIncreaseLabel),
                 iconSize: _arrowSize,
                 color: context.colorScheme.primary,
                 padding: EdgeInsets.zero,
@@ -149,7 +150,7 @@ class SpinnerField extends StatelessWidget {
             Expanded(
               child: IconButton(
                 onPressed: () => _decrement(),
-                icon: const Icon(Icons.arrow_drop_down, semanticLabel: 'Decrease value'),
+                icon: Icon(Icons.arrow_drop_down, semanticLabel: AppLocalizations.of(context).spinnerDecreaseLabel),
                 iconSize: _arrowSize,
                 color: context.colorScheme.primary,
                 padding: EdgeInsets.zero,

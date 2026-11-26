@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 
 class SettingsButton extends StatelessWidget {
@@ -29,7 +30,7 @@ class SettingsButton extends StatelessWidget {
         Icons.settings,
         color: context.colorScheme.primary,
       ),
-      tooltip: 'Settings',
+      tooltip: AppLocalizations.of(context).settingsTooltip,
     );
   }
 }

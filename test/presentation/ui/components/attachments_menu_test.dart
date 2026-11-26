@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/helium_exception.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/ui/components/attachments_menu.dart';
 import 'package:heliumapp/utils/attachment_helpers.dart';
@@ -23,6 +24,8 @@ void main() {
       BlocProvider(
         create: (_) => AttachmentBloc(attachmentRepository: repository),
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: Scaffold(body: AttachmentsMenuContent(groups: groups)),
         ),

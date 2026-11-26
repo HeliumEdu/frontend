@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
@@ -89,7 +90,7 @@ class _CourseExceptionsDialogState
   ]..sort((a, b) => a.date.compareTo(b.date));
 
   String _scopeLabel(int? scheduleId) => scheduleId == null
-      ? 'All meetings'
+      ? AppLocalizations.of(context).courseExceptionsAllMeetings
       : widget.scheduleLabels[scheduleId]!;
 
   List<DateTime> _cancelledFor(int? scheduleId) => [
@@ -143,7 +144,7 @@ class _CourseExceptionsDialogState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeliumMenuTitle(title: 'Cancel which meetings?'),
+            HeliumMenuTitle(title: AppLocalizations.of(context).courseExceptionsScopeTitle),
             const SizedBox(height: 8),
             for (final option in [null, ...widget.scheduleLabels.keys])
               ListTile(
@@ -178,7 +179,7 @@ class _CourseExceptionsDialogState
       initialDate: _selectableInitialDate(cancelled, firstDate, lastDate),
       firstDate: firstDate ?? HeliumDateTime.earliestPickableDate(),
       lastDate: lastDate ?? HeliumDateTime.latestPickableDate(),
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
       selectableDayPredicate: (date) => _isSelectable(cancelled, date),
     );
     if (picked == null || !mounted) return;
@@ -251,13 +252,13 @@ class _CourseExceptionsDialogState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Dates', style: AppStyles.featureText(context)),
+            Text(AppLocalizations.of(context).courseExceptionsDatesTitle, style: AppStyles.featureText(context)),
             Builder(
               builder: (buttonContext) => HeliumIconButton(
                 onPressed: () => _addDate(buttonContext),
                 icon: Icons.add,
                 showTooltip: false,
-                label: 'Add date',
+                label: AppLocalizations.of(context).courseExceptionsAddLabel,
               ),
             ),
           ],
@@ -265,9 +266,10 @@ class _CourseExceptionsDialogState
         const SizedBox(height: 12),
         Expanded(
           child: entries.isEmpty
-              ? const EmptyCard(
+              ? EmptyCard(
+                  title: AppLocalizations.of(context).emptyCardTitle,
                   icon: Icons.block_outlined,
-                  message: 'Click "+" to add a date',
+                  message: AppLocalizations.of(context).courseExceptionsEmptyMessage,
                   expanded: false,
                 )
               : ListView.builder(
@@ -318,7 +320,7 @@ class _CourseExceptionsDialogState
               onPressed: () => _removeDate(date, scheduleId),
               icon: Icons.delete_outline,
               color: context.colorScheme.error,
-              label: 'Remove',
+              label: AppLocalizations.of(context).commonRemoveLabel,
             ),
           ],
         ),
@@ -394,14 +396,14 @@ Future<void> showCourseExceptionsDialog({
     context: context,
     barrierDismissible: false,
     builder: (_) => CourseExceptionsDialog(
-      title: 'Cancellations',
+      title: AppLocalizations.of(context).courseCancellationsTitle,
       exceptions: courseExceptions,
       onConfirm: onConfirm,
       scheduleLabels: scheduleLabels,
       scheduleExceptions: scheduleExceptions,
       scheduleDateRanges: scheduleDateRanges,
       readOnlyExceptions: courseGroupExceptions,
-      readOnlyLabel: 'Also cancelled via Holidays & Breaks',
+      readOnlyLabel: AppLocalizations.of(context).courseExceptionsGroupCancelledLabel,
       firstDate: firstDate,
       lastDate: lastDate,
     ),
@@ -420,7 +422,7 @@ Future<List<DateTime>?> showCourseGroupExceptionsDialog({
     context: context,
     barrierDismissible: false,
     builder: (_) => CourseExceptionsDialog(
-      title: 'Holidays & Breaks',
+      title: AppLocalizations.of(context).courseGroupHolidaysTitle,
       exceptions: exceptions,
       firstDate: firstDate,
       lastDate: lastDate,

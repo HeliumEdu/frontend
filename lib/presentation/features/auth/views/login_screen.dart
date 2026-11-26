@@ -11,6 +11,7 @@ import 'package:heliumapp/core/last_oauth_provider_store.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
@@ -45,7 +46,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   @override
-  String get screenTitle => 'Sign In';
+  String get screenTitle => AppLocalizations.of(context).signInTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -68,7 +69,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
       if (_nextRoute != null) {
         showSnackBar(
           context,
-          'Please sign in to continue.',
+          AppLocalizations.of(context).authSignInToContinueMessage,
           type: SnackType.info,
           seconds: 4,
         );
@@ -139,11 +140,11 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
               context.replace(_nextRoute ?? AppRoute.plannerScreen);
             }
           } else if (state is AuthAccountInactive) {
-            _showInactiveAccountSnackBar(context, state.email, state.message);
+            _showInactiveAccountSnackBar(context, state.email, state.message!);
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
-              'Verification email sent! Check your inbox.',
+              AppLocalizations.of(context).authVerificationEmailSentMessage,
               seconds: 4,
             );
           } else if (state is AuthError) {
@@ -201,7 +202,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             LabelAndTextFormField(
               key: const Key(CredentialsFormController.emailField),
-              hintText: 'Email',
+              hintText: AppLocalizations.of(context).authEmailHint,
               autofocus: PlatformBehavior.autofocusesOnOpen,
               prefixIcon: Icons.email_outlined,
               controller: _formController.emailController,
@@ -215,7 +216,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
 
             HeliumPasswordField(
               key: const Key(CredentialsFormController.passwordField),
-              hintText: 'Password',
+              hintText: AppLocalizations.of(context).authPasswordHint,
               controller: _formController.passwordController,
               validator: BasicFormController.validateRequiredField,
               onFieldSubmitted: (value) => _onSubmit(),
@@ -234,7 +235,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       context.go(AppRoute.forgotPasswordScreen);
                     },
                     child: Text(
-                      'Forgot your password?',
+                      AppLocalizations.of(context).signInForgotPasswordLink,
                       style: AppStyles.standardBodyText(
                         context,
                       ).copyWith(color: context.colorScheme.primary),
@@ -254,7 +255,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                       width: 250.0,
                       child: HeliumElevatedButton(
                         key: const Key(LoginScreen.signInButtonKey),
-                        buttonText: 'Sign In',
+                        buttonText: AppLocalizations.of(context).signInButton,
                         isLoading: isSubmitting,
                         enabled: !_isOAuthLoading,
                         onPressed: _onSubmit,
@@ -273,7 +274,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'OR',
+                    AppLocalizations.of(context).authOrDivider,
                     style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,
@@ -325,7 +326,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                         ),
                       );
                     },
-                    text: 'Sign in with Google',
+                    text: AppLocalizations.of(context).signInWithProviderButton(OAuthProvider.google.label),
                   ),
                 ),
               ),
@@ -357,7 +358,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                           ),
                         );
                       },
-                      text: 'Sign in with Apple',
+                      text: AppLocalizations.of(context).signInWithProviderButton(OAuthProvider.apple.label),
                     ),
                   ),
                 ),
@@ -389,7 +390,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                         ),
                       );
                     },
-                    text: 'Sign in with Microsoft',
+                    text: AppLocalizations.of(context).signInWithProviderButton(OAuthProvider.microsoft.label),
                   ),
                 ),
               ),
@@ -407,7 +408,7 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Need an account?',
+                      AppLocalizations.of(context).signInNeedAccountLink,
                       style: AppStyles.buttonText(
                         context,
                       ).copyWith(color: context.colorScheme.primary),
@@ -436,15 +437,15 @@ class _LoginScreenViewState extends BasePageScreenState<LoginScreen> {
   void _showInactiveAccountSnackBar(
     BuildContext context,
     String email,
-    String? message,
+    String message,
   ) {
     showSnackBar(
       context,
-      message ?? 'Your account is not yet verified.',
+      message,
       type: SnackType.error,
       seconds: 10,
       action: SnackBarAction(
-        label: 'Resend Email',
+        label: AppLocalizations.of(context).signInResendEmailAction,
         textColor: context.colorScheme.onError,
         onPressed: () {
           context.read<AuthBloc>().add(ResendVerificationEvent(email: email));

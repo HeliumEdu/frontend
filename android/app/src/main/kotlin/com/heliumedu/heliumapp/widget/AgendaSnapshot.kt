@@ -10,6 +10,7 @@ import org.json.JSONObject
 /** The snapshot the app writes under [SNAPSHOT_KEY]; see `AgendaWidgetService` on the Dart side. */
 data class AgendaSnapshot(
     val signedIn: Boolean,
+    val language: String?,
     val generatedAt: Instant,
     val timeZone: ZoneId,
     val olderOverdueCount: Int,
@@ -25,6 +26,7 @@ data class AgendaSnapshot(
             if (root.getInt("version") != SUPPORTED_VERSION) return null
             return AgendaSnapshot(
                 signedIn = root.getBoolean("signedIn"),
+                language = if (root.isNull("language")) null else root.getString("language"),
                 generatedAt = Instant.parse(root.getString("generatedAt")),
                 timeZone = ZoneId.of(root.getString("timeZone")),
                 olderOverdueCount = root.getInt("olderOverdueCount"),

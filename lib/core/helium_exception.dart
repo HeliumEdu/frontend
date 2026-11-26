@@ -1,8 +1,7 @@
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/api_error_parser.dart';
 
 class HeliumException implements Exception {
-  static const unexpectedError = 'An unexpected error occurred.';
-
   final String message;
   final String? code;
   final int? httpStatusCode;
@@ -23,6 +22,11 @@ class HeliumException implements Exception {
     this.cause,
   });
 
+  @override
+  String toString() => message;
+
+  static String get unexpectedErrorMessage => LocaleNotifier().localizations.commonUnexpectedErrorMessage;
+
   /// Returns the user-friendly display message (without field prefixes).
   /// Falls back to [message] when the parser produced nothing usable, so a
   /// response it cannot read never renders as empty text.
@@ -30,9 +34,6 @@ class HeliumException implements Exception {
     final parsed = parsedError?.displayMessage;
     return parsed == null || parsed.isEmpty ? message : parsed;
   }
-
-  @override
-  String toString() => message;
 }
 
 class NetworkException extends HeliumException {
@@ -91,15 +92,12 @@ class UnauthorizedException extends HeliumException {
 }
 
 class ConflictException extends HeliumException {
-  static const conflictMessage = 'This was changed on another device.';
-
   final Map<String, dynamic> latest;
 
   ConflictException({
     required this.latest,
-    super.message = conflictMessage,
     super.code = '412',
     super.httpStatusCode = 412,
     super.cause,
-  });
+  }) : super(message: LocaleNotifier().localizations.conflictChangedElsewhereMessage);
 }

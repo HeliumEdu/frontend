@@ -30,6 +30,8 @@
 		EB41F36407FEB37CD715780F /* AgendaSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9D8DB49F0FB82B1963C28F /* AgendaSample.swift */; };
 		F9CC25E2FF81CBA6E1C6FD91 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 338E3477AE66AAAA3D77B17D /* Poppins-Regular.ttf */; };
 		FE50E6AFCC09F79923901DBA /* HeliumWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */; settings = {ATTRIBUTES = (RemoveHeaderOnCopy, ); }; };
+		EFCD3635D036BFC4BECC571F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 64860A49CE7E730A1999A7C6 /* Localizable.xcstrings */; };
+		9251344450F7B8D5456B491C /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = CA186FAAC758D419DC2619FC /* InfoPlist.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,6 +106,8 @@
 		F2A9B8E52D4A1B2300000002 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
 		F3B7EA5EC1E15A145417C886 /* HeliumWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeliumWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FADCEE85074B50F19C5984E3 /* AgendaStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgendaStyle.swift; sourceTree = "<group>"; };
+		64860A49CE7E730A1999A7C6 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		CA186FAAC758D419DC2619FC /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +138,7 @@
 				53C9D0B4455F52AF1CE487C5 /* AgendaViews.swift */,
 				FADCEE85074B50F19C5984E3 /* AgendaStyle.swift */,
 				8B9D8DB49F0FB82B1963C28F /* AgendaSample.swift */,
+				64860A49CE7E730A1999A7C6 /* Localizable.xcstrings */,
 				1FB9511EAD2ED851FAC5BE5B /* Assets.xcassets */,
 				B09114F1470F514819D71E00 /* Info.plist */,
 				C67CCADA6A8835012AE7F578 /* HeliumWidget.entitlements */,
@@ -192,6 +197,7 @@
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
+				CA186FAAC758D419DC2619FC /* InfoPlist.xcstrings */,
 				DE4C455D21DE1E4300EA0709 /* GoogleService-Info.plist */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
@@ -322,6 +328,7 @@
 				96B5AE9D7F539B97DC382839 /* Poppins-Medium.ttf in Resources */,
 				ADBE4ACA98284337BB739454 /* Poppins-SemiBold.ttf in Resources */,
 				A8F258BB2EA6B5A3EA809EBA /* DMSerifDisplay-Regular.ttf in Resources */,
+				EFCD3635D036BFC4BECC571F /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,6 +341,7 @@
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 				DE4C455E21DE1E4300EA0709 /* GoogleService-Info.plist in Resources */,
+				9251344450F7B8D5456B491C /* InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

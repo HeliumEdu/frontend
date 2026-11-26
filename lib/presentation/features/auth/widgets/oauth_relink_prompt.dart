@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/confirm_action_dialog.dart';
@@ -15,16 +17,15 @@ RelinkProviderPrompt oauthRelinkPrompt(
   return (provider, {required removed}) async {
     if (!context.mounted) return false;
 
+    final l10n = AppLocalizations.of(context);
     return showConfirmActionDialog(
       context: context,
-      title: 'Link $provider?',
+      title: l10n.oauthRelinkTitle(provider),
       message: removed
-          ? 'Signing in with ${signedInWith.label} removed $provider from your '
-              'account. Link it so both keep working?'
-          : '$provider still needs to be linked to your account. Link it so '
-              'both keep working?',
-      actionText: 'Link $provider',
-      cancelText: "Don't link",
+          ? l10n.oauthRelinkRemovedMessage(provider, signedInWith.label)
+          : l10n.oauthRelinkPendingMessage(provider),
+      actionText: l10n.oauthRelinkButton(provider),
+      cancelText: l10n.oauthRelinkDeclineButton,
       style: ConfirmActionStyle.neutral,
       dismissible: false,
     );
@@ -38,7 +39,7 @@ void showLinkOutcomeSnackBars(BuildContext context, AuthLoggedIn state) {
   for (final provider in state.linkedProviders) {
     SnackBarHelper.show(
       context,
-      '$provider is now linked to your account.',
+      AppLocalizations.of(context).oauthRelinkLinkedMessage(provider),
       clearSnackBar: clearSnackBar,
       useRootMessenger: true,
     );
@@ -57,5 +58,6 @@ void showLinkOutcomeSnackBars(BuildContext context, AuthLoggedIn state) {
   }
 }
 
+@visibleForTesting
 String providerNotLinkedMessage(String provider) =>
-    "$provider wasn't linked. Sign in with $provider any time to link it.";
+    LocaleNotifier().localizations.oauthRelinkNotLinkedMessage(provider);

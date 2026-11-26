@@ -4,6 +4,7 @@ import Foundation
 struct AgendaSnapshot: Decodable {
   let version: Int
   let signedIn: Bool
+  let language: String?
   let generatedAt: Date
   let timeZone: String
   let olderOverdueCount: Int
@@ -63,8 +64,27 @@ enum AgendaLinks {
 
 enum AgendaState {
   case missing
-  case signedOut
+  case signedOut(language: String?)
   case loaded(AgendaSnapshot)
+
+  var strings: Bundle {
+    switch self {
+    case .missing: return .main
+    case .signedOut(let language): return AgendaStrings.bundle(for: language)
+    case .loaded(let snapshot): return AgendaStrings.bundle(for: snapshot.language)
+    }
+  }
+}
+
+enum AgendaStrings {
+  static func bundle(for language: String?) -> Bundle {
+    guard let language else { return .main }
+    return lproj(language) ?? lproj("en") ?? .main
+  }
+
+  private static func lproj(_ language: String) -> Bundle? {
+    Bundle.main.path(forResource: language, ofType: "lproj").flatMap(Bundle.init(path:))
+  }
 }
 
 enum AgendaStore {
@@ -75,7 +95,7 @@ enum AgendaStore {
       let snapshot = decode(json),
       snapshot.version == supportedVersion
     else { return .missing }
-    return snapshot.signedIn ? .loaded(snapshot) : .signedOut
+    return snapshot.signedIn ? .loaded(snapshot) : .signedOut(language: snapshot.language)
   }
 
   private static func decode(_ json: String) -> AgendaSnapshot? {

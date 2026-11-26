@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -32,8 +33,9 @@ class _ChangePasswordDialogState
       ChangePasswordFormController();
 
   @override
-  String get dialogTitle =>
-      widget.passwordless ? 'Set Password' : 'Change Password';
+  String get dialogTitle => widget.passwordless
+      ? AppLocalizations.of(context).changePasswordSetTitle
+      : AppLocalizations.of(context).changePasswordChangeTitle;
 
   @override
   BasicFormController get formController => _formController;
@@ -71,15 +73,14 @@ class _ChangePasswordDialogState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.revokesApiToken) ...[
-            const WarningContainer(
-              text:
-                  'Changing your password also revokes your API token, so anything using it will stop working.',
+            WarningContainer(
+              text: AppLocalizations.of(context).changePasswordRevokesTokenWarning,
             ),
             const SizedBox(height: AppConstants.contentTopInset),
           ],
           if (!widget.passwordless) ...[
             HeliumPasswordField(
-              label: 'Current password',
+              label: AppLocalizations.of(context).settingsCurrentPasswordLabel,
               autofocus: PlatformBehavior.autofocusesOnOpen,
               controller: _formController.oldPasswordController,
               validator: BasicFormController.validatePassword,
@@ -90,7 +91,7 @@ class _ChangePasswordDialogState
             const SizedBox(height: 14),
           ],
           HeliumPasswordField(
-            label: 'New password',
+            label: AppLocalizations.of(context).changePasswordNewLabel,
             autofocus:
                 widget.passwordless && PlatformBehavior.autofocusesOnOpen,
             controller: _formController.newPasswordController,
@@ -100,7 +101,7 @@ class _ChangePasswordDialogState
           ),
           const SizedBox(height: 14),
           HeliumPasswordField(
-            label: 'Confirm password',
+            label: AppLocalizations.of(context).changePasswordConfirmLabel,
             prefixIcon: Icons.repeat,
             controller: _formController.confirmPasswordController,
             validator: _formController.validateConfirmPassword,

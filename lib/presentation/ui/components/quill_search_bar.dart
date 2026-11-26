@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/tab_moves_focus_formatter.dart';
@@ -194,7 +195,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                 Icons.close,
                 size: 20,
                 color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
-                semanticLabel: 'Close search',
+                semanticLabel: AppLocalizations.of(context).quillSearchCloseLabel,
               ),
               onPressed: () {
                 _clearSelection();
@@ -223,7 +224,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     ],
                     style: AppStyles.formText(context),
                     decoration: InputDecoration(
-                      hintText: 'Search ...',
+                      hintText: AppLocalizations.of(context).commonSearchHint,
                       hintStyle: AppStyles.formHint(context),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -256,7 +257,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     ? context.colorScheme.primary
                     : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
-              tooltip: 'Previous',
+              tooltip: AppLocalizations.of(context).quillSearchPreviousTooltip,
               onPressed: _offsets.isNotEmpty ? _moveToPrevious : null,
             ),
             IconButton(
@@ -271,7 +272,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     ? context.colorScheme.primary
                     : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
-              tooltip: 'Next',
+              tooltip: AppLocalizations.of(context).quillSearchNextTooltip,
               onPressed: _offsets.isNotEmpty ? _moveToNext : null,
             ),
             const SizedBox(width: 4),
@@ -287,7 +288,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     ? context.colorScheme.primary
                     : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
-              tooltip: 'Match case',
+              tooltip: AppLocalizations.of(context).quillSearchMatchCaseTooltip,
               onPressed: () {
                 setState(() {
                   _caseSensitive = !_caseSensitive;
@@ -309,7 +310,7 @@ class _QuillSearchBarState extends State<QuillSearchBar> {
                     ? context.colorScheme.primary
                     : context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedIconAlpha),
               ),
-              tooltip: 'Match whole word',
+              tooltip: AppLocalizations.of(context).quillSearchWholeWordTooltip,
               onPressed: () {
                 setState(() {
                   _wholeWord = !_wholeWord;

@@ -1,10 +1,13 @@
 import 'dart:ui';
 
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
 
 class CategoryModel extends BaseTitledModel {
+  static const uncategorizedTitle = 'Uncategorized';
+
   final Color color;
   final int course;
   final int courseGroup;
@@ -45,4 +48,13 @@ class CategoryModel extends BaseTitledModel {
       numHomework: toInt(json['num_homework']),
     );
   }
+
+  /// Whether this is the class's built-in category for assignments without one, which keeps its stored title.
+  bool get isUncategorized => title == uncategorizedTitle;
+
+  String get displayTitle => displayTitleOf(title);
+
+  /// [title] as shown: the built-in category's in the user's language, any other as stored.
+  static String displayTitleOf(String title) =>
+      title == uncategorizedTitle ? LocaleNotifier().localizations.categoryUncategorizedTitle : title;
 }

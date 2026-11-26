@@ -30,7 +30,7 @@ class InfoRemoteDataSourceImpl extends InfoRemoteDataSource {
         _log.info('... fetched /info/');
         return InfoModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch /info/.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -38,7 +38,7 @@ class InfoRemoteDataSourceImpl extends InfoRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred fetching /info/', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

@@ -182,9 +182,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader('GENERAL'),
+            _buildSectionHeader(AppLocalizations.of(context).preferencesGeneralSection),
             SearchableDropdown(
-              label: 'Time zone',
+              label: AppLocalizations.of(context).preferencesTimeZoneLabel,
               key: const Key(PreferencesScreen.timeZoneField),
               initialValue: TimeZoneConstants.items.firstWhere(
                 (tz) => tz.value == _selectedTimeZone,
@@ -209,9 +209,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ],
             _buildRegionalFormatFields(),
 
-            _buildSectionHeader('PLANNER'),
+            _buildSectionHeader(AppLocalizations.of(context).preferencesPlannerSection),
             DropDown(
-              label: 'Default view',
+              label: AppLocalizations.of(context).preferencesDefaultViewLabel,
               initialValue: CalendarConstants.defaultViewItems.firstWhere(
                 (dv) => dv.value == _selectedDefaultView,
               ),
@@ -225,11 +225,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             HeliumCheckboxListTile(
               title: Text(
-                'Remember filter selections',
+                AppLocalizations.of(context).preferencesRememberFiltersLabel,
                 style: AppStyles.formLabel(context),
               ),
               subtitle: Text(
-                'Keep your chosen filters on this device when you leave and come back',
+                AppLocalizations.of(context).preferencesRememberFiltersDescription,
                 style: AppStyles.smallSecondaryText(context),
               ),
               value: _isRememberFilterSelection,
@@ -245,7 +245,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             HeliumCheckboxListTile(
               key: const Key(PreferencesScreen.dragAndDropField),
               title: Text(
-                'Drag-and-drop on touch devices',
+                AppLocalizations.of(context).preferencesDragAndDropLabel,
                 style: AppStyles.formLabel(context),
               ),
               value: _isDragAndDropOnMobile,
@@ -261,7 +261,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             if (PlatformBehavior.showsHoverTooltips)
               HeliumCheckboxListTile(
                 title: Text(
-                  'Show tooltips',
+                  AppLocalizations.of(context).preferencesShowTooltipsLabel,
                   style: AppStyles.formLabel(context),
                 ),
                 value: _isShowPlannerTooltips,
@@ -275,9 +275,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
                 contentPadding: EdgeInsets.zero,
               ),
 
-            _buildSectionHeader('CALENDAR'),
+            _buildSectionHeader(AppLocalizations.of(context).preferencesCalendarSection),
             DropDown(
-              label: 'Week starts on',
+              label: AppLocalizations.of(context).preferencesWeekStartsOnLabel,
               initialValue: CalendarConstants.dayNamesItems.firstWhere(
                 (fd) => fd.value == _selectedWeekStartsOn,
               ),
@@ -291,11 +291,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             HeliumCheckboxListTile(
               title: Text(
-                'Collapse busy days',
+                AppLocalizations.of(context).preferencesCollapseBusyDaysLabel,
                 style: AppStyles.formLabel(context),
               ),
               subtitle: Text(
-                'Limit visible items per day in month view and show "+N more"',
+                AppLocalizations.of(context).preferencesCollapseBusyDaysDescription,
                 style: AppStyles.smallSecondaryText(context),
               ),
               value: _isCollapseBusyDays,
@@ -310,7 +310,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             HeliumCheckboxListTile(
               title: Text(
-                'Show week numbers',
+                AppLocalizations.of(context).preferencesShowWeekNumbersLabel,
                 style: AppStyles.formLabel(context),
               ),
               value: _isShowWeekNumbers,
@@ -324,9 +324,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               contentPadding: EdgeInsets.zero,
             ),
 
-            _buildSectionHeader('DISPLAY'),
+            _buildSectionHeader(AppLocalizations.of(context).preferencesDisplaySection),
             ColorSelector(
-              label: 'Color for Events',
+              label: AppLocalizations.of(context).preferencesEventsColorLabel,
               labelWidth: 160,
               selectedColor: _selectedEventColor,
               onColorSelected: (color) {
@@ -338,7 +338,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             ColorSelector(
-              label: 'Color for grades',
+              label: AppLocalizations.of(context).preferencesGradesColorLabel,
               labelWidth: 160,
               selectedColor: _selectedGradeColor,
               onColorSelected: (color) {
@@ -350,7 +350,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             ColorSelector(
-              label: 'Color for Resources',
+              label: AppLocalizations.of(context).preferencesResourcesColorLabel,
               labelWidth: 160,
               selectedColor: _selectedResourceColor,
               onColorSelected: (color) {
@@ -363,11 +363,11 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             const SizedBox(height: 4),
             HeliumCheckboxListTile(
               title: Text(
-                'Color by assignment category',
+                AppLocalizations.of(context).preferencesColorByCategoryLabel,
                 style: AppStyles.formLabel(context),
               ),
               subtitle: Text(
-                'Use the category color instead of the class color',
+                AppLocalizations.of(context).preferencesColorByCategoryDescription,
                 style: AppStyles.smallSecondaryText(context),
               ),
               value: _isSelectedColorByCategory,
@@ -381,11 +381,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               contentPadding: EdgeInsets.zero,
             ),
 
-            KeyedSubtree(key: _gradesSectionKey, child: _buildSectionHeader('GRADES')),
+            KeyedSubtree(key: _gradesSectionKey, child: _buildSectionHeader(AppLocalizations.of(context).preferencesGradesSection)),
             SpinnerField(
-              label: 'At-risk threshold (%)',
-              description:
-                  'Classes with an overall grade below this are flagged',
+              label: AppLocalizations.of(context).preferencesAtRiskLabel,
+              description: AppLocalizations.of(context).preferencesAtRiskDescription,
               maxSpinnerWidth: 120,
               controller: _atRiskThresholdController,
               minValue: 0,
@@ -393,9 +392,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             SpinnerField(
-              label: 'On-track tolerance (%)',
-              description:
-                  'How far off pace your work can be and still be On Track, and how far above the at-risk threshold a grade shows as a warning',
+              label: AppLocalizations.of(context).preferencesOnTrackLabel,
+              description: AppLocalizations.of(context).preferencesOnTrackDescription,
               maxSpinnerWidth: 120,
               controller: _onTrackToleranceController,
               minValue: 0,
@@ -403,9 +401,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             SpinnerField(
-              label: 'Prior credits',
-              description:
-                  'Credits from before you started using Helium, counted in your All GPA',
+              label: AppLocalizations.of(context).preferencesPriorCreditsLabel,
+              description: AppLocalizations.of(context).preferencesPriorCreditsDescription,
               maxSpinnerWidth: 120,
               controller: _priorCreditsController,
               minValue: 0,
@@ -414,8 +411,8 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             SpinnerField(
-              label: 'Prior GPA',
-              description: 'Your GPA over those prior credits',
+              label: AppLocalizations.of(context).preferencesPriorGpaLabel,
+              description: AppLocalizations.of(context).preferencesPriorGpaDescription,
               maxSpinnerWidth: 120,
               controller: _priorGpaController,
               minValue: 0,
@@ -424,9 +421,9 @@ class PreferencesScreenState extends State<PreferencesScreen> {
               allowDecimal: true,
             ),
 
-            _buildSectionHeader('REMINDERS'),
+            _buildSectionHeader(AppLocalizations.of(context).preferencesRemindersSection),
             DropDown(
-              label: 'Default reminder',
+              label: AppLocalizations.of(context).preferencesDefaultReminderLabel,
               initialValue: ReminderConstants.typeItems.firstWhere(
                 (rt) => rt.value == _selectedReminderType,
               ),
@@ -445,7 +442,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
             ),
             const SizedBox(height: 14),
             SpinnerField(
-              label: 'Default "Remind before"',
+              label: AppLocalizations.of(context).preferencesRemindBeforeLabel,
               controller: _reminderOffsetController,
               maxValue: 100,
               maxSpinnerWidth: 120,
@@ -497,7 +494,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       gradeColor = '#${gradeColor.substring(3)}';
     }
     gradeColor = gradeColor.toLowerCase();
-    final reminderType = ReminderConstants.typeForLabel(_selectedReminderType);
+    final reminderType = ReminderConstants.typeForValue(_selectedReminderType);
     final reminderOffsetType = ReminderConstants.offsetTypes.indexOf(
       _selectedReminderOffsetType,
     );
@@ -556,7 +553,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
       children: [
         _buildSegmentedField(
           key: const Key(PreferencesScreen.dateFormatField),
-          label: 'Date format',
+          label: AppLocalizations.of(context).preferencesDateFormatLabel,
           selected: _selectedDateFormat,
           segments: [
             for (final dateFormat in RegionalFormatConstants.dateFormats)
@@ -566,7 +563,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         ),
         _buildSegmentedField(
           key: const Key(PreferencesScreen.timeFormatField),
-          label: 'Time format',
+          label: AppLocalizations.of(context).preferencesTimeFormatLabel,
           selected: _selectedTimeFormat,
           segments: [
             for (final timeFormat in RegionalFormatConstants.timeFormats)
@@ -576,7 +573,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
         ),
         _buildSegmentedField(
           key: const Key(PreferencesScreen.numberFormatField),
-          label: 'Number format',
+          label: AppLocalizations.of(context).preferencesNumberFormatLabel,
           selected: _selectedNumberFormat,
           segments: [
             for (final numberFormat in RegionalFormatConstants.numberFormats)
@@ -659,9 +656,7 @@ class PreferencesScreenState extends State<PreferencesScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: WarningContainer(
-        text:
-            'Assignments and Events will shift to $newLabel time. Class '
-            'Schedules stay as entered.',
+        text: AppLocalizations.of(context).preferencesTimeZoneChangeNotice(newLabel),
         icon: Icons.access_time,
       ),
     );

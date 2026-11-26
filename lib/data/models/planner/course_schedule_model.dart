@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_cycle_slot_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_recurrence_group_model.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
@@ -182,150 +182,8 @@ class CourseScheduleModel extends BaseModel {
     return indices;
   }
 
-  String? overrideDateRangeLabel() {
-    if (startDate == null && endDate == null) {
-      return null;
-    }
-    if (startDate != null && endDate != null) {
-      return HeliumDateTime.formatDateRange(startDate!, endDate!);
-    }
-    if (startDate != null) {
-      return 'From ${HeliumDateTime.formatDate(startDate!)}';
-    }
-    return 'Until ${HeliumDateTime.formatDate(endDate!)}';
-  }
-
   bool get isDayCycle => cycleLength != null;
   bool get isRotating => isDayCycle || isWeekBased;
-
-  /// Cycle-day labels ("Day 1") grouped by shared meeting-time range.
-  Map<String, List<String>> cycleGroupsByTime() {
-    final Map<String, List<String>> byTime = {};
-    for (final slot in cycleSlots) {
-      final timeRange = HeliumTime.formatTimeRange(slot.startTime, slot.endTime);
-      final sortedIndices = slot.indices.toList()..sort();
-      for (final index in sortedIndices) {
-        byTime.putIfAbsent(timeRange, () => []).add('Day $index');
-      }
-    }
-    return byTime;
-  }
-
-  /// Active weekdays grouped by shared meeting-time range.
-  Map<String, List<String>> weeklyGroupsByTime() {
-    final Map<String, List<String>> byTime = {};
-    for (final day in getActiveDays()) {
-      final timeRange = HeliumTime.formatTimeRange(
-        getStartTimeForDay(day),
-        getEndTimeForDay(day),
-      );
-      byTime.putIfAbsent(timeRange, () => []).add(day);
-    }
-    return byTime;
-  }
-
-  /// Meeting-day labels grouped by shared time: cycle days if rotating, else weekdays.
-  Map<String, List<String>> groupsByTime() =>
-      isDayCycle ? cycleGroupsByTime() : weeklyGroupsByTime();
-
-  String meetingsLabel() => groupsByTime().entries
-      .map((group) => '${group.value.join(', ')} ${group.key}')
-      .join('; ');
-
-  // Helper method to get active days as abbreviated names
-  List<String> getActiveDays() {
-    final List<String> activeDays = [];
-
-    for (
-      int i = 0;
-      i < daysOfWeek.length && i < CalendarConstants.dayNamesAbbrev.length;
-      i++
-    ) {
-      if (isDayActive(i)) {
-        activeDays.add(CalendarConstants.dayNamesAbbrev[i]);
-      }
-    }
-
-    return activeDays;
-  }
-
-  TimeOfDay getStartTimeForDay(String day) {
-    TimeOfDay startTime;
-
-    switch (day.toLowerCase()) {
-      case 'sun':
-      case 'sunday':
-        startTime = sunStartTime;
-        break;
-      case 'mon':
-      case 'monday':
-        startTime = monStartTime;
-        break;
-      case 'tue':
-      case 'tuesday':
-        startTime = tueStartTime;
-        break;
-      case 'wed':
-      case 'wednesday':
-        startTime = wedStartTime;
-        break;
-      case 'thu':
-      case 'thursday':
-        startTime = thuStartTime;
-        break;
-      case 'fri':
-      case 'friday':
-        startTime = friStartTime;
-        break;
-      case 'sat':
-      case 'saturday':
-        startTime = satStartTime;
-        break;
-      default:
-        startTime = sunStartTime;
-    }
-
-    return startTime;
-  }
-
-  TimeOfDay getEndTimeForDay(String day) {
-    TimeOfDay endTime;
-
-    switch (day.toLowerCase()) {
-      case 'sun':
-      case 'sunday':
-        endTime = sunEndTime;
-        break;
-      case 'mon':
-      case 'monday':
-        endTime = monEndTime;
-        break;
-      case 'tue':
-      case 'tuesday':
-        endTime = tueEndTime;
-        break;
-      case 'wed':
-      case 'wednesday':
-        endTime = wedEndTime;
-        break;
-      case 'thu':
-      case 'thursday':
-        endTime = thuEndTime;
-        break;
-      case 'fri':
-      case 'friday':
-        endTime = friEndTime;
-        break;
-      case 'sat':
-      case 'saturday':
-        endTime = satEndTime;
-        break;
-      default:
-        endTime = sunEndTime;
-    }
-
-    return endTime;
-  }
 
   /// Gets the start time for a specific day index (0=Sun, 6=Sat)
   TimeOfDay getStartTimeForDayIndex(int dayIndex) {
@@ -369,5 +227,52 @@ class CourseScheduleModel extends BaseModel {
       default:
         return sunEndTime;
     }
+  }
+
+  /// Meeting-day labels grouped by shared time: cycle days if rotating, else weekdays.
+  Map<String, List<String>> groupsByTime() =>
+      isDayCycle ? _cycleGroupsByTime() : _weeklyGroupsByTime();
+
+  String meetingsLabel() => groupsByTime().entries
+      .map((group) => '${group.value.join(', ')} ${group.key}')
+      .join('; ');
+
+  String? overrideDateRangeLabel() {
+    if (startDate == null && endDate == null) {
+      return null;
+    }
+    if (startDate != null && endDate != null) {
+      return HeliumDateTime.formatDateRange(startDate!, endDate!);
+    }
+    if (startDate != null) {
+      return LocaleNotifier().localizations.courseScheduleFromDateLabel(HeliumDateTime.formatDate(startDate!));
+    }
+    return LocaleNotifier().localizations.courseScheduleUntilDateLabel(HeliumDateTime.formatDate(endDate!));
+  }
+
+  Map<String, List<String>> _cycleGroupsByTime() {
+    final Map<String, List<String>> byTime = {};
+    for (final slot in cycleSlots) {
+      final timeRange = HeliumTime.formatTimeRange(slot.startTime, slot.endTime);
+      final sortedIndices = slot.indices.toList()..sort();
+      for (final index in sortedIndices) {
+        byTime.putIfAbsent(timeRange, () => []).add(LocaleNotifier().localizations.scheduleCycleDayLabel(index));
+      }
+    }
+    return byTime;
+  }
+
+  Map<String, List<String>> _weeklyGroupsByTime() {
+    final Map<String, List<String>> byTime = {};
+    final dayNames = HeliumDateTime.weekdayNamesShort;
+    for (int i = 0; i < daysOfWeek.length && i < dayNames.length; i++) {
+      if (!isDayActive(i)) continue;
+      final timeRange = HeliumTime.formatTimeRange(
+        getStartTimeForDayIndex(i),
+        getEndTimeForDayIndex(i),
+      );
+      byTime.putIfAbsent(timeRange, () => []).add(dayNames[i]);
+    }
+    return byTime;
   }
 }

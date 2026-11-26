@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/pref_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/dialogs/color_picker_dialog.dart';
 
 enum HeliumToolbarDensity {
@@ -349,7 +350,7 @@ class _HeliumQuillToolbarState extends State<HeliumQuillToolbar> {
       HeliumToolbarButton.print => QuillToolbarCustomButton(
         options: QuillToolbarCustomButtonOptions(
           icon: const Icon(Icons.print_outlined),
-          tooltip: 'Print',
+          tooltip: AppLocalizations.of(context).commonPrintTooltip,
           onPressed: widget.onPrint,
         ),
         controller: controller,
@@ -375,7 +376,7 @@ class _HeliumQuillToolbarState extends State<HeliumQuillToolbar> {
     return QuillToolbarCustomButton(
       options: QuillToolbarCustomButtonOptions(
         icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-        tooltip: _expanded ? 'Less' : 'More',
+        tooltip: _expanded ? AppLocalizations.of(context).quillToolbarLessTooltip : AppLocalizations.of(context).quillToolbarMoreTooltip,
         onPressed: _toggleExpanded,
       ),
       controller: widget.controller,

@@ -11,6 +11,7 @@
 
 import 'dart:math' as math;
 
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
@@ -176,7 +177,7 @@ class GradeHelper {
   /// has none.
   static String? gradeScaleLabelFor(CourseModel course, CourseGroupModel? group) {
     if (group == null || group.gradeScale.isEmpty) return null;
-    return GradeScaleTemplate.summaryLabel(
+    return GradeScaleTemplate.labelFor(
       course.gradeScaleTemplate ??
           group.gradeScaleTemplate ??
           GradeScaleTemplate.custom,
@@ -249,7 +250,7 @@ class GradeHelper {
     ];
     final points = <GpaAcrossTermsPoint>[
       if (priorCredits > 0)
-        (title: 'Prior', termGpa: null, cumulativeGpa: gpaFor(classes)),
+        (title: LocaleNotifier().localizations.gradesPriorCreditsPoint, termGpa: null, cumulativeGpa: gpaFor(classes)),
     ];
     for (final group in pooledGroups) {
       classes.addAll([
@@ -290,13 +291,6 @@ class GradeHelper {
 
   static String minGradeForDisplay(double minGrade) =>
       '${HeliumNumber.formatPercent(minGrade, trimZeros: true)}+';
-
-  /// The letter range of a grade scale's bands (ordered lowest first), like
-  /// "A+ to F", or null for a scale without letters.
-  static String? gradeScaleSummary(List<GradeScaleBandModel> bands) {
-    if (bands.isEmpty || bands.last.label.isEmpty) return null;
-    return '${bands.last.label} to ${bands.first.label}';
-  }
 
   /// Formats a percentage value for display (e.g., category weights)
   /// Optionally shows 'N/A' for zero values
@@ -342,6 +336,13 @@ class GradeHelper {
   static bool isAtRisk(GradeCourseModel course, double atRiskThreshold) =>
       course.numHomeworkGraded > 0 && hasGrade(course) && course.overallGrade < atRiskThreshold;
 
+  /// The letter range of a grade scale's bands (ordered lowest first), like
+  /// "A+ to F", or null for a scale without letters.
+  static String? gradeScaleSummary(List<GradeScaleBandModel> bands) {
+    if (bands.isEmpty || bands.last.label.isEmpty) return null;
+    return LocaleNotifier().localizations.gradeScaleLetterRange(bands.last.label, bands.first.label);
+  }
+
   static String? gpaHint(
     GradeCourseGroupModel selectedGroup,
     List<GradeCourseGroupModel> grades, {
@@ -353,25 +354,21 @@ class GradeHelper {
         .length;
     final hints = <String>[];
     if (withoutCredits > 0) {
-      hints.add(
-        '$withoutCredits ${withoutCredits.plural('class', 'classes')} without '
-        "credits ${withoutCredits.plural("isn't", "aren't")} counted.",
-      );
+      hints.add(LocaleNotifier().localizations.gradesClassesWithoutCreditsHint(withoutCredits));
     }
     if (!selectedGroup.exampleSchedule &&
         !selectedGroup.inCumulativeGpa &&
         grades.any((g) => g.inCumulativeGpa)) {
       hints.add(
-        "This group's grade scale differs from your most recent one, so it "
-        "isn't counted in your GPA across all terms.",
+        LocaleNotifier().localizations.gradesScaleDiffersHint,
       );
     }
     if (priorCredits > 0) {
-      hints.add(
-        'All includes ${HeliumNumber.format(priorCredits, trimZeros: true)} '
-        '${priorCredits.plural('prior credit')} at a '
-        '${gradePointForDisplay(priorGpa)} GPA.',
-      );
+      hints.add(LocaleNotifier().localizations.gradesPriorCreditsHint(
+        priorCredits,
+        HeliumNumber.format(priorCredits, trimZeros: true),
+        gradePointForDisplay(priorGpa),
+      ));
     }
     return hints.isEmpty ? null : hints.join('\n\n');
   }

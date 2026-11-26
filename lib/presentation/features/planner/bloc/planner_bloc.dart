@@ -59,7 +59,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         PlannerError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -94,7 +94,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         PlannerError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -153,7 +153,7 @@ class PlannerBloc extends Bloc<PlannerEvent, PlannerState> {
       emit(
         PlannerError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           background: event.background,
         ),
       );

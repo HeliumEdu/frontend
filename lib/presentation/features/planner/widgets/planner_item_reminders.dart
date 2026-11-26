@@ -12,6 +12,7 @@ class PlannerItemReminders extends BaseReminders {
     required super.entityId,
     required super.isEdit,
     required super.userSettings,
+    required super.headerTitle,
   });
 
   @override
@@ -21,6 +22,7 @@ class PlannerItemReminders extends BaseReminders {
       entityId: entityId,
       isEdit: isEdit,
       userSettings: userSettings,
+      headerTitle: headerTitle,
     );
   }
 }
@@ -33,6 +35,7 @@ class _PlannerItemRemindersContent extends BaseRemindersContent {
     required super.entityId,
     required super.isEdit,
     required super.userSettings,
+    required super.headerTitle,
   });
 
   @override

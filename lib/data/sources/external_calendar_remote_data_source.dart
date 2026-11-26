@@ -81,7 +81,7 @@ class ExternalCalendarRemoteDataSourceImpl
         _log.info('... fetched ${calendars.length} ExternalCalendar(s)');
         return calendars;
       } else {
-        throw ServerException(message: 'Failed to fetch external calendars.');
+        throw ServerException(message: HeliumException.unexpectedErrorMessage);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -89,7 +89,7 @@ class ExternalCalendarRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -130,13 +130,13 @@ class ExternalCalendarRemoteDataSourceImpl
           return events;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
         throw ServerException(
-          message: 'Failed to fetch external calendar events.',
+          message: HeliumException.unexpectedErrorMessage,
         );
       }
     } on DioException catch (e, s) {
@@ -145,7 +145,7 @@ class ExternalCalendarRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -168,7 +168,7 @@ class ExternalCalendarRemoteDataSourceImpl
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.externalCalendarAdd, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return calendar;
       } else {
-        throw ServerException(message: 'Failed to add external calendar.');
+        throw ServerException(message: HeliumException.unexpectedErrorMessage);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -176,7 +176,7 @@ class ExternalCalendarRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -200,7 +200,7 @@ class ExternalCalendarRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return ExternalCalendarModel.fromJson(response.data);
       } else {
-        throw ServerException(message: 'Failed to update external calendar.');
+        throw ServerException(message: HeliumException.unexpectedErrorMessage);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -208,7 +208,7 @@ class ExternalCalendarRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -226,7 +226,7 @@ class ExternalCalendarRemoteDataSourceImpl
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw ServerException(message: 'Failed to delete external calendar.');
+        throw ServerException(message: HeliumException.unexpectedErrorMessage);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -234,7 +234,7 @@ class ExternalCalendarRemoteDataSourceImpl
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

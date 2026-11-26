@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 
 void main() {
@@ -13,6 +14,8 @@ void main() {
     resolution = null;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light(),
         home: Builder(
           builder: (context) => Scaffold(
@@ -21,6 +24,7 @@ void main() {
                   resolution = await confirmConflictResolution(
                     context,
                     canKeepEditing: canKeepEditing,
+                    message: ConflictMessage.changedAt(AppLocalizations.of(context), null),
                   ),
               child: const Text('open'),
             ),

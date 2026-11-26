@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -8,8 +9,7 @@ class ResourceTitleLabel extends StatelessWidget {
   final String title;
   final UserSettingsModel userSettings;
   final bool compact;
-  final VoidCallback? onDelete;
-  final String onDeleteLabel;
+  final LabelDeleteAction? deleteAction;
   final TextDecoration? textDecoration;
 
   const ResourceTitleLabel({
@@ -17,8 +17,7 @@ class ResourceTitleLabel extends StatelessWidget {
     required this.title,
     required this.userSettings,
     this.compact = false,
-    this.onDelete,
-    this.onDeleteLabel = 'Remove',
+    this.deleteAction,
     this.textDecoration,
   });
 
@@ -112,21 +111,21 @@ class ResourceTitleLabel extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (onDelete != null) ...[
+                  if (deleteAction case final deleteAction?) ...[
                     Container(
                       width: 1,
                       color: BadgeColors.border(context, userSettings.resourceColor),
                     ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: onDelete,
+                      onTap: deleteAction.onPressed,
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: Semantics(
-                          label: onDeleteLabel,
+                          label: deleteAction.label,
                           button: true,
                           child: Tooltip(
-                            message: onDeleteLabel,
+                            message: deleteAction.label,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 6),
                               child: Center(
