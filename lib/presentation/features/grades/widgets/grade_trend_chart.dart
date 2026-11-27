@@ -7,6 +7,7 @@ import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/views/planner_item_add_screen.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -69,6 +70,7 @@ class GradeTrendChart {
     final dataSource = _parseHomeworkSeries(category.homeworkSeries);
     return charts.SplineSeries<GradeTrendPoint, DateTime>(
       name: category.title,
+      legendItemText: category.displayTitle,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
@@ -108,6 +110,7 @@ class GradeTrendChart {
         .toList();
     return charts.StepLineSeries<GradeTrendPoint, DateTime>(
       name: termGpaSeriesName,
+      legendItemText: AppLocalizations.of(context).gradeTrendTermGpaSeries,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
@@ -135,6 +138,7 @@ class GradeTrendChart {
     return [
       charts.LineSeries<GpaAcrossTermsPoint, String>(
         name: termGpaSeriesName,
+        legendItemText: AppLocalizations.of(context).gradeTrendTermGpaSeries,
         dataSource: points,
         xValueMapper: (point, _) => point.title,
         yValueMapper: (point, _) => point.termGpa,
@@ -149,6 +153,7 @@ class GradeTrendChart {
       ),
       charts.LineSeries<GpaAcrossTermsPoint, String>(
         name: 'All',
+        legendItemText: AppLocalizations.of(context).gradeTrendAllSeries,
         dataSource: points,
         xValueMapper: (point, _) => point.title,
         yValueMapper: (point, _) => point.cumulativeGpa,
@@ -303,6 +308,7 @@ class GradeTrendChart {
   }) {
     return charts.SplineSeries<GradeTrendPoint, DateTime>(
       name: _overallSeriesName,
+      legendItemText: AppLocalizations.of(context).gradeTrendOverallSeries,
       dataSource: dataSource,
       xValueMapper: (point, _) => point.date,
       yValueMapper: (point, _) => point.grade,
@@ -446,7 +452,7 @@ class GradeTrendTooltip extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeworkTitle = chartPoint.homeworkTitle?.trim().isNotEmpty == true
         ? chartPoint.homeworkTitle!
-        : 'No assignment title';
+        : AppLocalizations.of(context).gradeTrendNoTitleFallback;
     final homeworkGradeText = GradeHelper.gradeForDisplay(
       chartPoint.homeworkGrade,
     );
@@ -455,7 +461,7 @@ class GradeTrendTooltip extends StatelessWidget {
       grades: grades,
       selectedGroupId: selectedGroupId,
     );
-    final categoryTitle = category?.title;
+    final categoryTitle = category?.displayTitle;
     final categoryColor =
         category?.color ?? context.colorScheme.onSurface.withValues(alpha: 0.6);
     final seriesColor = GradeTrendChart._seriesColorForName(
@@ -490,7 +496,7 @@ class GradeTrendTooltip extends StatelessWidget {
           if (isOverallSeries)
             if (isTermView)
               Text(
-                'Overall • $classGradeAtPoint',
+                AppLocalizations.of(context).gradeTrendOverallPoint(classGradeAtPoint),
                 style: AppStyles.standardBodyTextEmphasis(context),
                 overflow: TextOverflow.ellipsis,
               )
@@ -525,7 +531,7 @@ class GradeTrendTooltip extends StatelessWidget {
           ],
           if (isTermGpaSeries)
             Text(
-              '$seriesName • ${GradeHelper.gradePointForDisplay(chartPoint.grade)}',
+              AppLocalizations.of(context).gradeTrendTermGpaPoint(GradeHelper.gradePointForDisplay(chartPoint.grade)),
               style: AppStyles.standardBodyTextEmphasis(context),
               overflow: TextOverflow.ellipsis,
             ),

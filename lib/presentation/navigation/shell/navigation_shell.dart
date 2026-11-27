@@ -7,8 +7,10 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_event.dart';
@@ -137,18 +139,17 @@ class BranchPathScope extends InheritedWidget {
 }
 
 enum NavigationPage {
-  planner('Planner', Icons.calendar_month, AppRoute.plannerScreen),
-  notes('Notebook', Icons.library_books, AppRoute.notebookScreen),
-  courses('Classes', Icons.school, AppRoute.coursesScreen),
-  resources('Resources', Icons.book, AppRoute.resourcesScreen),
-  grades('Grades', Icons.bar_chart, AppRoute.gradesScreen, helpUrl: AppConstants.supportGradesDashboardUrl);
+  planner(Icons.calendar_month, AppRoute.plannerScreen),
+  notes(Icons.library_books, AppRoute.notebookScreen),
+  courses(Icons.school, AppRoute.coursesScreen),
+  resources(Icons.book, AppRoute.resourcesScreen),
+  grades(Icons.bar_chart, AppRoute.gradesScreen, helpUrl: AppConstants.supportGradesDashboardUrl);
 
-  final String label;
   final IconData icon;
   final String route;
   final String? helpUrl;
 
-  const NavigationPage(this.label, this.icon, this.route, {this.helpUrl});
+  const NavigationPage(this.icon, this.route, {this.helpUrl});
 
   String get navKeyName => 'nav_tab_$name';
 
@@ -166,6 +167,14 @@ enum NavigationPage {
         return const GradesScreen();
     }
   }
+
+  String get label => switch (this) {
+    planner => LocaleNotifier().localizations.navPlannerLabel,
+    notes => LocaleNotifier().localizations.navNotebookLabel,
+    courses => LocaleNotifier().localizations.navClassesLabel,
+    resources => LocaleNotifier().localizations.navResourcesLabel,
+    grades => LocaleNotifier().localizations.navGradesLabel,
+  };
 }
 
 /// Shell widget for main tab navigation using go_router's StatefulShellRoute.
@@ -489,14 +498,14 @@ class _NavigationShellState extends State<NavigationShell> {
             _buildAppStoreButton(
               context: context,
               icon: Icons.apple,
-              tooltip: 'Download on the App Store',
+              tooltip: AppLocalizations.of(context).navAppStoreTooltip,
               url: AppConstants.iosUrl,
             ),
             const SizedBox(height: 8),
             _buildAppStoreButton(
               context: context,
               icon: Icons.android,
-              tooltip: 'Get it on Google Play',
+              tooltip: AppLocalizations.of(context).navGooglePlayTooltip,
               url: AppConstants.androidUrl,
             ),
             const SizedBox(height: 4),
@@ -509,7 +518,7 @@ class _NavigationShellState extends State<NavigationShell> {
                 _buildAppStoreButton(
                   context: context,
                   icon: Icons.volunteer_activism,
-                  tooltip: 'Keep Helium Free',
+                  tooltip: AppLocalizations.of(context).navKeepHeliumFreeTooltip,
                   url: AppConstants.patreonUrl,
                 ),
                 const SizedBox(height: 4),

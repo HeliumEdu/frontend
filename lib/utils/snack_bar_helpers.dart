@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/contrast_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -206,7 +208,7 @@ class _CopyableSnackBarContentState extends State<_CopyableSnackBarContent> {
                         Icons.assignment_turned_in_outlined,
                         size: 18,
                         color: widget.foregroundColor,
-                        semanticLabel: 'Copied to clipboard',
+                        semanticLabel: AppLocalizations.of(context).snackBarCopiedLabel,
                       ),
                     ),
                 ],
@@ -215,7 +217,9 @@ class _CopyableSnackBarContentState extends State<_CopyableSnackBarContent> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    'Tap to copy',
+                    PlatformBehavior.usesTouchInteractions
+                        ? AppLocalizations.of(context).snackBarTapToCopyHint
+                        : AppLocalizations.of(context).snackBarClickToCopyHint,
                     style: style.copyWith(
                       fontSize: (style.fontSize ?? 14) - 2,
                       fontWeight: FontWeight.w600,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// A row of weekday chips. Values are Sunday-indexed (0 = Sunday, 6 =
@@ -52,7 +52,7 @@ class WeekdaySelector extends StatelessWidget {
     final dayIndex = (weekStartsOn + position) % 7;
     return ButtonSegment<int>(
       value: dayIndex,
-      label: Text(CalendarConstants.dayNamesAbbrev[dayIndex]),
+      label: Text(HeliumDateTime.weekdayNamesShort[dayIndex]),
     );
   }
 

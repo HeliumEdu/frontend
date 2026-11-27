@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -93,7 +94,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'Verification email sent to ${state.newEmail}.',
+            AppLocalizations.of(context).changeEmailSentMessage(state.newEmail),
           );
           widget.onCompleted?.call();
         } else if (state is AuthEmailChangeCancelled) {
@@ -105,7 +106,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           });
           SnackBarHelper.show(
             context,
-            'The pending email change was cancelled.',
+            AppLocalizations.of(context).changeEmailCancelledMessage,
             type: SnackType.info,
           );
           widget.onCompleted?.call();
@@ -121,15 +122,15 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
               children: [
                 if (widget.user.emailChanging?.isNotEmpty ?? false) ...[
                   WarningContainer(
-                    text:
-                        'Change pending — click the link sent to '
-                        '${widget.user.emailChanging} to verify.',
+                    text: AppLocalizations.of(context).settingsEmailChangePendingMessage(
+                      widget.user.emailChanging!,
+                    ),
                     icon: Icons.schedule,
                   ),
                   const SizedBox(height: 16),
                 ],
                 LabelAndTextFormField(
-                  label: 'New email',
+                  label: AppLocalizations.of(context).changeEmailNewEmailLabel,
                   autofocus: PlatformBehavior.autofocusesOnOpen,
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
@@ -140,7 +141,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 const SizedBox(height: 14),
 
                 HeliumPasswordField(
-                  label: 'Current password',
+                  label: AppLocalizations.of(context).settingsCurrentPasswordLabel,
                   controller: _formController.oldPasswordController,
                   validator: BasicFormController.validatePassword,
                   onFieldSubmitted: (value) => onSubmit(),
@@ -187,7 +188,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         value?.toLowerCase().trim() == widget.user.email.toLowerCase();
     final hasPendingChange = widget.user.emailChanging?.isNotEmpty ?? false;
     if (isCurrentEmail && !hasPendingChange) {
-      return 'New email must be different from your current email';
+      return AppLocalizations.of(context).changeEmailMustDifferError;
     }
 
     return null;

@@ -8,6 +8,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
@@ -137,10 +138,8 @@ Future<void> showBuiltPdfPreview(
   required Future<Uint8List> Function(PdfPageFormat format) buildPdf,
   required String source,
   String title = '',
-  String? filename,
+  required String filename,
 }) async {
-  final pdfFilename =
-      filename ?? (title.isNotEmpty ? '$title.pdf' : 'Helium_print.pdf');
   _logPreviewOpened(source);
 
   await showDialog(
@@ -149,7 +148,7 @@ Future<void> showBuiltPdfPreview(
     builder: (dialogContext) => _BuiltPdfPreviewDialog(
       buildPdf: buildPdf,
       title: title,
-      pdfFilename: pdfFilename,
+      pdfFilename: filename,
     ),
   );
 }
@@ -192,9 +191,9 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Close',
+            tooltip: AppLocalizations.of(context).commonCloseLabel,
           ),
-          title: Text(widget.title.isNotEmpty ? widget.title : 'Preview'),
+          title: Text(widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printPreviewTitle),
           actions: hasBytes
               ? [
                   IconButton(
@@ -202,7 +201,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                       Icons.share_outlined,
                       color: context.colorScheme.primary,
                     ),
-                    tooltip: 'Share',
+                    tooltip: AppLocalizations.of(context).printShareTooltip,
                     onPressed: () async {
                       await Printing.sharePdf(
                         bytes: _pdfBytes!,
@@ -216,14 +215,14 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                         Icons.print_outlined,
                         color: context.colorScheme.primary,
                       ),
-                      tooltip: 'Print',
+                      tooltip: AppLocalizations.of(context).commonPrintTooltip,
                       onPressed: () async {
                         await Printing.layoutPdf(
                           format: PrintableArea.defaultPageFormat,
                           onLayout: widget.buildPdf,
                           name: widget.title.isNotEmpty
                               ? widget.title
-                              : 'Document',
+                              : AppLocalizations.of(context).printDocumentName,
                         );
                       },
                     ),
@@ -238,7 +237,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
 
   Widget _buildBody() {
     if (_error != null) {
-      return const Center(child: Text('Failed to generate PDF.'));
+      return Center(child: Text(AppLocalizations.of(context).printPdfFailedMessage));
     }
     if (_pdfBytes == null) {
       return const Center(child: CircularProgressIndicator());
@@ -276,10 +275,8 @@ Future<void> showPdfPreview(
   required captureImage,
   required String source,
   String title = '',
-  String? filename,
+  required String filename,
 }) async {
-  final pdfFilename =
-      filename ?? (title.isNotEmpty ? '$title.pdf' : 'print.pdf');
   _logPreviewOpened(source);
 
   await showDialog(
@@ -288,7 +285,7 @@ Future<void> showPdfPreview(
     builder: (dialogContext) => _PdfPreviewDialog(
       captureImage: captureImage,
       title: title,
-      pdfFilename: pdfFilename,
+      pdfFilename: filename,
     ),
   );
 }
@@ -343,13 +340,13 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Close',
+            tooltip: AppLocalizations.of(context).commonCloseLabel,
           ),
-          title: Text(widget.title.isNotEmpty ? widget.title : 'Preview'),
+          title: Text(widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printPreviewTitle),
           actions: [
             IconButton(
               icon: Icon(Icons.share_outlined, color: context.colorScheme.primary),
-              tooltip: 'Share',
+              tooltip: AppLocalizations.of(context).printShareTooltip,
               onPressed: () async {
                 final bytes = await _buildPdf(_pageFormat);
                 await Printing.sharePdf(
@@ -361,12 +358,12 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
             _TrailingActionSlot(
               child: IconButton(
                 icon: Icon(Icons.print_outlined, color: context.colorScheme.primary),
-                tooltip: 'Print',
+                tooltip: AppLocalizations.of(context).commonPrintTooltip,
                 onPressed: () async {
                   await Printing.layoutPdf(
                     format: _pageFormat,
                     onLayout: _buildPdf,
-                    name: widget.title.isNotEmpty ? widget.title : 'Document',
+                    name: widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printDocumentName,
                   );
                 },
               ),
@@ -673,7 +670,7 @@ class _PrintableAreaState extends State<PrintableArea> {
 
     try {
       final date = HeliumDateTime.formatDateForApi(DateTime.now());
-      final title = widget.title.isNotEmpty ? widget.title : 'Print';
+      final title = widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printDefaultTitle;
       await showPdfPreview(
         context,
         captureImage: _captureImage,

@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/attachment_file.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/attachment_state.dart';
@@ -20,7 +21,6 @@ import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/attachment_helpers.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
@@ -160,7 +160,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
           if (_isOwnFetch(state)) {
             setState(() {
               isLoading = false;
-              _error = state.message ?? HeliumException.unexpectedError;
+              _error = state.message ?? HeliumException.unexpectedErrorMessage;
             });
           }
         } else if (state is AttachmentsError) {
@@ -186,7 +186,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
         } else if (state is AttachmentsCreated) {
           SnackBarHelper.show(
             context,
-            '${state.attachments.length} ${state.attachments.length.plural('attachment')} uploaded.',
+            AppLocalizations.of(context).attachmentsUploadedCount(state.attachments.length),
           );
 
           final uploadedTitles = state.attachments.map((a) => a.title).toSet();
@@ -196,7 +196,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
             Sort.byTitle(attachments);
           });
         } else if (state is AttachmentDeleted) {
-          SnackBarHelper.show(context, 'Attachment deleted.');
+          SnackBarHelper.show(context, AppLocalizations.of(context).attachmentDeletedMessage);
 
           setState(() {
             attachments.removeWhere((a) => a.id == state.id);
@@ -231,7 +231,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Attachments',
+                      AppLocalizations.of(context).attachmentsTitle,
                       style: AppStyles.featureText(context),
                     ),
                   ),
@@ -256,9 +256,10 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                       }
 
                       if (attachments.isEmpty && _pulledThroughGroups.isEmpty) {
-                        return const EmptyCard(
+                        return EmptyCard(
+                          title: AppLocalizations.of(context).emptyCardTitle,
                           icon: Icons.attachment_outlined,
-                          message: 'Click "Choose Files" to add attachments',
+                          message: AppLocalizations.of(context).attachmentsEmptyMessage,
                           expanded: false,
                         );
                       }
@@ -270,7 +271,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 HeliumElevatedButton(
                   onPressed: _openFileChooserDialog,
                   icon: Icons.cloud_upload_outlined,
-                  buttonText: 'Choose Files',
+                  buttonText: AppLocalizations.of(context).attachmentsChooseFilesButton,
                 ),
                 const SizedBox(height: 12),
                 if (filesToUpload.isNotEmpty) ...[
@@ -283,7 +284,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   const SizedBox(height: 12),
                 ],
                 HeliumElevatedButton(
-                  buttonText: 'Upload',
+                  buttonText: AppLocalizations.of(context).attachmentsUploadButton,
                   isLoading: isSubmitting,
                   enabled: filesToUpload.isNotEmpty && !isSubmitting,
                   onPressed: _saveAttachments,
@@ -308,7 +309,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     if (result.cancelled) {
       SnackBarHelper.show(
         context,
-        'Nothing selected for upload.',
+        AppLocalizations.of(context).attachmentsNothingSelectedMessage,
         type: SnackType.info,
       );
       return;
@@ -316,7 +317,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
 
     for (final error in result.errors) {
       if (mounted) {
-        SnackBarHelper.show(context, error.userMessage, type: SnackType.error, seconds: 4);
+        SnackBarHelper.show(context, error.displayMessage, type: SnackType.error, seconds: 4);
       }
     }
 
@@ -324,7 +325,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
       if (result.errors.isEmpty && mounted) {
         SnackBarHelper.show(
           context,
-          'Nothing selected for upload.',
+          AppLocalizations.of(context).attachmentsNothingSelectedMessage,
           type: SnackType.info,
         );
       }
@@ -343,7 +344,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
     if (filesToUpload.length > maxConcurrentUploads) {
       SnackBarHelper.show(
         context,
-        "You can't upload more than $maxConcurrentUploads files at a time.",
+        AppLocalizations.of(context).attachmentsTooManyFilesMessage(maxConcurrentUploads),
         type: SnackType.error,
         seconds: 4
       );
@@ -432,7 +433,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                   tablet: 22,
                   desktop: 24,
                 ),
-                semanticLabel: 'Remove from upload',
+                semanticLabel: AppLocalizations.of(context).attachmentsRemoveFromUploadLabel,
               ),
             ),
           ],
@@ -495,7 +496,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
               onPressed: () => _downloadAttachment(attachment),
               icon: Icons.download_outlined,
               showTooltip: false,
-              label: 'Download',
+              label: AppLocalizations.of(context).commonDownloadLabel,
               color: context.semanticColors.success,
             ),
             if (canDelete) ...[
@@ -521,7 +522,7 @@ abstract class BaseAttachmentsState extends State<BaseAttachmentsContent> {
                 },
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: 'Delete',
+                label: AppLocalizations.of(context).commonDeleteLabel,
                 color: context.colorScheme.error,
               ),
             ],

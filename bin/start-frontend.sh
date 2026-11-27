@@ -34,10 +34,8 @@ CONTAINER_NAME="helium-frontend-web"
 echo "Starting frontend container ..."
 echo "  Image: ${FRONTEND_IMAGE}"
 
-# Stop any existing container
 docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 
-# Pull the image if using ECR
 if [[ "$FRONTEND_IMAGE" == *"public.ecr.aws"* ]]; then
     echo "Pulling image ..."
     # Logout from ECR to prevent credential helper issues
@@ -45,21 +43,19 @@ if [[ "$FRONTEND_IMAGE" == *"public.ecr.aws"* ]]; then
     docker pull "${FRONTEND_IMAGE}"
 fi
 
-# Start the container
 echo "Starting container ..."
 docker run -d \
     --name "${CONTAINER_NAME}" \
     -p 8080:8080 \
     "${FRONTEND_IMAGE}"
 
-# Wait for the frontend to be ready
 echo "Waiting for frontend to be ready ..."
 MAX_ATTEMPTS=30
 ATTEMPT=0
 until curl -sf http://localhost:8080 > /dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT + 1))
     if [ "${ATTEMPT}" -ge "${MAX_ATTEMPTS}" ]; then
-        echo "Frontend failed to start within ${MAX_ATTEMPTS} seconds"
+        echo "Frontend failed to start within ${MAX_ATTEMPTS} seconds" >&2
         docker logs "${CONTAINER_NAME}"
         exit 1
     fi

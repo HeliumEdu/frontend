@@ -1,8 +1,43 @@
 files:
   - source: /lib/l10n/app_en.arb
     translation: /lib/l10n/app_%two_letters_code%.arb
+    skip_untranslated_files: true
+    export_only_approved: true
+  - source: /android/app/src/main/res/values/agenda_widget_strings.xml
+    translation: /android/app/src/main/res/values-%two_letters_code%/%original_file_name%
+    skip_untranslated_files: true
+    export_only_approved: true
+  - source: /ios/HeliumWidget/Localizable.xcstrings
+    translation: /ios/HeliumWidget/Localizable.xcstrings
+    multilingual: true
+    export_only_approved: true
+  - source: /ios/Runner/InfoPlist.xcstrings
+    translation: /ios/Runner/InfoPlist.xcstrings
+    multilingual: true
+    export_only_approved: true
+  - source: /ios/fastlane/metadata/en-US/*.txt
+    ignore:
+      - /ios/fastlane/metadata/en-US/marketing_url.txt
+      - /ios/fastlane/metadata/en-US/privacy_url.txt
+      - /ios/fastlane/metadata/en-US/support_url.txt
+    translation: /ios/fastlane/metadata/%locale%/%original_file_name%
     languages_mapping:
       locale:
-        es-ES: es
+        es-ES: es-MX
+    skip_untranslated_files: true
+    export_only_approved: true
+  - source: /android/fastlane/metadata/android/en-US/*.txt
+    ignore:
+      - /android/fastlane/metadata/android/en-US/video.txt
+    translation: /android/fastlane/metadata/android/%locale%/%original_file_name%
+    languages_mapping:
+      locale:
+        es-ES: es-419
+    skip_untranslated_files: true
+    export_only_approved: true
+  - source: /bin/screenshot-captions.csv
+    translation: /bin/screenshot-captions.%two_letters_code%.csv
+    scheme: identifier,source_phrase
+    first_line_contains_header: false
     skip_untranslated_files: true
     export_only_approved: true

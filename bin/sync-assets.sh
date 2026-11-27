@@ -3,9 +3,9 @@
 # these images; frontend carries renamed copies consumed by the onboarding flow.
 #
 # Files are only written when source and destination differ (byte-for-byte).
-# Requires no external tools beyond standard coreutils.
+# Requires only standard POSIX tools (cp, cmp).
 
-set -uo pipefail
+set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WWW="$REPO/../www"
@@ -47,7 +47,7 @@ for entry in "${SYNC_MAP[@]}"; do
   else
     cp "$src" "$dst"
     echo "  ✓ ${entry##*:}"
-    ((copied++))
+    copied=$((copied + 1))
   fi
 done
 echo "  ($copied files updated)"

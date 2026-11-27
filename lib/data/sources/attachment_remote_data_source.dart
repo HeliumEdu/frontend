@@ -83,7 +83,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
 
       if (response.statusCode == 201) {
         if (response.data.isEmpty) {
-          throw ServerException(message: 'Attachment not found in response.');
+          throw ServerException(message: HeliumException.unexpectedErrorMessage);
         }
 
         final attachment = AttachmentModel.fromJson(response.data[0]);
@@ -93,7 +93,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         unawaited(AnalyticsService().setUserProperty(name: 'uses_attachments', value: 'true'));
         return attachment;
       } else {
-        throw unexpectedStatus(response, 'Failed to create attachment.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -101,7 +101,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -144,7 +144,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         _log.info('... fetched ${attachments.length} Attachment(s)');
         return attachments;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch attachments.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -152,7 +152,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -168,7 +168,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
         _log.info('... Attachment $attachmentId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete attachment.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -176,7 +176,7 @@ class AttachmentRemoteDataSourceImpl extends AttachmentRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/api_token_model.dart';
 import 'package:heliumapp/data/models/auth/connected_app_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -72,12 +73,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
-              text:
-                  'Manage how you sign in, and how other apps and tools reach your Helium account.',
+              text: AppLocalizations.of(context).securityInfo,
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                label: 'Learn more',
+                label: AppLocalizations.of(context).settingsLearnMoreLabel,
                 onPressed: () =>
                     UrlHelpers.launchWebUrl(AppConstants.supportApiUrl),
               ),
@@ -104,13 +104,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
         _revealedApiToken = state.apiToken;
         _isApiTokenSubmitting = false;
       });
-      SnackBarHelper.show(context, 'API token generated.');
+      SnackBarHelper.show(context, AppLocalizations.of(context).securityApiTokenGeneratedMessage);
     } else if (state is AuthApiTokenRevoked) {
       setState(() {
         _revealedApiToken = null;
         _isApiTokenSubmitting = false;
       });
-      SnackBarHelper.show(context, 'API token revoked.');
+      SnackBarHelper.show(context, AppLocalizations.of(context).securityApiTokenRevokedMessage);
     } else if (state is AuthError && _isApiTokenSubmitting) {
       setState(() => _isApiTokenSubmitting = false);
       SnackBarHelper.show(context, state.message!, type: SnackType.error);
@@ -127,7 +127,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
     } else if (state is ConnectedAppsError &&
         state.origin == EventOrigin.screen) {
       setState(
-        () => _error = state.message ?? HeliumException.unexpectedError,
+        () => _error = state.message ?? HeliumException.unexpectedErrorMessage,
       );
     } else if (state is ConnectedAppRevoked) {
       setState(() {
@@ -136,7 +136,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             .toList();
         _revokingConnectedAppIds.remove(state.id);
       });
-      SnackBarHelper.show(context, 'Access revoked.');
+      SnackBarHelper.show(context, AppLocalizations.of(context).securityAccessRevokedMessage);
     } else if (state is ConnectedAppsError &&
         state.origin == EventOrigin.subScreen) {
       setState(() => _revokingConnectedAppIds.clear());
@@ -238,15 +238,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
       icon: user.hasUsablePassword
           ? Icons.lock_outline
           : Icons.lock_open_outlined,
-      title: 'Password',
+      title: AppLocalizations.of(context).securityPasswordTitle,
       description: user.hasUsablePassword
-          ? 'Sign in with your email and password'
-          : 'Add a password to also sign in with your email',
+          ? AppLocalizations.of(context).securityPasswordDescription
+          : AppLocalizations.of(context).securityPasswordlessDescription,
       body: HeliumElevatedButton(
         icon: user.hasUsablePassword ? Icons.lock_reset : Icons.lock_open_outlined,
         buttonText: user.hasUsablePassword
-            ? 'Change Password'
-            : 'Set Password',
+            ? AppLocalizations.of(context).securityChangePasswordButton
+            : AppLocalizations.of(context).securitySetPasswordButton,
         onPressed: () => _onChangePassword(user),
       ),
     );
@@ -261,19 +261,19 @@ class _SecurityScreenState extends State<SecurityScreen> {
     if (!changed || !mounted) return;
 
     setState(() => _revealedApiToken = null);
-    SnackBarHelper.show(context, 'Password changed.');
+    SnackBarHelper.show(context, AppLocalizations.of(context).securityPasswordChangedMessage);
     context.read<AuthBloc>().add(FetchProfileEvent());
   }
 
   Widget _buildApiTokenCard(UserModel user) {
     return _buildSectionCard(
       icon: Icons.key_outlined,
-      title: 'API Token',
-      description: "Reach Helium's platform from your own scripts and tools",
+      title: AppLocalizations.of(context).securityApiTokenTitle,
+      description: AppLocalizations.of(context).securityApiTokenDescription,
       trailing: HeliumIconButton(
         icon: Icons.code,
         backgroundColor: context.colorScheme.onSurfaceVariant,
-        label: 'API docs',
+        label: AppLocalizations.of(context).securityApiDocsLabel,
         onPressed: () => UrlHelpers.launchWebUrl(ApiUrl.docsUrl),
       ),
       body: Column(
@@ -284,7 +284,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             const SizedBox(height: 12),
           ],
           Text(
-            _apiTokenStatus(user),
+            _apiTokenStatusLabel(user),
             style: AppStyles.standardBodyText(context),
           ),
           const SizedBox(height: 12),
@@ -294,7 +294,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 Expanded(
                   child: HeliumElevatedButton(
                     icon: Icons.autorenew,
-                    buttonText: 'Rotate',
+                    buttonText: AppLocalizations.of(context).securityRotateButton,
                     isLoading: _isApiTokenSubmitting,
                     onPressed: _onRotateApiToken,
                   ),
@@ -303,7 +303,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 Expanded(
                   child: HeliumElevatedButton(
                     icon: Icons.link_off,
-                    buttonText: 'Revoke',
+                    buttonText: AppLocalizations.of(context).securityRevokeButton,
                     backgroundColor: context.colorScheme.error,
                     enabled: !_isApiTokenSubmitting,
                     onPressed: _onRevokeApiToken,
@@ -314,7 +314,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
           else
             HeliumElevatedButton(
               icon: Icons.add,
-              buttonText: 'Generate',
+              buttonText: AppLocalizations.of(context).securityGenerateButton,
               isLoading: _isApiTokenSubmitting,
               onPressed: _createApiToken,
             ),
@@ -323,23 +323,22 @@ class _SecurityScreenState extends State<SecurityScreen> {
     );
   }
 
-  String _apiTokenStatus(UserModel user) {
+  String _apiTokenStatusLabel(UserModel user) {
     final createdAt = user.apiTokenCreatedAt;
-    if (createdAt == null) return 'You have no API token.';
+    if (createdAt == null) return AppLocalizations.of(context).securityNoApiTokenLabel;
 
     final createdOn = HeliumDateTime.formatDate(
       HeliumDateTime.toLocal(createdAt, user.settings.timeZone),
     );
-    return 'Created $createdOn';
+    return AppLocalizations.of(context).securityApiTokenCreatedOn(createdOn);
   }
 
   Widget _buildRevealedApiToken(ApiTokenModel apiToken) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const WarningContainer(
-          text:
-              "Copy your token now, it won't be shown again. Keep it secret, it gives full access to your account.",
+        WarningContainer(
+          text: AppLocalizations.of(context).securityApiTokenRevealWarning,
           icon: Icons.privacy_tip_outlined,
         ),
         const SizedBox(height: 12),
@@ -361,7 +360,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
         const SizedBox(height: 12),
         HeliumElevatedButton(
           icon: Icons.copy_outlined,
-          buttonText: 'Copy',
+          buttonText: AppLocalizations.of(context).securityCopyButton,
           minHeight: 36,
           visualDensity: VisualDensity.standard,
           onPressed: () => _copyApiToken(apiToken),
@@ -372,16 +371,16 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
   void _copyApiToken(ApiTokenModel apiToken) {
     Clipboard.setData(ClipboardData(text: apiToken.token));
-    SnackBarHelper.show(context, 'API token copied.', copyable: false);
+    SnackBarHelper.show(context, AppLocalizations.of(context).securityApiTokenCopiedMessage, copyable: false);
   }
 
   Future<void> _onRotateApiToken() async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Rotate API Token',
-      message:
-          'Rotating replaces your current token, so anything using it will stop working until you give it the new one.',
-      actionText: 'Rotate',
+      title: AppLocalizations.of(context).securityRotateTokenTitle,
+      message: AppLocalizations.of(context).securityRotateTokenMessage,
+      actionText: AppLocalizations.of(context).securityRotateButton,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
@@ -396,10 +395,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
   Future<void> _onRevokeApiToken() async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Revoke API Token',
-      message:
-          'Anything using your API token will stop working. You can generate a new one later.',
-      actionText: 'Revoke',
+      title: AppLocalizations.of(context).securityRevokeTokenTitle,
+      message: AppLocalizations.of(context).securityRevokeTokenMessage,
+      actionText: AppLocalizations.of(context).securityRevokeButton,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
@@ -411,12 +410,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
   Widget _buildConnectedAppsCard() {
     return _buildSectionCard(
       icon: Icons.apps_outlined,
-      title: 'Connected Apps',
-      description: "Apps you've allowed to reach your Helium account",
+      title: AppLocalizations.of(context).securityConnectedAppsTitle,
+      description: AppLocalizations.of(context).securityConnectedAppsDescription,
       trailing: HeliumIconButton(
         icon: Icons.menu_book_outlined,
         backgroundColor: context.colorScheme.onSurfaceVariant,
-        label: 'Learn more',
+        label: AppLocalizations.of(context).settingsLearnMoreLabel,
         onPressed: () =>
             UrlHelpers.launchWebUrl(AppConstants.supportConnectedAppsUrl),
       ),
@@ -427,7 +426,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
   Widget _buildConnectedAppsBody() {
     if (_connectedApps.isEmpty) {
       return Text(
-        'No apps are connected.',
+        AppLocalizations.of(context).securityNoConnectedAppsMessage,
         style: AppStyles.standardBodyTextLight(context),
       );
     }
@@ -493,7 +492,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
           icon: Icons.link_off,
           color: context.colorScheme.error,
           showTooltip: false,
-          label: 'Revoke ${connectedApp.name}',
+          label: AppLocalizations.of(context).securityRevokeAppLabel(connectedApp.name),
           enabled: !_revokingConnectedAppIds.contains(connectedApp.id),
           onPressed: () => _onRevokeConnectedApp(connectedApp),
         ),
@@ -503,21 +502,21 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
   String _lastUsedLabel(ConnectedAppModel connectedApp) {
     final lastUsedAt = connectedApp.lastUsedAt;
-    if (lastUsedAt == null) return 'Not used yet';
+    if (lastUsedAt == null) return AppLocalizations.of(context).securityConnectedAppNotUsed;
 
     final lastUsedOn = HeliumDateTime.formatDate(
       HeliumDateTime.toLocal(lastUsedAt, widget.user.settings.timeZone),
     );
-    return 'Last used $lastUsedOn';
+    return AppLocalizations.of(context).securityConnectedAppLastUsed(lastUsedOn);
   }
 
   Future<void> _onRevokeConnectedApp(ConnectedAppModel connectedApp) async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Revoke Access',
-      message:
-          '${connectedApp.name} will no longer be able to reach your Helium account. You can connect it again later.',
-      actionText: 'Revoke',
+      title: AppLocalizations.of(context).securityRevokeAccessTitle,
+      message: AppLocalizations.of(context).securityRevokeAccessMessage(connectedApp.name),
+      actionText: AppLocalizations.of(context).securityRevokeButton,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;

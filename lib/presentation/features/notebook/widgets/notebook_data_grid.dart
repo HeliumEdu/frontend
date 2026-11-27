@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
@@ -32,18 +34,16 @@ final _log = Logger('presentation.widgets');
 
 /// Column definitions with responsive visibility breakpoints
 enum NotebookColumn {
-  title(label: 'Title'),
-  due(label: 'Due', minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
+  title(),
+  due(minViewportWidth: 900, mobileWidth: 144, desktopWidth: 154),
   linkedTo(
-    label: 'Linked To',
     mobileWidth: 130,
     tabletWidth: 150,
     desktopWidth: 200,
   ),
-  modified(label: 'Modified', minViewportWidth: 950, fixedWidth: 136);
+  modified(minViewportWidth: 950, fixedWidth: 136);
 
   const NotebookColumn({
-    required this.label,
     this.fixedWidth,
     this.mobileWidth,
     this.tabletWidth,
@@ -51,7 +51,6 @@ enum NotebookColumn {
     this.minViewportWidth,
   });
 
-  final String label;
   final double? fixedWidth;
   final double? mobileWidth;
   final double? tabletWidth;
@@ -64,6 +63,13 @@ enum NotebookColumn {
     if (desktopWidth != null) return desktopWidth;
     return fixedWidth;
   }
+
+  String get label => switch (this) {
+    title => LocaleNotifier().localizations.todosTitleColumn,
+    due => LocaleNotifier().localizations.todosDueColumn,
+    linkedTo => LocaleNotifier().localizations.notebookLinkedToColumn,
+    modified => LocaleNotifier().localizations.notebookModifiedColumn,
+  };
 }
 
 class NotebookDataGrid extends StatefulWidget {
@@ -75,7 +81,7 @@ class NotebookDataGrid extends StatefulWidget {
   final Function(int)? onRowsPerPageChanged;
   final bool isLoading;
   final bool hasAnyNotes;
-  final String? emptyMessage;
+  final String emptyMessage;
   final Widget? emptyAction;
 
   const NotebookDataGrid({
@@ -88,7 +94,7 @@ class NotebookDataGrid extends StatefulWidget {
     this.onRowsPerPageChanged,
     this.isLoading = false,
     this.hasAnyNotes = false,
-    this.emptyMessage,
+    required this.emptyMessage,
     this.emptyAction,
   });
 
@@ -304,7 +310,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
           endSwipeActionsBuilder: (context, row, rowIndex) {
             final note = _dataSource.getNoteFromRow(row);
             return Semantics(
-              label: 'Delete',
+              label: AppLocalizations.of(context).commonDeleteLabel,
               button: true,
               child: GestureDetector(
                 onTap: () => unawaited(
@@ -342,11 +348,11 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
 
     final emptyState = !widget.isLoading && widget.notes.isEmpty
         ? !widget.hasAnyNotes
-              ? const EmptyCard(
+              ? EmptyCard(
                   expanded: false,
                   icon: Icons.library_books,
-                  title: "You haven't added any notes yet",
-                  message: 'Click "+" to get started',
+                  title: AppLocalizations.of(context).notebookEmptyTitle,
+                  message: AppLocalizations.of(context).commonAddToGetStartedMessage,
                 )
               : Center(
                   child: Column(
@@ -361,7 +367,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        widget.emptyMessage ?? 'No notes found',
+                        widget.emptyMessage,
                         style: AppStyles.standardBodyTextLight(context)
                             .copyWith(
                               color: context.colorScheme.onSurface.withValues(
@@ -765,9 +771,9 @@ class NotesDataSource extends BaseDataGridSource {
 
   static String _linkedEntityTooltip(String entityType) {
     return switch (entityType) {
-      'resource' => 'Open in Resources',
-      'course' => 'Open in Classes',
-      _ => 'Open in Planner',
+      'resource' => LocaleNotifier().localizations.noteOpenInResourcesTooltip,
+      'course' => LocaleNotifier().localizations.noteOpenInClassesTooltip,
+      _ => LocaleNotifier().localizations.noteOpenInPlannerTooltip,
     };
   }
 
@@ -1044,7 +1050,7 @@ class NotesDataSource extends BaseDataGridSource {
                 onPressed: () => onEdit(note),
                 icon: Icons.edit_outlined,
                 showTooltip: false,
-                label: 'Edit',
+                label: AppLocalizations.of(context).commonEditLabel,
                 color: context.colorScheme.onSurface,
               ),
             ],

@@ -12,6 +12,7 @@ import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -27,6 +28,7 @@ import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
 import 'package:heliumapp/utils/app_assets.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
+import 'package:heliumapp/utils/linked_text_helpers.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:sign_in_button/sign_in_button.dart';
@@ -46,7 +48,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
   static const _oauthButtonHeight = 40.0;
 
   @override
-  String get screenTitle => 'Create an Account';
+  String get screenTitle => AppLocalizations.of(context).signUpTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -129,7 +131,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             TextInput.finishAutofillContext();
             showSnackBar(
               context,
-              'Almost there! Check your email for a verification code.',
+              AppLocalizations.of(context).signUpVerificationSentMessage,
               seconds: 6,
             );
 
@@ -137,7 +139,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
             if (email == null || email.isEmpty) {
               showSnackBar(
                 context,
-                'Registration succeeded, but we could not load your email. Please sign in to continue.',
+                AppLocalizations.of(context).signUpEmailUnavailableMessage,
                 type: SnackType.error,
                 seconds: 6,
               );
@@ -213,7 +215,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                         ),
                       );
                     },
-                    text: 'Sign up with Google',
+                    text: AppLocalizations.of(context).signUpWithProviderButton(OAuthProvider.google.label),
                   ),
                 ),
               ),
@@ -244,7 +246,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                           ),
                         );
                       },
-                      text: 'Sign up with Apple',
+                      text: AppLocalizations.of(context).signUpWithProviderButton(OAuthProvider.apple.label),
                     ),
                   ),
                 ),
@@ -275,7 +277,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                         ),
                       );
                     },
-                    text: 'Sign up with Microsoft',
+                    text: AppLocalizations.of(context).signUpWithProviderButton(OAuthProvider.microsoft.label),
                   ),
                 ),
               ),
@@ -289,7 +291,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'OR',
+                    AppLocalizations.of(context).authOrDivider,
                     style: AppStyles.standardBodyText(context).copyWith(
                       color: context.colorScheme.onSurface.withValues(
                         alpha: 0.6,
@@ -305,7 +307,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             LabelAndTextFormField(
               key: const Key(CredentialsFormController.emailField),
-              hintText: 'Email',
+              hintText: AppLocalizations.of(context).authEmailHint,
               autofocus: PlatformBehavior.autofocusesOnOpen,
               prefixIcon: Icons.email_outlined,
               controller: _formController.emailController,
@@ -318,7 +320,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             HeliumPasswordField(
               key: const Key(CredentialsFormController.passwordField),
-              hintText: 'Password',
+              hintText: AppLocalizations.of(context).authPasswordHint,
               controller: _formController.passwordController,
               validator: BasicFormController.validatePassword,
               onFieldSubmitted: (value) => _onSubmit(),
@@ -328,7 +330,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             HeliumPasswordField(
               key: const Key(SignupFormController.confirmPasswordField),
-              hintText: 'Confirm password',
+              hintText: AppLocalizations.of(context).signUpConfirmPasswordHint,
               prefixIcon: Icons.repeat,
               controller: _formController.confirmPasswordController,
               validator: _formController.validateConfirmPassword,
@@ -344,7 +346,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                   width: _oauthButtonWidth,
                   child: HeliumElevatedButton(
                     key: const Key(SignupScreen.signUpButtonKey),
-                    buttonText: 'Sign Up',
+                    buttonText: AppLocalizations.of(context).signUpButton,
                     isLoading: isSubmitting,
                     enabled: !_isOAuthLoading,
                     onPressed: _onSubmit,
@@ -377,7 +379,7 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Back to sign in',
+                        AppLocalizations.of(context).authBackToSignInLink,
                         style: AppStyles.buttonText(
                           context,
                         ).copyWith(color: context.colorScheme.primary),
@@ -390,48 +392,28 @@ class _SignupScreenState extends BasePageScreenState<SignupScreen> {
 
             const SizedBox(height: 8),
 
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                text: "By signing up, you agree to Helium's ",
-                style: AppStyles.formText(context).copyWith(
-                  color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
-                ),
-                children: [
-                  TextSpan(
-                    text: 'Terms of Service',
-                    style: AppStyles.formText(
-                      context,
-                    ).copyWith(color: context.colorScheme.primary),
-                    recognizer: _termsRecognizer,
-                  ),
-                  TextSpan(
-                    text: ' and ',
-                    style: AppStyles.formText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'Privacy Policy',
-                    style: AppStyles.formText(
-                      context,
-                    ).copyWith(color: context.colorScheme.primary),
-                    recognizer: _privacyRecognizer,
-                  ),
-                  TextSpan(
-                    text: '.',
-                    style: AppStyles.formText(context).copyWith(
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildLegalNotice(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegalNotice(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final termsOfService = l10n.signUpTermsOfServiceLink;
+    final privacyPolicy = l10n.signUpPrivacyPolicyLink;
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: AppStyles.formText(context).copyWith(
+          color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
+        ),
+        children: LinkedText.spans(
+          l10n.signUpLegalNotice(termsOfService, privacyPolicy),
+          links: {termsOfService: _termsRecognizer, privacyPolicy: _privacyRecognizer},
+          linkStyle: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
         ),
       ),
     );

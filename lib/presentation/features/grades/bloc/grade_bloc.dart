@@ -43,7 +43,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
       emit(GradesError(message: e.message, background: event.background));
     } catch (e) {
       emit(GradesError(
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
         background: event.background,
       ));
     }
@@ -83,7 +83,7 @@ class GradeBloc extends Bloc<GradeEvent, GradeState> {
         targetId: event.targetId,
         desiredGrade: event.desiredGrade,
         desiredGpa: event.desiredGpa,
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
       ));
     }
   }

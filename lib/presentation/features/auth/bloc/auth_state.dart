@@ -94,9 +94,7 @@ class AuthAuthenticated extends AuthState {}
 
 class AuthTokenRefreshed extends AuthState {}
 
-class AuthUnauthenticated extends AuthState {
-  AuthUnauthenticated({required super.message});
-}
+class AuthUnauthenticated extends AuthState {}
 
 class AuthAuthorizationDescribed extends AuthState {
   final OAuthAuthorizationModel authorization;

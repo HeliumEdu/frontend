@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/widgets/schedule_summary.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/mobile_gesture_detector.dart';
@@ -40,7 +41,7 @@ class ScheduleCard extends StatelessWidget {
                   onPressed: onEdit,
                   icon: Icons.edit_outlined,
                   showTooltip: false,
-                  label: 'Edit',
+                  label: AppLocalizations.of(context).commonEditLabel,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -48,7 +49,7 @@ class ScheduleCard extends StatelessWidget {
                 onPressed: onDelete,
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: 'Delete',
+                label: AppLocalizations.of(context).commonDeleteLabel,
                 color: context.colorScheme.error,
               ),
             ],

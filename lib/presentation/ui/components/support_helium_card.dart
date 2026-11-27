@@ -48,14 +48,10 @@ class SupportHeliumCard extends StatelessWidget {
             _buildAction(
               context,
               icon: Icons.volunteer_activism,
-              title: 'Keep Helium Free',
+              title: AppLocalizations.of(context).supportHeliumKeepFreeTitle,
               hint: compact
-                  ? 'A passion project, free for everyone — made '
-                        'possible by supporters like you.'
-                  : 'A passion project, free for everyone. '
-                        'Supporters like you are what make that '
-                        'possible, covering real costs like hosting '
-                        'and app store fees.',
+                  ? AppLocalizations.of(context).supportHeliumKeepFreeCompactHint
+                  : AppLocalizations.of(context).supportHeliumKeepFreeHint,
               onTap: () => UrlHelpers.launchWebUrl(AppConstants.patreonUrl),
             ),
             if (showRating) ...[

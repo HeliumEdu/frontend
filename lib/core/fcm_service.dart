@@ -11,6 +11,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -213,10 +214,10 @@ class FcmService with WidgetsBindingObserver {
   }
 
   Future<void> _createAndroidNotificationChannel() async {
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    final AndroidNotificationChannel channel = AndroidNotificationChannel(
       'helium',
-      'Helium App',
-      description: 'Notifications for Helium',
+      LocaleNotifier().localizations.notificationChannelName,
+      description: LocaleNotifier().localizations.notificationChannelDescription,
       importance: Importance.high,
       playSound: true,
       enableVibration: true,
@@ -621,8 +622,8 @@ class FcmService with WidgetsBindingObserver {
     final NotificationDetails platformDetails = NotificationDetails(
       android: AndroidNotificationDetails(
         'helium',
-        'Helium App',
-        channelDescription: 'Notifications for Helium',
+        LocaleNotifier().localizations.notificationChannelName,
+        channelDescription: LocaleNotifier().localizations.notificationChannelDescription,
         importance: Importance.high,
         priority: Priority.high,
         showWhen: true,

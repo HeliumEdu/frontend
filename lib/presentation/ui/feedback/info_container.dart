@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
@@ -66,7 +67,7 @@ class InfoContainer extends StatelessWidget {
               icon: Icon(
                 Icons.close,
                 color: primaryColor.withValues(alpha: 0.7),
-                semanticLabel: 'Dismiss',
+                semanticLabel: AppLocalizations.of(context).commonDismissLabel,
               ),
               iconSize: Responsive.getIconSize(
                 context,

@@ -46,7 +46,7 @@ extension AgendaSnapshot {
     let psychology = "Intro to Psychology 🧠"
 
     return AgendaSnapshot(
-      version: 1, signedIn: true, generatedAt: now, timeZone: timeZone.identifier, olderOverdueCount: 2, days: days,
+      version: 1, signedIn: true, language: nil, generatedAt: now, timeZone: timeZone.identifier, olderOverdueCount: 2, days: days,
       items: [
         item(1, "Case Study 3", at(-1, 13), className: psychology, color: "#3033cf"),
         item(2, "Quiz 7", at(0, 11), className: programming, color: "#05cc90", completed: true),

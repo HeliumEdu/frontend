@@ -16,7 +16,7 @@ object AgendaStore {
 
     sealed interface State {
         data object Missing : State
-        data object SignedOut : State
+        data class SignedOut(val language: String?) : State
         data class Ready(val snapshot: AgendaSnapshot) : State
     }
 
@@ -31,7 +31,7 @@ object AgendaStore {
         }
         return when {
             snapshot == null -> State.Missing
-            !snapshot.signedIn -> State.SignedOut
+            !snapshot.signedIn -> State.SignedOut(snapshot.language)
             else -> State.Ready(snapshot)
         }
     }

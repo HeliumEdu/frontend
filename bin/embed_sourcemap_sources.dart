@@ -10,21 +10,19 @@ import 'dart:io';
 /// directory, so it can never find a single source on its own and uploads a
 /// map Sentry can map frames with but cannot show code for.
 ///
-/// Usage: dart bin/embed_sourcemap_sources.dart [path/to/main.dart.js.map]
+/// Usage: dart bin/embed_sourcemap_sources.dart
 const _mapPath = 'build/web/main.dart.js.map';
 
-/// Depth of the dart2js output directory below the project root.
 const _anchor = ['.dart_tool', 'flutter_build', 'hash'];
 
-/// Sources behind this scheme live in the SDK and have no file on disk.
 const _sdkScheme = 'org-dartlang-sdk:';
 
 /// A run resolving less than this is treated as a layout change, not a build
 /// with unusual sources.
 const _minimumResolvedRatio = 0.5;
 
-void main(List<String> args) {
-  final mapFile = File(args.isNotEmpty ? args.first : _mapPath);
+void main() {
+  final mapFile = File(_mapPath);
   if (!mapFile.existsSync()) {
     stderr.writeln('Source map not found: ${mapFile.path}');
     exit(1);

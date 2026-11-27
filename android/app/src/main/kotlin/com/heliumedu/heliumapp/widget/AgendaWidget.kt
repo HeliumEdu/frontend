@@ -2,11 +2,14 @@ package com.heliumedu.heliumapp.widget
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -78,6 +81,15 @@ private val errorColor = ColorProvider(R.color.agenda_widget_error)
 private val isNarrow: Boolean
     @Composable get() = LocalSize.current.width < MEDIUM.width
 
+private val LocalStrings = staticCompositionLocalOf<Context> { error("AgendaContent provides the widget's strings") }
+
+private fun stringsIn(context: Context, language: String?): Context {
+    if (language == null) return context
+    val configuration = Configuration(context.resources.configuration)
+    configuration.setLocale(Locale.forLanguageTag(language))
+    return context.createConfigurationContext(configuration)
+}
+
 
 class AgendaWidget : GlanceAppWidget() {
     companion object {
@@ -123,6 +135,7 @@ class AgendaWidget : GlanceAppWidget() {
 
     private fun sampleSnapshot(context: Context, now: ZonedDateTime): AgendaSnapshot = AgendaSnapshot(
         signedIn = true,
+        language = null,
         generatedAt = now.toInstant(),
         timeZone = now.zone,
         olderOverdueCount = 2,
@@ -188,6 +201,19 @@ class AgendaWidget : GlanceAppWidget() {
 @Composable
 private fun AgendaContent(state: AgendaStore.State, now: Instant) {
     val context = LocalContext.current
+    val language = when (state) {
+        AgendaStore.State.Missing -> null
+        is AgendaStore.State.SignedOut -> state.language
+        is AgendaStore.State.Ready -> state.snapshot.language
+    }
+    CompositionLocalProvider(LocalStrings provides stringsIn(context, language)) {
+        AgendaFrame(state, now)
+    }
+}
+
+@Composable
+private fun AgendaFrame(state: AgendaStore.State, now: Instant) {
+    val context = LocalContext.current
     val openApp = actionStartActivity(Intent(context, MainActivity::class.java))
     Column(
         modifier = GlanceModifier
@@ -199,7 +225,7 @@ private fun AgendaContent(state: AgendaStore.State, now: Instant) {
         Header(today = (state as? AgendaStore.State.Ready)?.snapshot?.let { it.days[now.atZone(it.timeZone).toLocalDate()] })
         when (state) {
             AgendaStore.State.Missing -> Message(R.string.agenda_widget_no_snapshot, openApp)
-            AgendaStore.State.SignedOut -> Message(R.string.agenda_widget_signed_out, openApp)
+            is AgendaStore.State.SignedOut -> Message(R.string.agenda_widget_signed_out, openApp)
             is AgendaStore.State.Ready -> Agenda(state.snapshot, now)
         }
     }
@@ -207,13 +233,14 @@ private fun AgendaContent(state: AgendaStore.State, now: Instant) {
 
 @Composable
 private fun Header(today: AgendaDay?) {
+    val strings = LocalStrings.current
     val context = LocalContext.current
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(start = 2.dp, bottom = 4.dp)
             .clickable(openUrlAction(context, AgendaWidget.PLANNER_URL))
-            .semantics { contentDescription = context.getString(R.string.agenda_widget_open_planner) },
+            .semantics { contentDescription = strings.getString(R.string.agenda_widget_open_planner) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
@@ -223,7 +250,7 @@ private fun Header(today: AgendaDay?) {
         )
         Spacer(GlanceModifier.width(8.dp))
         Text(
-            text = context.getString(R.string.agenda_widget_label),
+            text = strings.getString(R.string.agenda_widget_label),
             style = TextStyle(color = onSurfaceColor, fontSize = 18.sp, fontFamily = FontFamily.Serif),
             modifier = GlanceModifier.defaultWeight(),
             maxLines = 1,
@@ -241,13 +268,13 @@ private fun Header(today: AgendaDay?) {
 
 @Composable
 private fun ColumnScope.Message(@StringRes message: Int, onClick: Action) {
-    val context = LocalContext.current
+    val strings = LocalStrings.current
     Box(
         modifier = GlanceModifier.defaultWeight().fillMaxWidth().clickable(onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = context.getString(message),
+            text = strings.getString(message),
             style = TextStyle(color = mutedColor, fontSize = 14.sp, textAlign = TextAlign.Center),
         )
     }
@@ -255,6 +282,7 @@ private fun ColumnScope.Message(@StringRes message: Int, onClick: Action) {
 
 @Composable
 private fun ColumnScope.Agenda(snapshot: AgendaSnapshot, now: Instant) {
+    val strings = LocalStrings.current
     val context = LocalContext.current
     val groups = AgendaGrouping.groups(snapshot, now)
     val today = now.atZone(snapshot.timeZone).toLocalDate()
@@ -272,12 +300,12 @@ private fun ColumnScope.Agenda(snapshot: AgendaSnapshot, now: Instant) {
     if (age > AgendaGrouping.STALE_AFTER) {
         val days = age.toDays()
         Text(
-            text = context.getString(R.string.agenda_widget_updated_days_ago, days),
+            text = strings.getString(R.string.agenda_widget_updated_days_ago, days),
             style = TextStyle(color = mutedColor, fontSize = 11.sp),
             modifier = GlanceModifier
                 .padding(start = 2.dp, top = 4.dp)
                 .semantics {
-                    contentDescription = context.resources.getQuantityString(
+                    contentDescription = strings.resources.getQuantityString(
                         R.plurals.agenda_widget_updated_days_ago_description,
                         days.toInt(),
                         days,
@@ -317,12 +345,12 @@ private fun AgendaLineRow(line: AgendaLine, today: LocalDate, days: Map<LocalDat
 
 @Composable
 private fun GroupHeader(group: AgendaGroup, today: LocalDate, days: Map<LocalDate, AgendaDay>) {
-    val context = LocalContext.current
+    val strings = LocalStrings.current
     val overdue = group.kind == AgendaGroup.Kind.OVERDUE
     val title = when (group.kind) {
-        AgendaGroup.Kind.OVERDUE -> context.getString(R.string.agenda_widget_overdue)
-        AgendaGroup.Kind.TODAY -> context.getString(R.string.agenda_widget_today)
-        AgendaGroup.Kind.TOMORROW -> context.getString(R.string.agenda_widget_tomorrow)
+        AgendaGroup.Kind.OVERDUE -> strings.getString(R.string.agenda_widget_overdue)
+        AgendaGroup.Kind.TODAY -> strings.getString(R.string.agenda_widget_today)
+        AgendaGroup.Kind.TOMORROW -> strings.getString(R.string.agenda_widget_tomorrow)
         AgendaGroup.Kind.LATER -> group.items.first().day.let { AgendaGrouping.laterTitle(it, today, days.getValue(it)) }
     }
 
@@ -340,7 +368,7 @@ private fun GroupHeader(group: AgendaGroup, today: LocalDate, days: Map<LocalDat
             Spacer(GlanceModifier.width(4.dp))
         }
         Text(
-            text = title.uppercase(Locale.getDefault()),
+            text = title.uppercase(strings.resources.configuration.locales[0]),
             style = TextStyle(color = if (overdue) errorColor else mutedColor, fontSize = 11.sp, fontWeight = FontWeight.Bold),
             modifier = GlanceModifier.defaultWeight().semantics { contentDescription = title },
             maxLines = 1,
@@ -350,13 +378,14 @@ private fun GroupHeader(group: AgendaGroup, today: LocalDate, days: Map<LocalDat
 
 @Composable
 private fun ItemRow(item: AgendaItem, today: LocalDate, days: Map<LocalDate, AgendaDay>, showsClass: Boolean) {
+    val strings = LocalStrings.current
     val context = LocalContext.current
     val earlierDay = days.getValue(item.day).date.takeIf { item.day.isBefore(today) }
     val details = listOfNotNull(earlierDay, item.timeLabel, item.className.takeIf { showsClass })
     val description = (
         listOf(item.title) +
             details +
-            listOfNotNull(context.getString(R.string.agenda_widget_completed).takeIf { item.completed })
+            listOfNotNull(strings.getString(R.string.agenda_widget_completed).takeIf { item.completed })
         ).joinToString(", ")
 
     Row(
@@ -385,11 +414,11 @@ private fun ItemRow(item: AgendaItem, today: LocalDate, days: Map<LocalDate, Age
 
 @Composable
 private fun Checkbox(item: AgendaItem) {
-    val context = LocalContext.current
+    val strings = LocalStrings.current
     val itemColor = ColorProvider(Color(item.color))
     val modifier = GlanceModifier.width(36.dp).fillMaxHeight().let {
         if (!item.canToggle) return@let it
-        val description = context.getString(
+        val description = strings.getString(
             if (item.completed) R.string.agenda_widget_uncomplete else R.string.agenda_widget_complete,
             item.title,
         )
@@ -424,23 +453,25 @@ private fun Checkbox(item: AgendaItem) {
 
 @Composable
 private fun OlderOverdueRow(count: Int) {
+    val strings = LocalStrings.current
     val context = LocalContext.current
     Text(
-        text = context.getString(R.string.agenda_widget_older_overdue, count),
+        text = strings.resources.getQuantityString(R.plurals.agenda_widget_older_overdue, count, count),
         style = TextStyle(color = mutedColor, fontSize = 12.sp, fontWeight = FontWeight.Medium),
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(start = 2.dp, top = 4.dp, bottom = 4.dp)
             .clickable(openUrlAction(context, AgendaWidget.OVERDUE_URL))
-            .semantics { contentDescription = context.getString(R.string.agenda_widget_older_overdue_description, count) },
+            .semantics { contentDescription = strings.resources.getQuantityString(R.plurals.agenda_widget_older_overdue_description, count, count) },
         maxLines = 1,
     )
 }
 
 @Composable
 private fun NothingUpcomingRow() {
+    val strings = LocalStrings.current
     Text(
-        text = LocalContext.current.getString(R.string.agenda_widget_nothing_upcoming),
+        text = strings.getString(R.string.agenda_widget_nothing_upcoming),
         style = TextStyle(color = mutedColor, fontSize = 12.sp),
         modifier = GlanceModifier.fillMaxWidth().padding(start = 2.dp, top = 8.dp),
         maxLines = 2,

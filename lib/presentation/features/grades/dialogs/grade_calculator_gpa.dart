@@ -1,3 +1,4 @@
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/grade_course_group_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
@@ -6,12 +7,13 @@ import 'package:heliumapp/utils/grade_helpers.dart';
 enum GradeCalculatorMode { classGrade, termGpa }
 
 enum GradeCalculatorTab {
-  whatCouldIGet('What Could I Get?'),
-  whatDoINeed('What Do I Need?');
+  whatCouldIGet,
+  whatDoINeed;
 
-  final String label;
-
-  const GradeCalculatorTab(this.label);
+  String get label => switch (this) {
+    whatCouldIGet => LocaleNotifier().localizations.gradeCalculatorWhatCouldIGetTab,
+    whatDoINeed => LocaleNotifier().localizations.gradeCalculatorWhatDoINeedTab,
+  };
 }
 
 /// What the Grade Calculator's GPA mode works from: a class's grade scale and

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:heliumapp/config/locale_notifier.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/time_zone_aliases.dart';
 import 'package:heliumapp/utils/time_zone_constants.dart';
@@ -143,44 +144,6 @@ class HeliumDateTime {
   /// Returns a DateTime with only the date part (time set to midnight)
   static DateTime dateOnly(DateTime date) {
     return DateTime(date.year, date.month, date.day);
-  }
-
-  /// A readable wait, rounded up to the minute under an hour and to the nearest
-  /// hour beyond: "a minute", "59 minutes", "about an hour", "about 3 hours".
-  static String describeWait(Duration wait) {
-    final minutes = (wait.inSeconds / 60).ceil();
-    if (minutes <= 1) return 'a minute';
-    if (minutes < 60) return '$minutes minutes';
-    final hours = (minutes / 60).round();
-    return hours == 1 ? 'about an hour' : 'about $hours hours';
-  }
-
-  /// How [instant] falls relative to [reference]: "about 2 days after",
-  /// "3 minutes before", or "around the same time as" within a minute.
-  static String describeRelativeTo(DateTime instant, DateTime reference) {
-    final gap = instant.difference(reference);
-    if (gap.abs() < const Duration(minutes: 1)) return 'around the same time as';
-    final direction = gap.isNegative ? 'before' : 'after';
-    return '${_describeGap(gap.abs())} $direction';
-  }
-
-  /// When [instant] happened in [timeZone], in only as much detail as places
-  /// it from today: "at 5:42 PM", "on Tue at 5:42 PM" within the past week,
-  /// then "on Oct 21 at 5:42 PM", with the year once it differs.
-  static String describeWhen(
-    DateTime instant,
-    tz.Location timeZone, {
-    DateTime? now,
-  }) {
-    final local = toLocal(instant, timeZone);
-    final today = toLocal(now ?? DateTime.now(), timeZone);
-    final time = 'at ${formatTime(local)}';
-    final daysAgo = calendarDaysBetween(local, today);
-    if (daysAgo <= 0) return time;
-    if (daysAgo < DateTime.daysPerWeek) {
-      return 'on ${formatDayNameShort(local)} $time';
-    }
-    return 'on ${formatDate(local, showYear: local.year != today.year)} $time';
   }
 
   /// The later of two ISO 8601 timestamps, or whichever one parses.
@@ -409,6 +372,10 @@ class HeliumDateTime {
         : DateFormat('h:mm a').format(date);
   }
 
+  static List<String> get weekdayNames => DateFormat().dateSymbols.STANDALONEWEEKDAYS;
+
+  static List<String> get weekdayNamesShort => DateFormat().dateSymbols.STANDALONESHORTWEEKDAYS;
+
   static String formatDayNameShort(DateTime date) {
     return DateFormat(dayNameShortPattern).format(date);
   }
@@ -473,7 +440,7 @@ class HeliumDateTime {
 
     final String dateDisplay = formatDate(startDate);
     if (showEndTime && endDate.isAfter(startDate) && dateOnly(endDate) != dateOnly(startDate)) {
-      return '$dateDisplay • ${formatTime(startDate)} to ${formatDate(endDate)} • ${formatTime(endDate)}';
+      return LocaleNotifier().localizations.dateTimeMultiDayRange(dateDisplay, formatTime(startDate), formatDate(endDate), formatTime(endDate));
     }
     return '$dateDisplay • ${formatTimeRange(startDate, endDate, showEndTime)}';
   }
@@ -494,7 +461,7 @@ class HeliumDateTime {
     if (!dateOnly(endDate).isAfter(dateOnly(startDate))) {
       return formatDate(startDate);
     }
-    return '${formatDate(startDate)} to ${formatDate(endDate)}';
+    return LocaleNotifier().localizations.dateTimeDateRange(formatDate(startDate), formatDate(endDate));
   }
 
   static String formatTimeRange(
@@ -583,12 +550,50 @@ class HeliumDateTime {
     return weekNumber;
   }
 
+  /// A readable wait, rounded up to the minute under an hour and to the nearest
+  /// hour beyond: "a minute", "59 minutes", "about an hour", "about 3 hours".
+  @visibleForTesting
+  static String describeWait(Duration wait) {
+    final l10n = LocaleNotifier().localizations;
+    final minutes = (wait.inSeconds / 60).ceil();
+    if (minutes < 60) return l10n.dateTimeMinutes(minutes < 1 ? 1 : minutes);
+    return l10n.dateTimeAboutHours((minutes / 60).round());
+  }
+
+  /// How [instant] falls relative to [reference]: a [direction] of `before`
+  /// or `after` with the [gap] between them ("about 2 days"), or `sameTime`
+  /// with no gap within a minute.
+  static ({String direction, String gap}) describeRelativeTo(DateTime instant, DateTime reference) {
+    final gap = instant.difference(reference);
+    if (gap.abs() < const Duration(minutes: 1)) return (direction: 'sameTime', gap: '');
+    return (direction: gap.isNegative ? 'before' : 'after', gap: _describeGap(gap.abs()));
+  }
+
+  /// When [instant] happened in [timeZone], in only as much detail as places
+  /// it from today: "at 5:42 PM", "on Tue at 5:42 PM" within the past week,
+  /// then "on Oct 21 at 5:42 PM", with the year once it differs.
+  static String describeWhen(
+    DateTime instant,
+    tz.Location timeZone, {
+    DateTime? now,
+  }) {
+    final l10n = LocaleNotifier().localizations;
+    final local = toLocal(instant, timeZone);
+    final today = toLocal(now ?? DateTime.now(), timeZone);
+    final time = formatTime(local);
+    final daysAgo = calendarDaysBetween(local, today);
+    if (daysAgo <= 0) return l10n.dateTimeAtTime(time);
+    if (daysAgo < DateTime.daysPerWeek) {
+      return l10n.dateTimeOnWeekdayAtTime(formatDayNameShort(local), time);
+    }
+    return l10n.dateTimeOnDateAtTime(formatDate(local, showYear: local.year != today.year), time);
+  }
+
   static String _describeGap(Duration gap) {
     if ((gap.inMinutes / 60).round() < Duration.hoursPerDay) {
       return describeWait(gap);
     }
-    final days = (gap.inMinutes / Duration.minutesPerDay).round();
-    return days == 1 ? 'about a day' : 'about $days days';
+    return LocaleNotifier().localizations.dateTimeAboutDays((gap.inMinutes / Duration.minutesPerDay).round());
   }
 
   /// Word-month dates read month-first only for the month/day/year setting.
@@ -681,6 +686,13 @@ class RecurrenceDraft {
 
 /// Composes and parses the RRULE subset the picker offers.
 class HeliumRecurrence {
+  static const repeatingFrequencies = [
+    RecurrenceFrequency.daily,
+    RecurrenceFrequency.weekly,
+    RecurrenceFrequency.monthly,
+    RecurrenceFrequency.yearly,
+  ];
+
   static const _icalWeekdays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
   static const _frequencies = {
@@ -698,14 +710,7 @@ class HeliumRecurrence {
   };
   static final _utcUntil = DateFormat("yyyyMMdd'T'HHmmss'Z'");
 
-  static const intervalUnits = {
-    RecurrenceFrequency.daily: 'day',
-    RecurrenceFrequency.weekly: 'week',
-    RecurrenceFrequency.monthly: 'month',
-    RecurrenceFrequency.yearly: 'year',
-  };
-
-  static const _positionNames = {1: '1st', 2: '2nd', 3: '3rd', 4: '4th', -1: 'last', -2: 'second-to-last'};
+  static const _positionKeys = {1: 'first', 2: 'second', 3: 'third', 4: 'fourth', -1: 'last', -2: 'secondToLast'};
 
   HeliumRecurrence._();
 
@@ -852,10 +857,12 @@ class HeliumRecurrence {
   /// How [rule] repeats, in words, for a rule [parse] can't represent. A rule
   /// with a part it can't put into words reads as a custom schedule.
   static String describe(String rule, DateTime localStart, tz.Location timeZone, {int weekStartsOn = 0}) {
-    return _describe(rule, localStart, timeZone, weekStartsOn) ?? 'Repeats on a custom schedule';
+    return _describe(rule, localStart, timeZone, weekStartsOn) ??
+        LocaleNotifier().localizations.recurrenceCustomSchedule;
   }
 
   static String? _describe(String rule, DateTime localStart, tz.Location timeZone, int weekStartsOn) {
+    final l10n = LocaleNotifier().localizations;
     final parts = _parts(rule);
     final frequency = _frequencies[parts.remove('FREQ')];
     final interval = int.tryParse(parts.remove('INTERVAL') ?? '1');
@@ -873,41 +880,41 @@ class HeliumRecurrence {
       return null;
     }
 
-    final String? on;
+    final repeats = _describeInterval(l10n, frequency, interval);
+    final String? schedule;
     if (byDay != null) {
-      on = _describeWeekdays(frequency, byDay, bySetPos, byMonth, weekStartsOn);
+      schedule = _describeWeekdays(l10n, repeats, frequency, byDay, bySetPos, byMonth, weekStartsOn);
     } else if (bySetPos != null) {
       return null;
     } else if (byMonth != null) {
-      on = frequency == RecurrenceFrequency.yearly
-          ? _describeDayOfMonth(byMonth, byMonthDay ?? '${localStart.day}')
+      schedule = frequency == RecurrenceFrequency.yearly
+          ? _describeDayOfMonth(l10n, repeats, byMonth, byMonthDay ?? '${localStart.day}')
           : null;
     } else if (byMonthDay != null) {
-      on = _describeMonthDay(byMonthDay);
+      schedule = _describeMonthDay(l10n, repeats, byMonthDay);
     } else {
-      on = '';
+      schedule = repeats;
     }
-    if (on == null) {
+    if (schedule == null) {
       return null;
     }
 
-    final end = _describeEnd(count, until, timeZone);
-    if (end == null) {
-      return null;
-    }
-
-    return 'Repeats ${_describeInterval(frequency, interval)}$on$end';
+    return _describeEnd(l10n, schedule, count, until, timeZone);
   }
 
-  static String _describeInterval(RecurrenceFrequency frequency, int interval) {
-    final unit = intervalUnits[frequency]!;
-    if (interval == 1) {
-      return frequency == RecurrenceFrequency.daily ? 'daily' : '${unit}ly';
-    }
-    return 'every $interval ${unit}s';
+  static String _describeInterval(AppLocalizations l10n, RecurrenceFrequency frequency, int interval) {
+    return switch (frequency) {
+      RecurrenceFrequency.daily => l10n.recurrenceRepeatsDaily(interval),
+      RecurrenceFrequency.weekly => l10n.recurrenceRepeatsWeekly(interval),
+      RecurrenceFrequency.monthly => l10n.recurrenceRepeatsMonthly(interval),
+      RecurrenceFrequency.yearly => l10n.recurrenceRepeatsYearly(interval),
+      RecurrenceFrequency.none => throw ArgumentError.value(frequency, 'frequency'),
+    };
   }
 
   static String? _describeWeekdays(
+    AppLocalizations l10n,
+    String repeats,
     RecurrenceFrequency frequency,
     String byDay,
     String? bySetPos,
@@ -925,7 +932,7 @@ class HeliumRecurrence {
       }
       final ordered = weekdays.toSet().toList()..sort((a, b) => (a - weekStartsOn) % 7 - (b - weekStartsOn) % 7);
       final names = ordered.map((day) => _weekdayName(day, 'EEE'));
-      return ' on ${names.join(', ')}';
+      return l10n.recurrenceOnWeekdays(repeats, names.reduce(l10n.commonListJoin));
     }
 
     final match = RegExp(r'^([+-]?\d{1,2})?([A-Z]{2})$').firstMatch(byDay);
@@ -933,57 +940,66 @@ class HeliumRecurrence {
     if (weekday == -1 || (match!.group(1) != null && bySetPos != null)) {
       return null;
     }
-    final position = _positionNames[int.tryParse(match.group(1) ?? bySetPos ?? '')];
+    final position = _positionKeys[int.tryParse(match.group(1) ?? bySetPos ?? '')];
     if (position == null) {
       return null;
     }
-    final described = ' on the $position ${_weekdayName(weekday, 'EEEE')}';
+    final weekdayName = _weekdayName(weekday, 'EEEE');
     if (byMonth == null) {
-      return frequency == RecurrenceFrequency.yearly ? null : described;
+      return frequency == RecurrenceFrequency.yearly
+          ? null
+          : l10n.recurrenceOnPositionWeekday(repeats, position, weekdayName);
     }
     final month = _monthName(byMonth);
-    return frequency == RecurrenceFrequency.yearly && month != null ? '$described of $month' : null;
+    return frequency == RecurrenceFrequency.yearly && month != null
+        ? l10n.recurrenceOnPositionWeekdayOfMonth(repeats, position, weekdayName, month)
+        : null;
   }
 
-  static String? _describeDayOfMonth(String byMonth, String byMonthDay) {
+  static String? _describeDayOfMonth(AppLocalizations l10n, String repeats, String byMonth, String byMonthDay) {
     final month = int.tryParse(byMonth);
     final day = int.tryParse(byMonthDay);
     if (month == null || day == null || month < 1 || month > 12) {
       return null;
     }
     if (day == -1) {
-      return ' on the last day of ${_monthName(byMonth)}';
+      return l10n.recurrenceOnLastDayOfMonth(repeats, _monthName(byMonth)!);
     }
     final date = DateTime(2000, month, day);
     if (day < 1 || date.month != month) {
       return null;
     }
-    return ' on ${HeliumDateTime.formatDate(date, abbreviateMonth: false, showYear: false)}';
+    return l10n.recurrenceOnDate(repeats, HeliumDateTime.formatDate(date, abbreviateMonth: false, showYear: false));
   }
 
-  static String? _describeMonthDay(String byMonthDay) {
+  static String? _describeMonthDay(AppLocalizations l10n, String repeats, String byMonthDay) {
     final day = int.tryParse(byMonthDay);
     if (day == -1) {
-      return ' on the last day';
+      return l10n.recurrenceOnLastDay(repeats);
     }
-    return day == null || day < 1 || day > 31 ? null : ' on day $day';
+    return day == null || day < 1 || day > 31 ? null : l10n.recurrenceOnDay(repeats, day);
   }
 
-  static String? _describeEnd(String? count, String? until, tz.Location timeZone) {
+  static String? _describeEnd(
+    AppLocalizations l10n,
+    String schedule,
+    String? count,
+    String? until,
+    tz.Location timeZone,
+  ) {
     final times = count == null ? null : int.tryParse(count);
     final untilDate = until == null ? null : _untilDate(until, timeZone);
     if ((count != null && (times == null || times < 1)) || (until != null && untilDate == null)) {
       return null;
     }
-    final timesText = times == 1 ? 'once' : '$times times';
-    final untilText = untilDate == null ? null : 'until ${HeliumDateTime.formatDate(untilDate)}';
+    final untilText = untilDate == null ? null : HeliumDateTime.formatDate(untilDate);
     if (times != null && untilText != null) {
-      return ', up to $timesText $untilText';
+      return l10n.recurrenceTimesUntil(schedule, times, untilText);
     }
     if (times != null) {
-      return ', $timesText';
+      return l10n.recurrenceTimes(schedule, times);
     }
-    return untilText == null ? '' : ', $untilText';
+    return untilText == null ? schedule : l10n.recurrenceUntil(schedule, untilText);
   }
 
   static String _weekdayName(int icalIndex, String pattern) =>

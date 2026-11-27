@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/donation_config.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/presentation/ui/components/support_helium_card.dart';
@@ -66,7 +67,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
           ),
           const SizedBox(width: 12),
           SelectableText(
-            "What's New?",
+            AppLocalizations.of(context).whatsNewTitle,
             style: AppStyles.pageTitle(context),
           ),
         ],
@@ -78,7 +79,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SelectableText(
-              "Your study sidekick just leveled up. Here's what changed.",
+              AppLocalizations.of(context).whatsNewIntro,
               style: AppStyles.standardBodyText(context),
             ),
             const SizedBox(height: 16),
@@ -91,25 +92,22 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
                     _buildFeatureItem(
                       context,
                       icon: Icons.widgets_outlined,
-                      title: 'Home Screen Widgets',
-                      description:
-                          'Add Helium to your home screen to see what\'s due this week and check off assignments without opening the app',
+                      title: AppLocalizations.of(context).whatsNewHomeScreenWidgetsTitle,
+                      description: AppLocalizations.of(context).whatsNewHomeScreenWidgetsDescription,
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
                       icon: Icons.calculate_outlined,
-                      title: 'Letter Grades & GPA',
-                      description:
-                          'Pick your school\'s grade scale to see letter grades, then add credits to your classes to track your GPA',
+                      title: AppLocalizations.of(context).whatsNewLetterGradesTitle,
+                      description: AppLocalizations.of(context).whatsNewLetterGradesDescription,
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureItem(
                       context,
                       icon: Icons.repeat,
-                      title: 'Repeating Assignments & Events',
-                      description:
-                          'Assignments and events can now repeat, so a weekly reading or a monthly meeting only needs adding once',
+                      title: AppLocalizations.of(context).whatsNewRepeatingTitle,
+                      description: AppLocalizations.of(context).whatsNewRepeatingDescription,
                     ),
                     if (showDonationLink) ...[
                       const SizedBox(height: 8),
@@ -129,7 +127,7 @@ class _WhatsNewDialogWidgetState extends State<_WhatsNewDialogWidget> {
           width: Responsive.getDialogWidth(context),
           child: HeliumElevatedButton(
             key: const Key(whatsNewDismissButtonKey),
-            buttonText: 'Dive In!',
+            buttonText: AppLocalizations.of(context).whatsNewDismissButton,
             onPressed: () => Navigator.pop(context),
           ),
         ),

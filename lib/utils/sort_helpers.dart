@@ -1,7 +1,9 @@
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_event_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
@@ -138,6 +140,14 @@ class Sort {
     list.sort((a, b) => compareNatural(a.title, b.title));
   }
 
+  static void byCategoryTitle(List<CategoryModel> list) {
+    list.sort((a, b) => _compareCategories(a.isUncategorized, a.displayTitle, b.isUncategorized, b.displayTitle));
+  }
+
+  static void byGradeCategoryTitle(List<GradeCategoryModel> list) {
+    list.sort((a, b) => _compareCategories(a.isUncategorized, a.displayTitle, b.isUncategorized, b.displayTitle));
+  }
+
   static void byMessage(List<ReminderModel> list) {
     list.sort((a, b) => compareNatural(a.message, b.message));
   }
@@ -240,6 +250,11 @@ class Sort {
       local.millisecond,
       local.microsecond,
     );
+  }
+
+  static int _compareCategories(bool aIsUncategorized, String aTitle, bool bIsUncategorized, String bTitle) {
+    if (aIsUncategorized != bIsUncategorized) return aIsUncategorized ? 1 : -1;
+    return compareNatural(aTitle, bTitle);
   }
 }
 

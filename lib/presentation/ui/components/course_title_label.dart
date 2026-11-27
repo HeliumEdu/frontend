@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -9,8 +10,7 @@ class CourseTitleLabel extends StatelessWidget {
   final bool showIcon;
   final bool compact;
   final IconData? icon;
-  final VoidCallback? onDelete;
-  final String onDeleteLabel;
+  final LabelDeleteAction? deleteAction;
 
   const CourseTitleLabel({
     super.key,
@@ -19,8 +19,7 @@ class CourseTitleLabel extends StatelessWidget {
     this.showIcon = true,
     this.compact = false,
     this.icon,
-    this.onDelete,
-    this.onDeleteLabel = 'Remove',
+    this.deleteAction,
   });
 
   @override
@@ -95,21 +94,21 @@ class CourseTitleLabel extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (onDelete != null) ...[
+                  if (deleteAction case final deleteAction?) ...[
                     Container(
                       width: 1,
                       color: BadgeColors.border(context, color),
                     ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: onDelete,
+                      onTap: deleteAction.onPressed,
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: Semantics(
-                          label: onDeleteLabel,
+                          label: deleteAction.label,
                           button: true,
                           child: Tooltip(
-                            message: onDeleteLabel,
+                            message: deleteAction.label,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 6),
                               child: Center(

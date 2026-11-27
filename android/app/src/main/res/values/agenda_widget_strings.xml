@@ -6,8 +6,14 @@
     <string name="agenda_widget_overdue">Overdue</string>
     <string name="agenda_widget_today">Today</string>
     <string name="agenda_widget_tomorrow">Tomorrow</string>
-    <string name="agenda_widget_older_overdue">+%d older overdue</string>
-    <string name="agenda_widget_older_overdue_description">%d older overdue</string>
+    <plurals name="agenda_widget_older_overdue">
+        <item quantity="one">+%d older overdue</item>
+        <item quantity="other">+%d older overdue</item>
+    </plurals>
+    <plurals name="agenda_widget_older_overdue_description">
+        <item quantity="one">%d older overdue</item>
+        <item quantity="other">%d older overdue</item>
+    </plurals>
     <string name="agenda_widget_nothing_upcoming">Nothing due in the next 7 days</string>
     <string name="agenda_widget_all_caught_up">All caught up</string>
     <string name="agenda_widget_signed_out">Sign in to Helium</string>

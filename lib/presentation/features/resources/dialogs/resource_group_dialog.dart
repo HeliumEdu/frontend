@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_group_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -38,7 +39,7 @@ class _ResourceGroupWidgetState
       ResourceGroupFormController();
 
   @override
-  String get dialogTitle => 'Group';
+  String get dialogTitle => AppLocalizations.of(context).resourceGroupDialogTitle;
 
   @override
   BasicFormController get formController => _formController;
@@ -100,7 +101,7 @@ class _ResourceGroupWidgetState
             final group = state.resourceGroups
                 .firstWhereOrNull((g) => g.id == widget.group!.id);
             setState(() {
-              if (group == null) errorMessage = 'Group not found.';
+              if (group == null) errorMessage = AppLocalizations.of(context).resourceGroupNotFoundMessage;
               _populateScreenData(group ?? widget.group!);
               isLoading = false;
             });
@@ -134,7 +135,7 @@ class _ResourceGroupWidgetState
             item: widget.group!,
             label: widget.group!.title,
             additionalWarning:
-                'Anything in this group, including resources and their attachments and notes, will also be deleted.',
+                AppLocalizations.of(context).resourceGroupDeleteWarning,
             onDelete: (value) {
               setState(() => isSubmitting = true);
               context.read<ResourceBloc>().add(
@@ -148,7 +149,7 @@ class _ResourceGroupWidgetState
         },
         icon: Icons.delete_outlined,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
     ];
@@ -160,7 +161,7 @@ class _ResourceGroupWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LabelAndTextFormField(
-          label: 'Title',
+          label: AppLocalizations.of(context).resourceGroupTitleLabel,
           autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
@@ -173,7 +174,7 @@ class _ResourceGroupWidgetState
             Expanded(
               child: HeliumCheckboxListTile(
                 title: Text(
-                  "Hide this group's resources from the Planner",
+                  AppLocalizations.of(context).resourceGroupHideLabel,
                   style: AppStyles.formLabel(context),
                 ),
                 value: !_formController.shownOnCalendar,

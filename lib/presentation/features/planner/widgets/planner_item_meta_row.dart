@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
@@ -90,7 +91,7 @@ class PlannerItemMetaRow extends StatelessWidget {
           color: context.colorScheme.primary,
           action: onOpenInNotebook == null
               ? null
-              : (onTap: (_) => onOpenInNotebook!(), tooltip: 'Open in Notebook'),
+              : (onTap: (_) => onOpenInNotebook!(), tooltip: AppLocalizations.of(context).notesOpenInNotebookButton),
         ),
       );
     }
@@ -114,7 +115,7 @@ class PlannerItemMetaRow extends StatelessWidget {
           color: context.semanticColors.success.withValues(alpha: 0.9),
           action: onOpenAttachments == null
               ? null
-              : (onTap: onOpenAttachments!, tooltip: 'Show attachments'),
+              : (onTap: onOpenAttachments!, tooltip: AppLocalizations.of(context).attachmentsShowTooltip),
         ),
       );
     }
@@ -127,7 +128,7 @@ class PlannerItemMetaRow extends StatelessWidget {
           color: userSettings.resourceColor.withValues(alpha: 0.9),
           action: onOpenResources == null
               ? null
-              : (onTap: onOpenResources!, tooltip: 'Show resources'),
+              : (onTap: onOpenResources!, tooltip: AppLocalizations.of(context).plannerShowResourcesTooltip),
         ),
       );
     }

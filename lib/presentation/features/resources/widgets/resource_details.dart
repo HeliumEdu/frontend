@@ -10,9 +10,11 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
 import 'package:heliumapp/data/models/planner/request/resource_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
+import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/confirm_delete_dialog.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
@@ -115,7 +117,7 @@ class ResourceDetailsState extends State<ResourceDetails>
       setState(() => _resource = entity);
 
   @override
-  String get itemNoun => 'resource';
+  String get conflictItem => 'resource';
 
   @override
   ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
@@ -152,7 +154,7 @@ class ResourceDetailsState extends State<ResourceDetails>
               resourceId: widget.resourceId,
             )) {
           setState(() {
-            _error = state.message ?? HeliumException.unexpectedError;
+            _error = state.message ?? HeliumException.unexpectedErrorMessage;
             isLoading = false;
           });
         }
@@ -186,7 +188,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   LabelAndTextFormField(
-                    label: 'Title',
+                    label: AppLocalizations.of(context).resourceTitleLabel,
                     autofocus: PlatformBehavior.autofocusesOnOpen,
                     focusNode: _titleFocusNode,
                     controller: formController.titleController,
@@ -197,7 +199,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                   ),
                   const SizedBox(height: 14),
                   DropDown<ResourceGroupModel>(
-                    label: 'Group',
+                    label: AppLocalizations.of(context).resourceGroupLabel,
                     initialValue: _groupItems.firstWhereOrNull(
                       (item) => item.id == formController.selectedResourceGroupId,
                     ),
@@ -211,10 +213,10 @@ class ResourceDetailsState extends State<ResourceDetails>
                             });
                           },
                     validator: (value) =>
-                        value == null ? 'This field is required' : null,
+                        value == null ? AppLocalizations.of(context).formRequiredFieldError : null,
                   ),
                   const SizedBox(height: 14),
-                  Text('Classes', style: AppStyles.formLabel(context)),
+                  Text(AppLocalizations.of(context).resourceClassesLabel, style: AppStyles.formLabel(context)),
                   const SizedBox(height: 9),
                   SelectField<CourseModel>(
                     items: _courses,
@@ -226,16 +228,19 @@ class ResourceDetailsState extends State<ResourceDetails>
                       });
                     },
                     enabled: _courses.isNotEmpty,
-                    buttonLabel: 'Select classes',
+                    buttonLabel: AppLocalizations.of(context).resourceSelectClassesButton,
                     labelBuilder: (course, onDelete) => CourseTitleLabel(
                       title: course.title,
                       color: course.color,
-                      onDelete: onDelete,
+                      deleteAction: LabelDeleteAction(
+                        onPressed: onDelete,
+                        label: AppLocalizations.of(context).commonRemoveLabel,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   DropDown(
-                    label: 'Status',
+                    label: AppLocalizations.of(context).resourceStatusLabel,
                     initialValue: ResourceConstants.statusItems.firstWhere(
                       (mc) => mc.id == formController.selectedStatus,
                     ),
@@ -249,7 +254,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                   ),
                   const SizedBox(height: 14),
                   DropDown(
-                    label: 'Condition',
+                    label: AppLocalizations.of(context).resourceConditionLabel,
                     initialValue: ResourceConstants.conditionItems.firstWhere(
                       (mc) => mc.id == formController.selectedCondition,
                     ),
@@ -263,7 +268,7 @@ class ResourceDetailsState extends State<ResourceDetails>
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
-                    label: 'Website',
+                    label: AppLocalizations.of(context).resourceWebsiteLabel,
                     controller: formController.urlController,
                     validator: BasicFormController.validateUrl,
                     fieldKey: formController.getFieldKey('url'),
@@ -276,13 +281,13 @@ class ResourceDetailsState extends State<ResourceDetails>
                         );
                       },
                       icon: Icons.launch_outlined,
-                      label: "Launch resource's website",
+                      label: AppLocalizations.of(context).resourcesMenuLaunchWebsiteLabel,
                       color: context.semanticColors.success,
                     ),
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
-                    label: 'Price',
+                    label: AppLocalizations.of(context).resourcePriceLabel,
                     controller: formController.priceController,
                     onChanged: (_) => formController.markChanged(),
                   ),
@@ -315,7 +320,7 @@ class ResourceDetailsState extends State<ResourceDetails>
       parentContext: context,
       item: _resource!,
       label: _resource!.title,
-      additionalWarning: 'Its attachments and note will also be deleted.',
+      additionalWarning: AppLocalizations.of(context).resourceDeleteWarning,
       onDelete: (resource) {
         widget.onActionStarted?.call();
         context.read<ResourceBloc>().add(
@@ -382,7 +387,7 @@ class ResourceDetailsState extends State<ResourceDetails>
     } else {
       SnackBarHelper.show(
         context,
-        'Fix the highlighted fields, then try again.',
+        AppLocalizations.of(context).plannerItemFixFieldsMessage,
         type: SnackType.error,
       );
     }

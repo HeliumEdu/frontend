@@ -51,9 +51,10 @@ Tun run a development version of the app for `web`, executing:
 make run-devserver
 ```
 
-Before commits are made, be sure to also run tests.
+Before commits are made, be sure to also run the checks and tests.
 
 ```sh
+make check
 make test
 make test-integration
 ```

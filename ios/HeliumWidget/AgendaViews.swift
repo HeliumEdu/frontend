@@ -34,7 +34,7 @@ private struct AgendaHomeView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 6) {
-        AgendaHeader(family: family, palette: palette)
+        AgendaHeader(family: family, palette: palette, strings: entry.strings)
           .linked(to: AgendaLinks.planner, in: family)
         Spacer(minLength: 0)
         if family.showsDetails, let todayLabel = entry.content?.todayLabel {
@@ -46,10 +46,10 @@ private struct AgendaHomeView: View {
       }
       main
       if let staleDays = entry.content?.staleDays {
-        Text("Updated \(staleDays)d ago")
+        Text(String(localized: "Updated \(staleDays)d ago", bundle: entry.strings))
           .font(AgendaFont.regular(10))
           .foregroundStyle(palette.muted)
-          .accessibilityLabel(staleDays == 1 ? "Updated 1 day ago" : "Updated \(staleDays) days ago")
+          .accessibilityLabel(String(localized: "Updated \(staleDays) days ago", bundle: entry.strings))
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -61,9 +61,13 @@ private struct AgendaHomeView: View {
   private var main: some View {
     switch entry.state {
     case .missing:
-      AgendaMessage(symbol: "arrow.up.forward.app", text: "Open Helium to see what's due", palette: palette)
+      AgendaMessage(
+        symbol: "arrow.up.forward.app", text: String(localized: "Open Helium to see what's due", bundle: entry.strings),
+        palette: palette)
     case .signedOut:
-      AgendaMessage(symbol: "person.crop.circle", text: "Sign in to Helium", palette: palette)
+      AgendaMessage(
+        symbol: "person.crop.circle", text: String(localized: "Sign in to Helium", bundle: entry.strings),
+        palette: palette)
     case .loaded:
       if let content = entry.content, !content.isEmpty {
         GeometryReader { proxy in
@@ -72,7 +76,8 @@ private struct AgendaHomeView: View {
             family: family, palette: palette)
         }
       } else {
-        AgendaMessage(symbol: "checkmark.circle", text: "All caught up", palette: palette)
+        AgendaMessage(
+          symbol: "checkmark.circle", text: String(localized: "All caught up", bundle: entry.strings), palette: palette)
       }
     }
   }
@@ -81,6 +86,7 @@ private struct AgendaHomeView: View {
 private struct AgendaHeader: View {
   let family: WidgetFamily
   let palette: AgendaPalette
+  let strings: Bundle
 
   var body: some View {
     HStack(spacing: 6) {
@@ -90,13 +96,15 @@ private struct AgendaHeader: View {
         .frame(width: 20, height: 20)
         .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
         .accessibilityHidden(true)
-      Text("Agenda")
+      Text(String(localized: "Agenda", bundle: strings))
         .font(AgendaFont.title(17))
         .foregroundStyle(palette.onSurface)
     }
     .frame(height: 22)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(family == .systemSmall ? "Agenda" : "Open Planner")
+    .accessibilityLabel(
+      family == .systemSmall
+        ? String(localized: "Agenda", bundle: strings) : String(localized: "Open Planner", bundle: strings))
     .accessibilityAddTraits(.isHeader)
   }
 }
@@ -143,10 +151,12 @@ struct AgendaLayout {
   let showsClass: Bool
   let today: String
   let days: [String: AgendaDay]
+  let strings: Bundle
 
   init(content: AgendaContent, family: WidgetFamily, height: CGFloat) {
     today = content.today
     days = content.days
+    strings = content.strings
     showsClass = family.showsDetails
 
     var remaining = height
@@ -197,18 +207,25 @@ private struct AgendaList: View {
           ForEach(fitted.items) { item in
             AgendaRow(
               item: item, today: layout.today, days: layout.days, showsClass: layout.showsClass, family: family,
-              palette: palette)
+              palette: palette, strings: layout.strings)
           }
           if fitted.olderOverdueCount > 0 {
-            AgendaNote(text: "+\(fitted.olderOverdueCount) older overdue", lineLimit: 1, palette: palette)
-              .accessibilityLabel("\(fitted.olderOverdueCount) older overdue")
-              .accessibilityInputLabels([Text("\(fitted.olderOverdueCount) older overdue"), Text("Open Planner")])
+            let olderOverdue = String(localized: "\(fitted.olderOverdueCount) older overdue", bundle: layout.strings)
+            AgendaNote(
+              text: String(localized: "+\(fitted.olderOverdueCount) older overdue", bundle: layout.strings),
+              lineLimit: 1, palette: palette)
+              .accessibilityLabel(olderOverdue)
+              .accessibilityInputLabels([
+                Text(olderOverdue), Text(String(localized: "Open Planner", bundle: layout.strings)),
+              ])
               .linked(to: AgendaLinks.overdueTodos, in: family)
           }
         }
       }
       if layout.showsNothingUpcoming {
-        AgendaNote(text: "Nothing due in the next 7 days", lineLimit: 2, palette: palette)
+        AgendaNote(
+          text: String(localized: "Nothing due in the next 7 days", bundle: layout.strings), lineLimit: 2,
+          palette: palette)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -246,6 +263,7 @@ private struct AgendaRow: View {
   let showsClass: Bool
   let family: WidgetFamily
   let palette: AgendaPalette
+  let strings: Bundle
 
   var body: some View {
     HStack(spacing: 0) {
@@ -291,14 +309,14 @@ private struct AgendaRow: View {
       if let dayPrefix = item.dayPrefix(today: today, days: days) {
         Text(dayPrefix)
           .layoutPriority(1)
-        Text(" · \(item.timeLabel)")
+        Text(verbatim: " · \(item.timeLabel)")
           .layoutPriority(2)
       } else {
         Text(item.timeLabel)
           .layoutPriority(2)
       }
       if showsClass, let className = item.className {
-        Text(" · \(className)")
+        Text(verbatim: " · \(className)")
       }
     }
   }
@@ -306,7 +324,10 @@ private struct AgendaRow: View {
   private func checkboxToggle(fillsColumn: Bool) -> some View {
     Toggle(isOn: item.completed, intent: BackgroundIntent(url: item.completionURL)) {}
       .toggleStyle(AgendaCheckboxToggleStyle(hex: item.color, fillsColumn: fillsColumn))
-      .accessibilityLabel(item.completed ? "Mark \(item.title) not done" : "Complete \(item.title)")
+      .accessibilityLabel(
+        item.completed
+          ? String(localized: "Mark \(item.title) not done", bundle: strings)
+          : String(localized: "Complete \(item.title)", bundle: strings))
   }
 
   private func opensItem(_ content: some View) -> some View {
@@ -315,7 +336,7 @@ private struct AgendaRow: View {
       .contentShape(Rectangle())
       .accessibilityElement(children: .ignore)
       .accessibilityLabel(([item.title] + item.secondaryParts(today: today, days: days)).joined(separator: ", "))
-      .accessibilityValue(item.completed ? "Completed" : "")
+      .accessibilityValue(item.completed ? String(localized: "Completed", bundle: strings) : "")
       .linked(to: item.url, in: family)
   }
 }
@@ -426,11 +447,11 @@ private struct AgendaRectangularView: View {
     VStack(alignment: .leading, spacing: 0) {
       switch entry.state {
       case .missing:
-        Text("Helium").font(.headline).widgetAccentable()
-        Text("Open Helium to see what's due").font(.caption)
+        Text(verbatim: "Helium").font(.headline).widgetAccentable()
+        Text(String(localized: "Open Helium to see what's due", bundle: entry.strings)).font(.caption)
       case .signedOut:
-        Text("Helium").font(.headline).widgetAccentable()
-        Text("Sign in to Helium").font(.caption)
+        Text(verbatim: "Helium").font(.headline).widgetAccentable()
+        Text(String(localized: "Sign in to Helium", bundle: entry.strings)).font(.caption)
       case .loaded:
         if let content = entry.content,
           let group = content.groups.first(where: { !$0.items.isEmpty }) ?? content.groups.first
@@ -442,26 +463,31 @@ private struct AgendaRectangularView: View {
             }
             Text(group.title)
             if olderOverdueCount > 0 {
-              Text("+\(olderOverdueCount) older")
+              Text(String(localized: "+\(olderOverdueCount) older", bundle: entry.strings))
             }
           }
           .font(.headline)
           .widgetAccentable()
           .accessibilityElement(children: .ignore)
           .accessibilityLabel(
-            olderOverdueCount > 0 ? "\(group.title), \(olderOverdueCount) older overdue" : group.title)
+            olderOverdueCount > 0
+              ? String(localized: "\(group.title), \(olderOverdueCount) older overdue", bundle: entry.strings)
+              : group.title)
           if let item = group.items.first(where: { !$0.completed }) ?? group.items.first {
             Text(item.title)
               .font(.body)
               .lineLimit(1)
             let more = content.groups.flatMap(\.items).filter { !$0.completed && $0.key != item.key }.count
-            Text(more > 0 ? "\(more) more" : item.secondaryLine(today: content.today, days: content.days))
+            Text(
+              more > 0
+                ? String(localized: "\(more) more", bundle: entry.strings)
+                : item.secondaryLine(today: content.today, days: content.days))
               .font(.caption)
               .foregroundStyle(.secondary)
               .lineLimit(1)
           }
         } else {
-          Label("All caught up", systemImage: "checkmark.circle")
+          Label(String(localized: "All caught up", bundle: entry.strings), systemImage: "checkmark.circle")
             .font(.headline)
             .widgetAccentable()
         }
@@ -482,16 +508,16 @@ private struct AgendaInlineView: View {
 
   private var summary: String {
     switch entry.state {
-    case .missing: return "Open Helium"
-    case .signedOut: return "Sign in to Helium"
+    case .missing: return String(localized: "Open Helium", bundle: entry.strings)
+    case .signedOut: return String(localized: "Sign in to Helium", bundle: entry.strings)
     case .loaded:
-      guard let content = entry.content else { return "All caught up" }
-      if content.overdueCount > 0 { return "\(content.overdueCount) overdue" }
+      guard let content = entry.content else { return String(localized: "All caught up", bundle: entry.strings) }
+      if content.overdueCount > 0 { return String(localized: "\(content.overdueCount) overdue", bundle: entry.strings) }
       for group in content.groups {
         let due = group.items.filter { !$0.completed }.count
-        if due > 0 { return "\(group.title) · \(due) due" }
+        if due > 0 { return String(localized: "\(group.title) · \(due) due", bundle: entry.strings) }
       }
-      return "All caught up"
+      return String(localized: "All caught up", bundle: entry.strings)
     }
   }
 }

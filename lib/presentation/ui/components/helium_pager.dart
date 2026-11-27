@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
@@ -72,7 +73,9 @@ class HeliumPager extends StatelessWidget {
   Widget _buildItemsCountText(BuildContext context) {
     final displayStart = totalItems > 0 ? startIndex + 1 : 0;
     return Text(
-      '${Responsive.isDesktop(context) ? 'Showing ' : ''}$displayStart to $endIndex of $totalItems',
+      Responsive.isDesktop(context)
+          ? AppLocalizations.of(context).pagerShowingRangeLabel(displayStart, endIndex, totalItems)
+          : AppLocalizations.of(context).pagerRangeLabel(displayStart, endIndex, totalItems),
       style: AppStyles.standardBodyTextLight(
         context,
       ).copyWith(color: context.colorScheme.onSurface.withValues(alpha: 0.7)),
@@ -86,7 +89,7 @@ class HeliumPager extends StatelessWidget {
       children: [
         IconButton(
           onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
-          icon: const Icon(Icons.first_page, semanticLabel: 'First page'),
+          icon: Icon(Icons.first_page, semanticLabel: AppLocalizations.of(context).pagerFirstPageLabel),
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -101,7 +104,7 @@ class HeliumPager extends StatelessWidget {
             onPressed: currentPage > 1
                 ? () => onPageChanged(currentPage - 1)
                 : null,
-            icon: const Icon(Icons.chevron_left, semanticLabel: 'Previous page'),
+            icon: Icon(Icons.chevron_left, semanticLabel: AppLocalizations.of(context).pagerPreviousPageLabel),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -119,7 +122,7 @@ class HeliumPager extends StatelessWidget {
             onPressed: currentPage < totalPages
                 ? () => onPageChanged(currentPage + 1)
                 : null,
-            icon: const Icon(Icons.chevron_right, semanticLabel: 'Next page'),
+            icon: Icon(Icons.chevron_right, semanticLabel: AppLocalizations.of(context).pagerNextPageLabel),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -134,7 +137,7 @@ class HeliumPager extends StatelessWidget {
           onPressed: currentPage < totalPages
               ? () => onPageChanged(totalPages)
               : null,
-          icon: const Icon(Icons.last_page, semanticLabel: 'Last page'),
+          icon: Icon(Icons.last_page, semanticLabel: AppLocalizations.of(context).pagerLastPageLabel),
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -243,7 +246,7 @@ class HeliumPager extends StatelessWidget {
     final dropDownItems = itemsPerPageOptions.map((value) {
       return DropDownItem<String>(
         id: value,
-        value: value == -1 ? 'All' : value.toString(),
+        value: value == -1 ? AppLocalizations.of(context).pagerAllOption : value.toString(),
       );
     }).toList();
 
@@ -255,7 +258,7 @@ class HeliumPager extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Show',
+          AppLocalizations.of(context).pagerShowLabel,
           style: AppStyles.standardBodyTextLight(context).copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: 0.7),
           ),

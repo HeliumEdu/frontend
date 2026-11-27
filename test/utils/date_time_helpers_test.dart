@@ -187,8 +187,8 @@ void main() {
         );
 
         // THEN
-        expect(later, 'around the same time as');
-        expect(earlier, 'around the same time as');
+        expect(later, (direction: 'sameTime', gap: ''));
+        expect(earlier, (direction: 'sameTime', gap: ''));
       });
 
       test('under a day reads in minutes or hours, with its direction', () {
@@ -203,8 +203,8 @@ void main() {
         );
 
         // THEN
-        expect(minutesAfter, '3 minutes after');
-        expect(hoursBefore, 'about 3 hours before');
+        expect(minutesAfter, (direction: 'after', gap: '3 minutes'));
+        expect(hoursBefore, (direction: 'before', gap: 'about 3 hours'));
       });
 
       test('a day or more reads in whole days', () {
@@ -219,8 +219,8 @@ void main() {
         );
 
         // THEN
-        expect(nearlyADay, 'about a day after');
-        expect(days, 'about 2 days after');
+        expect(nearlyADay, (direction: 'after', gap: 'about a day'));
+        expect(days, (direction: 'after', gap: 'about 2 days'));
       });
     });
 

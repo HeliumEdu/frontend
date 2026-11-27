@@ -58,6 +58,11 @@ class GradeCourseModel extends BaseTitledModel {
     return ungraded;
   }
 
+  List<GradeCategoryModel> get categoriesNotCounted {
+    if (!categories.any((c) => c.weight > 0)) return const [];
+    return categories.where((c) => c.weight <= 0 && c.numHomeworkGraded > 0).toList();
+  }
+
   factory GradeCourseModel.fromJson(Map<String, dynamic> json) {
     return GradeCourseModel(
       id: json['id'],

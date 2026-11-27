@@ -1,3 +1,4 @@
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
 
@@ -34,26 +35,26 @@ class ScheduleTemplate {
 
   /// A short label for a rotating schedule ("6-Day Cycle", "Week A"), or null
   /// for a plain weekly one.
-  static String? summaryLabel(CourseScheduleModel schedule) {
+  static String? labelFor(CourseScheduleModel schedule) {
     if (schedule.isDayCycle) {
       switch (schedule.template) {
         case abDay:
-          return 'A/B Day';
+          return LocaleNotifier().localizations.scheduleTemplateAbDay;
         case sixDayCycle:
-          return '6-Day Cycle';
+          return LocaleNotifier().localizations.scheduleTemplateSixDayCycle;
         case sevenDayCycle:
-          return '7-Day Cycle';
+          return LocaleNotifier().localizations.scheduleTemplateSevenDayCycle;
         case eightDayCycle:
-          return '8-Day Cycle';
+          return LocaleNotifier().localizations.scheduleTemplateEightDayCycle;
         case tenDayCycle:
-          return '10-Day Cycle';
+          return LocaleNotifier().localizations.scheduleTemplateTenDayCycle;
         default:
-          return '${schedule.cycleLength}-Day Cycle';
+          return LocaleNotifier().localizations.scheduleTemplateCustomCycle(schedule.cycleLength!);
       }
     }
     if (schedule.isWeekBased) {
       final offset = schedule.weekOffset ?? 0;
-      return offset == 0 ? 'Week A' : 'Week B';
+      return offset == 0 ? LocaleNotifier().localizations.scheduleWeekA : LocaleNotifier().localizations.scheduleWeekB;
     }
     return null;
   }
@@ -63,29 +64,29 @@ class ScheduleTemplate {
   /// dropdown only when editing a schedule that already carries a raw custom
   /// rotation (created via the API or an import).
   static List<DropDownItem<int>> get items => [
-        DropDownItem(id: abDay, value: abDay, label: 'A/B Day'),
-        DropDownItem(id: sixDayCycle, value: sixDayCycle, label: '6-Day Cycle'),
+        DropDownItem(id: abDay, value: abDay, label: LocaleNotifier().localizations.scheduleTemplateAbDay),
+        DropDownItem(id: sixDayCycle, value: sixDayCycle, label: LocaleNotifier().localizations.scheduleTemplateSixDayCycle),
         DropDownItem(
           id: sevenDayCycle,
           value: sevenDayCycle,
-          label: '7-Day Cycle',
+          label: LocaleNotifier().localizations.scheduleTemplateSevenDayCycle,
         ),
         DropDownItem(
           id: eightDayCycle,
           value: eightDayCycle,
-          label: '8-Day Cycle',
+          label: LocaleNotifier().localizations.scheduleTemplateEightDayCycle,
         ),
         DropDownItem(
           id: tenDayCycle,
           value: tenDayCycle,
-          label: '10-Day Cycle',
+          label: LocaleNotifier().localizations.scheduleTemplateTenDayCycle,
         ),
-        DropDownItem(id: weekAb, value: weekAb, label: 'Week A/B'),
+        DropDownItem(id: weekAb, value: weekAb, label: LocaleNotifier().localizations.scheduleTemplateWeekAb),
       ];
 
   /// Dropdown item for a cycle whose length isn't one of the presets, shown by
   /// its length (e.g. "3-Day Cycle"). Injected only when editing such a schedule
   /// (created via the API or an import); never offered when creating a new one.
   static DropDownItem<int> customCycleItem(int cycleLength) =>
-      DropDownItem(id: custom, value: custom, label: '$cycleLength-Day Cycle');
+      DropDownItem(id: custom, value: custom, label: LocaleNotifier().localizations.scheduleTemplateCustomCycle(cycleLength));
 }

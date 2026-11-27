@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
@@ -87,7 +88,9 @@ class PageHeader extends StatelessWidget {
                     color: isLoading
                         ? context.colorScheme.secondary.withValues(alpha: 0.3)
                         : context.colorScheme.secondary,
-                    semanticLabel: cancelIcon == Icons.close ? 'Close' : 'Back',
+                    semanticLabel: cancelIcon == Icons.close
+                        ? AppLocalizations.of(context).commonCloseLabel
+                        : AppLocalizations.of(context).commonBackLabel,
                   ),
                 ),
               ),
@@ -123,7 +126,7 @@ class PageHeader extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: () => UrlHelpers.launchWebUrl(helpUrl!),
-                tooltip: 'Learn more',
+                tooltip: AppLocalizations.of(context).commonLearnMoreTooltip,
                 icon: Icon(
                   Icons.menu_book_outlined,
                   color: context.colorScheme.primary,
@@ -147,7 +150,7 @@ class PageHeader extends StatelessWidget {
                     final bell = Icon(
                       Icons.notifications,
                       color: context.colorScheme.primary,
-                      semanticLabel: 'Notifications',
+                      semanticLabel: AppLocalizations.of(context).pageNotificationsLabel,
                     );
                     if (count == 0) return bell;
                     return Badge(
@@ -172,7 +175,7 @@ class PageHeader extends StatelessWidget {
                       },
                 icon: isLoading
                     ? Semantics(
-                        label: 'Save',
+                        label: AppLocalizations.of(context).pageSaveLabel,
                         child: const LoadingIndicator(
                           size: 20,
                           expanded: false,
@@ -182,7 +185,7 @@ class PageHeader extends StatelessWidget {
                     : Icon(
                         Icons.check,
                         color: context.colorScheme.primary,
-                        semanticLabel: 'Save',
+                        semanticLabel: AppLocalizations.of(context).pageSaveLabel,
                       ),
               ),
 

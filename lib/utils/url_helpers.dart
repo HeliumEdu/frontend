@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
@@ -18,7 +19,7 @@ class UrlHelpers {
     } on PlatformException {
       final context = rootScaffoldMessengerKey.currentContext;
       if (context != null && context.mounted) {
-        SnackBarHelper.show(context, 'Failed to open link.', type: SnackType.error);
+        SnackBarHelper.show(context, LocaleNotifier().localizations.urlOpenLinkFailedMessage, type: SnackType.error);
       }
     }
   }
@@ -30,7 +31,7 @@ class UrlHelpers {
     } on PlatformException {
       final context = rootScaffoldMessengerKey.currentContext;
       if (context != null && context.mounted) {
-        SnackBarHelper.show(context, 'Failed to open email client.', type: SnackType.error);
+        SnackBarHelper.show(context, LocaleNotifier().localizations.urlOpenEmailFailedMessage, type: SnackType.error);
       }
     }
   }

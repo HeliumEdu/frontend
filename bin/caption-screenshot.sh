@@ -2,19 +2,20 @@
 # Composites one framed screenshot onto a brand-colored canvas at its store's
 # dimensions, with the shot's heading and subline above the device.
 #
-# Usage: caption-screenshot.sh <framed.png> <out.png> <slug>
+# Usage: caption-screenshot.sh <framed.png> <out.png> <slug> [captions.csv]
 #   slug: NN-<shot>_<device>, e.g. 01-month-view_iphone
+#   captions.csv: defaults to the English bin/screenshot-captions.csv; Crowdin
+#     writes each language's copy as bin/screenshot-captions.<lang>.csv
 #
-# Captions come from bin/screenshot-captions.tsv (<shot><TAB><heading><TAB><subline>),
-# taken from the store listing's feature sections.
+# Captions are <shot>.heading and <shot>.subline rows (<key>,<text>), taken from
+# the store listing's feature sections.
 #
-# Requires: ImageMagick 7+ (magick) or ImageMagick 6 (convert).
+# Requires: ImageMagick 7+ (magick).
 
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$REPO/bin/image-helpers.sh"
-CAPTIONS="$REPO/bin/screenshot-captions.tsv"
 HEADING_FONT="$REPO/assets/fonts/Poppins-SemiBold.ttf"
 SUBLINE_FONT="$REPO/assets/fonts/Poppins-Regular.ttf"
 BG_COLOR="#418eb9"
@@ -23,14 +24,7 @@ TEXT_COLOR="#ffffff"
 framed="$1"
 out="$2"
 slug="$3"
-
-if command -v magick >/dev/null; then
-  IM=(magick)
-  IM_IDENTIFY=(magick identify)
-else
-  IM=(convert)
-  IM_IDENTIFY=(identify)
-fi
+captions="${4:-$REPO/bin/screenshot-captions.csv}"
 
 device="${slug##*_}"
 shot="${slug%_*}"
@@ -47,10 +41,14 @@ case "$device" in
   *) echo "✗ Unknown device '$device' in slug '$slug'" >&2; exit 1 ;;
 esac
 
-heading=$(awk -F'\t' -v shot="$shot" '$1 == shot { print $2; exit }' "$CAPTIONS")
-subline=$(awk -F'\t' -v shot="$shot" '$1 == shot { print $3; exit }' "$CAPTIONS")
+caption() {
+  python3 -c 'import csv, sys; print(next((row[1] for row in csv.reader(open(sys.argv[1], encoding="utf-8")) if row and row[0] == sys.argv[2]), ""))' "$captions" "$1"
+}
+
+heading=$(caption "$shot.heading")
+subline=$(caption "$shot.subline")
 if [[ -z "$heading" || -z "$subline" ]]; then
-  echo "✗ No heading and subline for '$shot' in $CAPTIONS" >&2
+  echo "✗ No heading and subline for '$shot' in $captions" >&2
   exit 1
 fi
 
@@ -72,27 +70,27 @@ trap 'rm -f "$heading_png" "$subline_png" "$text_png" "$rendered_png"' EXIT
 # caption block, and the device under it, sits at the same height.
 render_text() {
   local font="$1" size="$2" text="$3" out_png="$4"
-  "${IM[@]}" -background none -fill "$TEXT_COLOR" -font "$font" -pointsize "$size" \
-    -size "${text_width}x" -gravity center caption:"$text" "$out_png"
+  printf '%s' "$text" | magick -background none -fill "$TEXT_COLOR" -font "$font" -pointsize "$size" \
+    -size "${text_width}x" -gravity center caption:@- "$out_png"
   local line_height
-  line_height=$("${IM[@]}" -background none -font "$font" -pointsize "$size" label:"Hg" -format "%h" info:)
-  if (( $("${IM_IDENTIFY[@]}" -format "%h" "$out_png") > line_height )); then
+  line_height=$(magick -background none -font "$font" -pointsize "$size" label:"Hg" -format "%h" info:)
+  if (( $(magick identify -format "%h" "$out_png") > line_height )); then
     echo "⚠ '$text' wraps onto a second line for $device; shots with wrapped captions sit lower" >&2
   fi
 }
 
 render_text "$HEADING_FONT" "$heading_size" "$heading" "$heading_png"
 render_text "$SUBLINE_FONT" "$subline_size" "$subline" "$subline_png"
-"${IM[@]}" -background none "$heading_png" \
+magick -background none "$heading_png" \
   \( -size "1x$(( subline_size * 6 / 10 ))" xc:none \) "$subline_png" \
   -gravity center -append "$text_png"
-text_height=$("${IM_IDENTIFY[@]}" -format "%h" "$text_png")
+text_height=$(magick identify -format "%h" "$text_png")
 
 device_top=$(( top_margin + text_height + caption_gap ))
 device_box_width=$(( width - 2 * side_margin ))
 device_box_height=$(( height - device_top - bottom_margin ))
 
-"${IM[@]}" -size "${width}x${height}" "xc:$BG_COLOR" \
+magick -size "${width}x${height}" "xc:$BG_COLOR" \
   "$text_png" -gravity north -geometry "+0+${top_margin}" -composite \
   \( "$framed" -resize "${device_box_width}x${device_box_height}" \) \
   -gravity north -geometry "+0+${device_top}" -composite \

@@ -5,6 +5,9 @@ import 'package:heliumapp/domain/repositories/category_repository.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
+import 'package:logging/logging.dart';
+
+final _log = Logger('presentation.bloc');
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryRepository categoryRepository;
@@ -38,7 +41,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -63,7 +66,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -95,7 +98,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -114,38 +117,28 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         event.categoryId,
       );
 
-      List<CategoryModel> categories = [];
-      if (event.isLastCategory) {
-        // Wait for the backend to provision "Uncategorized" so it can be emitted
-        const int maxRetries = 2;
-        int retries = 0;
-        while (retries < maxRetries &&
-            (categories.isEmpty || categories[0].title != 'Uncategorized')) {
-          await Future.delayed(const Duration(seconds: 1));
-          retries += 1;
-
-          categories = await categoryRepository.getCategories(
-            courseId: event.courseId,
-          );
-        }
-      }
-
       emit(CategoryDeleted(origin: event.origin, id: event.categoryId));
-
-      if (event.isLastCategory) {
-        emit(
-          CategoriesFetched(origin: EventOrigin.bloc, categories: categories),
-        );
-      }
     } on HeliumException catch (e) {
       emit(CategoriesError(origin: event.origin, message: e.message));
+      return;
     } catch (e) {
       emit(
         CategoriesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
+      return;
+    }
+
+    try {
+      final categories = await categoryRepository.getCategories(
+        courseId: event.courseId,
+        forceRefresh: true,
+      );
+      emit(CategoriesFetched(origin: EventOrigin.bloc, categories: categories));
+    } on HeliumException catch (e) {
+      _log.warning('Failed to refetch categories after a delete: ${e.runtimeType} code=${e.code}');
     }
   }
 }

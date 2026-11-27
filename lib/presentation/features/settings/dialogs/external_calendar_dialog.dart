@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/models/planner/request/external_calendar_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_state.dart';
@@ -41,7 +42,7 @@ class _ExternalCalendarWidgetState
       ExternalCalendarFormController();
 
   @override
-  String get dialogTitle => 'External Calendar';
+  String get dialogTitle => AppLocalizations.of(context).externalCalendarDialogTitle;
 
   @override
   BasicFormController get formController => _formController;
@@ -107,7 +108,7 @@ class _ExternalCalendarWidgetState
             );
             setState(() {
               if (externalCalendar == null) {
-                errorMessage = 'External calendar not found.';
+                errorMessage = AppLocalizations.of(context).externalCalendarNotFoundMessage;
               }
               _populateScreenData(
                 externalCalendar ?? widget.externalCalendar!,
@@ -137,7 +138,7 @@ class _ExternalCalendarWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LabelAndTextFormField(
-          label: 'Name',
+          label: AppLocalizations.of(context).externalCalendarNameLabel,
           autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           controller: _formController.titleController,
           validator: BasicFormController.validateRequiredField,
@@ -146,7 +147,7 @@ class _ExternalCalendarWidgetState
         ),
         const SizedBox(height: 14),
         LabelAndTextFormField(
-          label: 'URL (iCal)',
+          label: AppLocalizations.of(context).externalCalendarUrlLabel,
           controller: _formController.urlController,
           validator: BasicFormController.validateRequiredUrl,
           keyboardType: TextInputType.url,
@@ -157,7 +158,7 @@ class _ExternalCalendarWidgetState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             ColorSelector(
-              label: 'Color',
+              label: AppLocalizations.of(context).commonColorLabel,
               selectedColor: _formController.selectedColor,
               onColorSelected: (color) {
                 _formController.markChanged();
@@ -170,7 +171,9 @@ class _ExternalCalendarWidgetState
               child: Row(
                 children: [
                   Text(
-                    Responsive.isNarrowMobile(context) ? 'Show' : 'Show on calendar',
+                    Responsive.isNarrowMobile(context)
+                        ? AppLocalizations.of(context).externalCalendarShowLabel
+                        : AppLocalizations.of(context).externalCalendarShowOnCalendarLabel,
                     style: AppStyles.formLabel(context),
                   ),
                   const SizedBox(width: 4),

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/dio_error_mapper.dart';
 import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:logging/logging.dart';
@@ -36,16 +37,16 @@ class PickedFileError {
   }) : _allowedExtensions = allowedExtensions,
        _maxUploadSize = maxUploadSize;
 
-  String get userMessage => switch (reason) {
+  String get displayMessage => switch (reason) {
     PickedFileErrorReason.fileTooLarge => _maxUploadSize != null
-        ? 'File size cannot exceed ${_maxUploadSize.inMegabytes} MB: $name'
-        : 'File size exceeded the allowed limit: $name',
+        ? LocaleNotifier().localizations.storageFileSizeLimitMessage(_maxUploadSize.inMegabytes, name)
+        : LocaleNotifier().localizations.storageFileTooLargeMessage(name),
     PickedFileErrorReason.readError =>
-      'An error occurred while reading the file: $name',
+      LocaleNotifier().localizations.storageFileReadErrorMessage(name),
     PickedFileErrorReason.wrongFileType =>
       _allowedExtensions != null && _allowedExtensions.isNotEmpty
-          ? 'Please select a ${_allowedExtensions.map((e) => e.toUpperCase()).join(' or ')} file'
-          : 'Invalid file type',
+          ? LocaleNotifier().localizations.storageWrongFileTypeMessage(_allowedExtensions.map((e) => e.toUpperCase()).reduce(LocaleNotifier().localizations.storageFileTypeAlternatives))
+          : LocaleNotifier().localizations.storageInvalidFileTypeMessage,
   };
 }
 
@@ -193,11 +194,11 @@ class HeliumStorage {
       DioErrorMapper.map(e, s);
       return _failed(
         DioErrorMapper.clientErrorMessage(e) ??
-            'Failed to download "$filename".',
+            LocaleNotifier().localizations.storageDownloadFailedMessage(filename),
       );
     } catch (e) {
       _log.severe('An error occurred during file download', e);
-      return _failed('Failed to download "$filename".');
+      return _failed(LocaleNotifier().localizations.storageDownloadFailedMessage(filename));
     }
   }
 
@@ -206,7 +207,7 @@ class HeliumStorage {
 
   static DownloadResult _resultFor(DownloadStatus status, String filename) {
     return status == DownloadStatus.failed
-        ? _failed('Failed to download "$filename".')
+        ? _failed(LocaleNotifier().localizations.storageDownloadFailedMessage(filename))
         : DownloadResult(status: status);
   }
 
@@ -219,7 +220,7 @@ class HeliumStorage {
       return _resultFor(await downloadBytesPlatform(bytes, filename), filename);
     } catch (e) {
       _log.severe('An error occurred during bytes download', e);
-      return _failed('Failed to download "$filename".');
+      return _failed(LocaleNotifier().localizations.storageDownloadFailedMessage(filename));
     }
   }
 }

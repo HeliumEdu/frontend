@@ -24,6 +24,7 @@ import 'package:heliumapp/data/models/planner/request/note_request_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_bloc.dart';
 import 'package:heliumapp/presentation/features/notebook/bloc/note_event.dart';
@@ -38,6 +39,7 @@ import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
@@ -374,9 +376,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   @override
-  String get entityName => 'Note';
+  String get screenTitle => hasSavedEntity
+      ? AppLocalizations.of(context).noteEditTitle
+      : AppLocalizations.of(context).noteAddTitle;
 
-  @override
   bool get hasSavedEntity => (_note?.id ?? widget.noteId) != null;
 
   @override
@@ -400,7 +403,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         onPressed: _onDelete,
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
     ];
@@ -494,7 +497,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       _pendingRedirectRoute = null;
       showSnackBar(
         context,
-        'Fix the highlighted fields, then try again.',
+        AppLocalizations.of(context).plannerItemFixFieldsMessage,
         type: SnackType.error,
       );
       return;
@@ -505,7 +508,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
     if (_note?.id == null && _linkedEntityType != null && bodyIsEmpty) {
       showSnackBar(
         context,
-        'Note was empty, so nothing to save.',
+        AppLocalizations.of(context).noteEmptyNotSavedMessage,
         useRootMessenger: true,
       );
       _closeImmediately();
@@ -675,7 +678,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
               _closeOrSaveNewerEdits(state.note);
             }
           } else if (state is NoteDeleted) {
-            showSnackBar(context, 'Note deleted.', useRootMessenger: true);
+            showSnackBar(context, AppLocalizations.of(context).noteDeletedMessage, useRootMessenger: true);
             _closeImmediately();
           }
         },
@@ -881,7 +884,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       canKeepEditing: true,
       message:
           message ??
-          ConflictMessage.changedAt(latest.version, subject: 'This note'),
+          ConflictMessage.changedAt(AppLocalizations.of(context), latest.version, item: 'note'),
     );
   }
 
@@ -947,7 +950,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
   }
 
   String _takeNoteCreatedMessage() {
-    if (!_isRecreatingDeletedNote) return 'Note created.';
+    if (!_isRecreatingDeletedNote) return AppLocalizations.of(context).noteCreatedMessage;
     _isRecreatingDeletedNote = false;
     return noteRecreatedMessage;
   }
@@ -1103,11 +1106,11 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         _onSaveConflict(
           note,
           wasManualSave: false,
-          message: changedSinceDraftMessage(note, draftSavedAt),
+          message: changedSinceDraftMessage(AppLocalizations.of(context), note, draftSavedAt),
         );
         return;
       }
-      const recoveredMessage = 'Your unsaved changes were recovered.';
+      final recoveredMessage = AppLocalizations.of(context).noteChangesRecoveredMessage;
       showSnackBar(
         context,
         recoveredMessage,
@@ -1259,7 +1262,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
             children: [
               Expanded(
                 child: LabelAndTextFormField(
-                  hintText: 'Title',
+                  hintText: AppLocalizations.of(context).noteTitleHint,
                   controller: _titleController,
                   focusNode: _titleFocusNode,
                   autofocus: PlatformBehavior.autofocusesOnOpen,
@@ -1295,8 +1298,8 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       context,
       buildPdf: (format) => NotePdfHelpers.buildNotePdf(delta, format),
       source: router.routerDelegate.currentConfiguration.fullPath,
-      title: title.isNotEmpty ? title : 'Note Preview',
-      filename: title.isNotEmpty ? '$title.pdf' : 'note.pdf',
+      title: title.isNotEmpty ? title : AppLocalizations.of(context).notePdfPreviewTitle,
+      filename: title.isNotEmpty ? '$title.pdf' : AppLocalizations.of(context).notePdfFilename,
     );
   }
 
@@ -1344,7 +1347,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
-                    'Standalone',
+                    AppLocalizations.of(context).noteStandaloneLabel,
                     style: AppStyles.standardBodyText(context)
                         .copyWith(color: textColor),
                     overflow: TextOverflow.ellipsis,
@@ -1357,7 +1360,12 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       );
     }
 
-    final VoidCallback? onDelete = !_isLinking ? _unlinkNote : null;
+    final deleteAction = _isLinking
+        ? null
+        : LabelDeleteAction(
+            onPressed: _unlinkNote,
+            label: AppLocalizations.of(context).noteUnlinkLabel,
+          );
 
     final Widget badge;
     if (entityType == 'resource') {
@@ -1365,8 +1373,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         title: title,
         userSettings: userSettings,
         textDecoration: strikethrough,
-        onDelete: onDelete,
-        onDeleteLabel: 'Unlink',
+        deleteAction: deleteAction,
       );
     } else if (entityType == 'course') {
       badge = CourseTitleLabel(
@@ -1374,8 +1381,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         color: _note?.courseColor ??
             _linkedEntityColor ??
             FallbackConstants.fallbackColor,
-        onDelete: onDelete,
-        onDeleteLabel: 'Unlink',
+        deleteAction: deleteAction,
       );
     } else if (entityType == 'event') {
       badge = GenericLabel(
@@ -1383,8 +1389,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         color: userSettings.eventsColor,
         icon: AppConstants.eventIcon,
         textDecoration: strikethrough,
-        onDelete: onDelete,
-        onDeleteLabel: 'Unlink',
+        deleteAction: deleteAction,
       );
     } else {
       final courseColor = _note?.courseColor ?? _linkedEntityColor;
@@ -1398,8 +1403,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         color: badgeColor ?? FallbackConstants.fallbackColor,
         icon: AppConstants.assignmentIcon,
         textDecoration: strikethrough,
-        onDelete: onDelete,
-        onDeleteLabel: 'Unlink',
+        deleteAction: deleteAction,
       );
     }
 
@@ -1431,9 +1435,9 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       };
       if (route != null) {
         final tooltip = switch (entityType) {
-          'resource' => 'Open in Resources',
-          'course' => 'Open in Classes',
-          _ => 'Open in Planner',
+          'resource' => AppLocalizations.of(context).noteOpenInResourcesTooltip,
+          'course' => AppLocalizations.of(context).noteOpenInClassesTooltip,
+          _ => AppLocalizations.of(context).noteOpenInPlannerTooltip,
         };
         badgeWidget = MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -1547,35 +1551,35 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         _linkPickerType = selected.first;
         _linkPickerSearchController.clear();
       }),
-      segments: const [
+      segments: [
         ButtonSegment(
           value: 'homework',
-          icon: Icon(AppConstants.assignmentIcon),
-          tooltip: 'Assignment',
+          icon: const Icon(AppConstants.assignmentIcon),
+          tooltip: AppLocalizations.of(context).noteLinkAssignmentTooltip,
         ),
         ButtonSegment(
           value: 'course',
-          icon: Icon(Icons.school_outlined),
-          tooltip: 'Class',
+          icon: const Icon(Icons.school_outlined),
+          tooltip: AppLocalizations.of(context).noteLinkClassTooltip,
         ),
         ButtonSegment(
           value: 'event',
-          icon: Icon(AppConstants.eventIcon),
-          tooltip: 'Event',
+          icon: const Icon(AppConstants.eventIcon),
+          tooltip: AppLocalizations.of(context).noteLinkEventTooltip,
         ),
         ButtonSegment(
           value: 'resource',
-          icon: Icon(Icons.book_outlined),
-          tooltip: 'Resource',
+          icon: const Icon(Icons.book_outlined),
+          tooltip: AppLocalizations.of(context).noteLinkResourceTooltip,
         ),
       ],
     );
     final title = Text(
       switch (_linkPickerType) {
-        'event' => 'Link Event',
-        'resource' => 'Link Resource',
-        'course' => 'Link Class',
-        _ => 'Link Assignment',
+        'event' => AppLocalizations.of(context).noteLinkEventTitle,
+        'resource' => AppLocalizations.of(context).noteLinkResourceTitle,
+        'course' => AppLocalizations.of(context).noteLinkClassTitle,
+        _ => AppLocalizations.of(context).noteLinkAssignmentTitle,
       },
       style: AppStyles.pageTitle(context).copyWith(
         fontSize: Responsive.getFontSize(
@@ -1598,7 +1602,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         Icons.close,
         size: 20,
         color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-        semanticLabel: 'Close',
+        semanticLabel: AppLocalizations.of(context).commonCloseLabel,
       ),
       onPressed: () => setState(() {
         _showLinkPicker = false;
@@ -1781,10 +1785,10 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
       return Center(
         child: Text(
           switch (_linkPickerType) {
-            'event' => query.isEmpty ? 'No available events' : 'No events match',
-            'resource' => query.isEmpty ? 'No available resources' : 'No resources match',
-            'course' => query.isEmpty ? 'No available classes' : 'No classes match',
-            _ => query.isEmpty ? 'No available assignments' : 'No assignments match',
+            'event' => query.isEmpty ? AppLocalizations.of(context).noteLinkNoEventsMessage : AppLocalizations.of(context).noteLinkNoEventsMatchMessage,
+            'resource' => query.isEmpty ? AppLocalizations.of(context).noteLinkNoResourcesMessage : AppLocalizations.of(context).noteLinkNoResourcesMatchMessage,
+            'course' => query.isEmpty ? AppLocalizations.of(context).noteLinkNoClassesMessage : AppLocalizations.of(context).noteLinkNoClassesMatchMessage,
+            _ => query.isEmpty ? AppLocalizations.of(context).noteLinkNoAssignmentsMessage : AppLocalizations.of(context).noteLinkNoAssignmentsMatchMessage,
           },
           style: AppStyles.standardBodyTextLight(context).copyWith(
             color: onSurface50,
@@ -1830,7 +1834,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                 final formatted = item.allDay
                     ? HeliumDateTime.formatDateForTodos(localDate)
                     : HeliumDateTime.formatDateAndTimeForTodos(localDate);
-                return item.repeats ? 'From $formatted' : formatted;
+                return item.repeats ? AppLocalizations.of(context).noteLinkRepeatsFromDate(formatted) : formatted;
               }()
             : null;
         return Padding(
@@ -1861,7 +1865,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
                       Icons.repeat,
                       size: 14,
                       color: context.colorScheme.outline,
-                      semanticLabel: 'Repeats',
+                      semanticLabel: AppLocalizations.of(context).noteLinkRepeatsLabel,
                     ),
                   ],
                 ],

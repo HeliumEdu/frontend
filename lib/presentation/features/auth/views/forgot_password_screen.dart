@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -26,7 +27,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState
     extends BasePageScreenState<ForgotPasswordScreen> {
   @override
-  String get screenTitle => 'Forgot Password';
+  String get screenTitle => AppLocalizations.of(context).forgotPasswordTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -67,7 +68,7 @@ class _ForgotPasswordScreenState
           } else if (state is AuthPasswordReset) {
             showSnackBar(
               context,
-              'Check your email for a link to reset your password.',
+              AppLocalizations.of(context).forgotPasswordCheckEmailMessage,
               seconds: 6,
             );
 
@@ -137,8 +138,8 @@ class _ForgotPasswordScreenState
 
               Text(
                 _emailSent
-                    ? 'Check your email for a link to reset your password.'
-                    : 'Enter the email associated with your account and we\'ll send you a password reset link.',
+                    ? AppLocalizations.of(context).forgotPasswordCheckEmailMessage
+                    : AppLocalizations.of(context).forgotPasswordInstructions,
                 style: AppStyles.headingText(context),
                 textAlign: TextAlign.center,
               ),
@@ -146,7 +147,7 @@ class _ForgotPasswordScreenState
               if (_emailSent) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'If an account with a password exists for that address, you\'ll receive a reset link shortly.',
+                  AppLocalizations.of(context).forgotPasswordSentDetail,
                   style: AppStyles.smallSecondaryText(context),
                   textAlign: TextAlign.center,
                 ),
@@ -156,7 +157,7 @@ class _ForgotPasswordScreenState
 
               if (!_emailSent) ...[
                 LabelAndTextFormField(
-                  hintText: 'Email',
+                  hintText: AppLocalizations.of(context).authEmailHint,
                   autofocus: PlatformBehavior.autofocusesOnOpen,
                   prefixIcon: Icons.email_outlined,
                   controller: _emailController,
@@ -168,7 +169,7 @@ class _ForgotPasswordScreenState
                 const SizedBox(height: 25),
 
                 HeliumElevatedButton(
-                  buttonText: 'Send Reset Link',
+                  buttonText: AppLocalizations.of(context).forgotPasswordSendButton,
                   isLoading: isSubmitting,
                   onPressed: _onSubmit,
                 ),
@@ -196,7 +197,7 @@ class _ForgotPasswordScreenState
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Back to sign in',
+                        AppLocalizations.of(context).authBackToSignInLink,
                         style: AppStyles.buttonText(
                           context,
                         ).copyWith(color: context.colorScheme.primary),

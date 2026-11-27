@@ -82,7 +82,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           background: event.background,
         ),
       );
@@ -147,7 +147,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourceScreenDataFailed(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           resourceGroupId: event.resourceGroupId,
           resourceId: event.resourceId,
         ),
@@ -176,7 +176,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -210,7 +210,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -232,7 +232,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -265,7 +265,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -317,7 +317,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -340,7 +340,7 @@ class ResourceBloc extends Bloc<ResourceEvent, ResourceState> {
       emit(
         ResourcesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }

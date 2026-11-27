@@ -5,6 +5,7 @@ import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -12,8 +13,6 @@ import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:timezone/standalone.dart' as tz;
 
 enum ConflictResolution { keepEditing, loadLatest, overwrite }
-
-const _saveOverQuestion = 'Save your changes over that version?';
 
 /// A conflict's text. [body] ends in one question that [saveLabel]
 /// answers yes to; [discardLabel] answers no.
@@ -25,27 +24,27 @@ class ConflictMessage {
   final bool isSaveDestructive;
 
   const ConflictMessage({
-    this.title = 'Changed on Another Device',
-    this.body =
-        'This was changed on another device after you opened it. '
-        '$_saveOverQuestion',
-    this.discardLabel = 'Discard Changes',
-    this.saveLabel = 'Save Changes',
+    required this.title,
+    required this.body,
+    required this.discardLabel,
+    required this.saveLabel,
     this.isSaveDestructive = false,
   });
 
   /// The default message, saying when the other device saved [latestVersion].
-  /// [subject] names what changed, like "This note".
+  /// [item] names what changed: assignment, event, class, resource or note,
+  /// and anything else reads "This".
   factory ConflictMessage.changedAt(
+    AppLocalizations l10n,
     String? latestVersion, {
-    String subject = 'This',
+    String item = 'other',
   }) {
-    final changed = describeVersionSaved(latestVersion);
-    final when = changed == null ? '' : ' $changed,';
+    final when = describeVersionSaved(latestVersion);
     return ConflictMessage(
-      body:
-          '$subject was changed on another device$when after you opened it. '
-          '$_saveOverQuestion',
+      title: l10n.conflictChangedTitle,
+      body: when == null ? l10n.conflictChangedMessage(item) : l10n.conflictChangedAtMessage(item, when),
+      discardLabel: l10n.conflictDiscardChangesButton,
+      saveLabel: l10n.conflictSaveChangesButton,
     );
   }
 }
@@ -67,7 +66,7 @@ Future<void> resolveConflict(
   required VoidCallback onLoadLatest,
   required VoidCallback onOverwrite,
   bool canKeepEditing = false,
-  ConflictMessage message = const ConflictMessage(),
+  required ConflictMessage message,
 }) async {
   final resolution = await confirmConflictResolution(
     context,
@@ -126,7 +125,7 @@ Future<void> resolveFormConflict(
     onLoadLatest: form.loadLatest,
     onOverwrite: form.overwriteNewer,
     canKeepEditing: canKeepEditing,
-    message: ConflictMessage.changedAt(latestVersion),
+    message: ConflictMessage.changedAt(AppLocalizations.of(context), latestVersion),
   );
 }
 
@@ -134,7 +133,7 @@ Future<void> resolveFormConflict(
 Future<ConflictResolution> confirmConflictResolution(
   BuildContext context, {
   bool canKeepEditing = false,
-  ConflictMessage message = const ConflictMessage(),
+  required ConflictMessage message,
 }) async {
   final result = await showDialog<ConflictResolution>(
     context: context,
@@ -209,7 +208,7 @@ class _ConflictActions extends StatelessWidget {
                 style: HeliumElevatedButton.outlinedStyle(context.colorScheme),
                 onPressed: () =>
                     Navigator.of(context).pop(ConflictResolution.keepEditing),
-                child: const Text('Keep Editing'),
+                child: Text(AppLocalizations.of(context).commonKeepEditingButton),
               ),
             ),
             Expanded(child: discard),

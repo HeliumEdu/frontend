@@ -25,7 +25,7 @@ struct HeliumAgendaWidget: Widget {
   HeliumAgendaWidget()
 } timeline: {
   AgendaEntry.sample
-  AgendaEntry(date: .now, state: .signedOut)
+  AgendaEntry(date: .now, state: .signedOut(language: nil))
 }
 
 #Preview("Large", as: .systemLarge) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:heliumapp/config/analytics_event.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -101,12 +102,12 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
           return homeworks;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -114,7 +115,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -133,12 +134,12 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
 
       if (response.statusCode == 200) {
         if (response.data.isEmpty) {
-          throw NotFoundException(message: 'Homework not found.');
+          throw NotFoundException(message: LocaleNotifier().localizations.plannerAssignmentNotFoundMessage);
         }
         _log.info('... Homework $id fetched');
         return HomeworkModel.fromJson(response.data[0]);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -146,7 +147,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -170,7 +171,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'new'}));
         return homework;
       } else {
-        throw unexpectedStatus(response, 'Failed to create homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -178,7 +179,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -203,7 +204,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.homeworkCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value, 'source': 'clone'}));
         return homework;
       } else {
-        throw unexpectedStatus(response, 'Failed to clone homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -211,7 +212,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -243,7 +244,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return HomeworkModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -251,7 +252,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -277,7 +278,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
         _log.info('... Homework $homeworkId deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete homework.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -285,7 +286,7 @@ class HomeworkRemoteDataSourceImpl extends HomeworkRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

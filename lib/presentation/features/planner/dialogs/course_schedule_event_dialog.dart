@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/dialogs/planner_item_action_dialog.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -47,7 +48,7 @@ void showCourseScheduleEventDialog({
       if (meetsMoreThanOnce)
         PlannerItemAction(
           icon: Icons.block_outlined,
-          label: 'Skip this meeting',
+          label: AppLocalizations.of(context).courseScheduleSkipMeetingAction,
           iconColor: context.colorScheme.error,
           onTap: () => actions.onSkipMeeting!(occurrenceDate),
         ),
@@ -57,20 +58,20 @@ void showCourseScheduleEventDialog({
               ? Icons.event_busy_outlined
               : Icons.block_outlined,
           label: meetsMoreThanOnce
-              ? 'Skip all meetings on ${HeliumDateTime.formatDate(occurrenceDate, showYear: false)}'
-              : 'Skip this class',
+              ? AppLocalizations.of(context).courseScheduleSkipDayAction(HeliumDateTime.formatDate(occurrenceDate, showYear: false))
+              : AppLocalizations.of(context).courseScheduleSkipClassAction,
           iconColor: context.colorScheme.error,
           onTap: () => actions.onSkip!(occurrenceDate),
         ),
       PlannerItemAction(
         icon: Icons.edit_outlined,
-        label: 'Edit class schedule',
+        label: AppLocalizations.of(context).courseScheduleEditAction,
         onTap: actions.onEditSchedule,
       ),
       if (actions.websiteUrl != null && actions.websiteUrl!.isNotEmpty)
         PlannerItemAction(
           icon: Icons.launch_outlined,
-          label: 'Open class website',
+          label: AppLocalizations.of(context).courseScheduleOpenWebsiteAction,
           iconColor: context.semanticColors.success,
           onTap: () => UrlHelpers.launchWebUrl(actions.websiteUrl!),
         ),

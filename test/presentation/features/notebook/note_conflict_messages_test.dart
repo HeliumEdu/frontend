@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/notebook/note_conflict_messages.dart';
 
 void main() {
@@ -16,6 +18,7 @@ void main() {
 
         // WHEN
         final message = changedSinceDraftMessage(
+          lookupAppLocalizations(const Locale('en')),
           latest,
           DateTime.utc(2026, 11, 17, 10),
         );
@@ -48,7 +51,7 @@ void main() {
         );
 
         // WHEN
-        final message = changedSinceDraftMessage(latest, null);
+        final message = changedSinceDraftMessage(lookupAppLocalizations(const Locale('en')), latest, null);
 
         // THEN
         expect(

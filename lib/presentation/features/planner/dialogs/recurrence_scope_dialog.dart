@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -59,8 +60,8 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildOption(context, RecurrenceScope.thisOccurrence, 'This occurrence', widget.thisDetail),
-              _buildOption(context, RecurrenceScope.all, 'All occurrences', widget.allDetail),
+              _buildOption(context, RecurrenceScope.thisOccurrence, AppLocalizations.of(context).recurrenceScopeThisOption, widget.thisDetail),
+              _buildOption(context, RecurrenceScope.all, AppLocalizations.of(context).recurrenceScopeAllOption, widget.allDetail),
             ],
           ),
         ),
@@ -72,7 +73,7 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
             children: [
               Expanded(
                 child: HeliumElevatedButton(
-                  buttonText: 'Cancel',
+                  buttonText: AppLocalizations.of(context).commonCancelButton,
                   backgroundColor: context.colorScheme.outline,
                   onPressed: _cancel,
                 ),
@@ -81,9 +82,9 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
               Expanded(
                 child: HeliumElevatedButton(
                   buttonText: switch (widget.action) {
-                    RecurrenceScopeAction.edit => 'Save',
-                    RecurrenceScopeAction.move => 'Move',
-                    RecurrenceScopeAction.delete => 'Delete',
+                    RecurrenceScopeAction.edit => AppLocalizations.of(context).recurrenceScopeSaveButton,
+                    RecurrenceScopeAction.move => AppLocalizations.of(context).recurrenceScopeMoveButton,
+                    RecurrenceScopeAction.delete => AppLocalizations.of(context).commonDeleteButton,
                   },
                   backgroundColor: widget.action == RecurrenceScopeAction.delete
                       ? context.colorScheme.error
@@ -99,11 +100,18 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
   }
 
   String get _title {
-    final noun = widget.isEvent ? 'Repeating Event' : 'Repeating Assignment';
+    final l10n = AppLocalizations.of(context);
+    if (widget.isEvent) {
+      return switch (widget.action) {
+        RecurrenceScopeAction.edit => l10n.recurrenceScopeEditEventTitle,
+        RecurrenceScopeAction.move => l10n.recurrenceScopeMoveEventTitle,
+        RecurrenceScopeAction.delete => l10n.recurrenceScopeDeleteEventTitle,
+      };
+    }
     return switch (widget.action) {
-      RecurrenceScopeAction.edit => 'Edit $noun',
-      RecurrenceScopeAction.move => 'Move $noun',
-      RecurrenceScopeAction.delete => 'Delete $noun',
+      RecurrenceScopeAction.edit => l10n.recurrenceScopeEditAssignmentTitle,
+      RecurrenceScopeAction.move => l10n.recurrenceScopeMoveAssignmentTitle,
+      RecurrenceScopeAction.delete => l10n.recurrenceScopeDeleteAssignmentTitle,
     };
   }
 

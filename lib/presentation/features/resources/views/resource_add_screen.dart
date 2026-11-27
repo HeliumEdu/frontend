@@ -7,6 +7,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:logging/logging.dart';
 import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_bloc.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_event.dart';
 import 'package:heliumapp/presentation/features/resources/bloc/resource_state.dart';
@@ -246,9 +247,10 @@ class _ResourceAddScreenState
   }
 
   @override
-  String get entityName => 'Resource';
+  String get screenTitle => hasSavedEntity
+      ? AppLocalizations.of(context).resourceEditTitle
+      : AppLocalizations.of(context).resourceAddTitle;
 
-  @override
   bool get hasSavedEntity => _currentResourceId != null;
 
   @override
@@ -264,7 +266,7 @@ class _ResourceAddScreenState
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
     ];
@@ -407,7 +409,7 @@ class _ResourceAddScreenState
               final willClose = _willCloseAfterSave();
               showSnackBar(
                 context,
-                'Resource created.',
+                AppLocalizations.of(context).resourceCreatedMessage,
                 useRootMessenger: willClose,
               );
               _useCreatedResource(state.resource);
@@ -415,7 +417,7 @@ class _ResourceAddScreenState
               _navigateAfterSave();
             }
           } else if (state is ResourceDeleted) {
-            showSnackBar(context, 'Resource deleted.', useRootMessenger: true);
+            showSnackBar(context, AppLocalizations.of(context).resourceDeletedMessage, useRootMessenger: true);
             closeWithoutPrompt();
           } else if (state is ResourceUpdated &&
               state.origin == EventOrigin.subScreen) {
@@ -485,7 +487,7 @@ class _ResourceAddScreenState
   late final List<MultiStepDefinition> _steps = [
     MultiStepDefinition(
       icon: Icons.list,
-      tooltip: 'Details',
+      tooltip: AppLocalizations.of(context).resourceDetailsStep,
       stepScreenType: ScreenType.entityPage,
       builder: (context) => ResourceDetails(
         key: _detailsKey,
@@ -498,7 +500,7 @@ class _ResourceAddScreenState
     ),
     MultiStepDefinition(
       icon: Icons.attachment,
-      tooltip: 'Attachments',
+      tooltip: AppLocalizations.of(context).attachmentsTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => ResourceAttachments(
         contentKey: _attachmentsKey,

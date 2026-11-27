@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes lib/l10n/app_en_XA.arb, a pseudo-translation of app_en.arb.
 
-Every message is accented, padded about 35% longer and bracketed, so English
+Every message is accented, padded longer and bracketed, so English
 that skipped the ARB, truncation and clipping stand out when the app runs as
 `en-XA` (`make run-pseudo-locale`). Placeholders and ICU plural/select syntax
 are kept intact. The output is gitignored and must never ship.
@@ -14,7 +14,6 @@ from pathlib import Path
 L10N_DIR = Path(__file__).resolve().parent.parent / "lib" / "l10n"
 SOURCE_ARB = L10N_DIR / "app_en.arb"
 PSEUDO_ARB = L10N_DIR / "app_en_XA.arb"
-PSEUDO_LOCALE = "en_XA"
 EXPANSION = 0.35
 
 ACCENTED = str.maketrans(
@@ -76,7 +75,7 @@ def pseudo_message(message):
 
 def main():
     source = json.loads(SOURCE_ARB.read_text(encoding="utf-8"))
-    pseudo = {"@@locale": PSEUDO_LOCALE}
+    pseudo = {"@@locale": "en_XA"}
     pseudo.update(
         {key: pseudo_message(value) for key, value in source.items() if not key.startswith("@")}
     )

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/id_or_entity.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -94,7 +95,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
         background: event.background,
       ));
     }
@@ -149,7 +150,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       emit(
         NotesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           background: event.background,
         ),
       );
@@ -241,7 +242,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } on HeliumException catch (e) {
       emit(_screenDataFailed(event, e.message));
     } catch (e) {
-      emit(_screenDataFailed(event, HeliumException.unexpectedError));
+      emit(_screenDataFailed(event, HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -323,7 +324,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(LinkableEntitiesFailed(
         origin: event.origin,
-        message: 'Failed to load items.',
+        message: LocaleNotifier().localizations.noteLinkableItemsFailedMessage,
       ));
     }
   }
@@ -345,7 +346,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
       ));
     }
   }
@@ -388,7 +389,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
       ));
     }
   }
@@ -423,7 +424,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     } catch (e) {
       emit(NotesError(
         origin: event.origin,
-        message: HeliumException.unexpectedError,
+        message: HeliumException.unexpectedErrorMessage,
       ));
     } finally {
       _deletingNoteIds.remove(event.noteId);

@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/data/models/auth/private_feed_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -59,11 +60,11 @@ class _FeedsScreenState extends State<FeedsScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
-              text: "Feeds allow you to take Helium's calendars elsewhere.",
+              text: AppLocalizations.of(context).feedsInfo,
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                label: 'Learn more',
+                label: AppLocalizations.of(context).settingsLearnMoreLabel,
                 onPressed: () =>
                     UrlHelpers.launchWebUrl(AppConstants.supportFeedsUrl),
               ),
@@ -100,6 +101,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
     required Color color,
     required String url,
     required String label,
+    required String copiedMessage,
   }) {
     return Card(
       child: Padding(
@@ -175,12 +177,12 @@ class _FeedsScreenState extends State<FeedsScreen> {
                           Clipboard.setData(ClipboardData(text: url));
                           SnackBarHelper.show(
                             context,
-                            '$label feed URL copied.',
+                            copiedMessage,
                             copyable: false,
                           );
                         },
                         icon: Icons.copy_outlined,
-                        buttonText: 'Copy',
+                        buttonText: AppLocalizations.of(context).feedsCopyButton,
                         backgroundColor: color,
                         minHeight: 36,
                         // Standard density so the Copy and Share buttons stay a
@@ -212,7 +214,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                             if (context != null && context.mounted) {
                               SnackBarHelper.show(
                                 context,
-                                'Failed to share link.',
+                                AppLocalizations.of(context).feedsShareFailedMessage,
                                 type: SnackType.error,
                               );
                             }
@@ -221,7 +223,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                         icon: Icon(
                           Icons.share_outlined,
                           color: color,
-                          semanticLabel: 'Share',
+                          semanticLabel: AppLocalizations.of(context).feedsShareLabel,
                         ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
@@ -268,12 +270,12 @@ class _FeedsScreenState extends State<FeedsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Feeds are disabled', style: AppStyles.headingText(context)),
+            Text(AppLocalizations.of(context).feedsDisabledMessage, style: AppStyles.headingText(context)),
             const SizedBox(height: 25),
 
             HeliumElevatedButton(
               icon: Icons.link,
-              buttonText: 'Enable',
+              buttonText: AppLocalizations.of(context).feedsEnableButton,
               onPressed: () {
                 context.read<AuthBloc>().add(EnablePrivateFeedsEvent());
               },
@@ -289,10 +291,10 @@ class _FeedsScreenState extends State<FeedsScreen> {
   Future<void> _showDisableFeedsDialog() async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Disable All Feeds',
-      message:
-          'Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.',
-      actionText: 'Disable',
+      title: AppLocalizations.of(context).feedsDisableTitle,
+      message: AppLocalizations.of(context).feedsDisableMessage,
+      actionText: AppLocalizations.of(context).feedsDisableButton,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
@@ -308,9 +310,8 @@ class _FeedsScreenState extends State<FeedsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const WarningContainer(
-            text:
-                'Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.',
+          WarningContainer(
+            text: AppLocalizations.of(context).feedsSecretWarning,
             icon: Icons.privacy_tip_outlined,
           ),
 
@@ -321,7 +322,8 @@ class _FeedsScreenState extends State<FeedsScreen> {
             icon: AppConstants.assignmentIcon,
             color: PlannerTypeColors.homework,
             url: homeworkUrl,
-            label: 'Assignments',
+            label: AppLocalizations.of(context).feedsAssignmentsLabel,
+            copiedMessage: AppLocalizations.of(context).feedsAssignmentsCopiedMessage,
           ),
 
           _buildFeedCard(
@@ -329,7 +331,8 @@ class _FeedsScreenState extends State<FeedsScreen> {
             icon: AppConstants.courseScheduleIcon,
             color: PlannerTypeColors.classSchedules,
             url: courseScheduleUrl,
-            label: 'Class Schedules',
+            label: AppLocalizations.of(context).feedsClassSchedulesLabel,
+            copiedMessage: AppLocalizations.of(context).feedsClassSchedulesCopiedMessage,
           ),
 
           _buildFeedCard(
@@ -337,14 +340,15 @@ class _FeedsScreenState extends State<FeedsScreen> {
             icon: AppConstants.eventIcon,
             color: widget.user.settings.eventsColor,
             url: eventsUrl,
-            label: 'Events',
+            label: AppLocalizations.of(context).feedsEventsLabel,
+            copiedMessage: AppLocalizations.of(context).feedsEventsCopiedMessage,
           ),
 
           const Divider(height: 24),
 
           HeliumElevatedButton(
             icon: Icons.link_off,
-            buttonText: 'Disable All',
+            buttonText: AppLocalizations.of(context).feedsDisableAllButton,
             onPressed: _showDisableFeedsDialog,
             backgroundColor: context.colorScheme.error,
           ),

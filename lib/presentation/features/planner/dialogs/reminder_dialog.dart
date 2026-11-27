@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/base_model.dart';
 import 'package:heliumapp/data/models/planner/reminder_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/reminder_event.dart';
@@ -39,7 +40,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
   final ReminderFormController _formController = ReminderFormController();
 
   @override
-  String get dialogTitle => 'Reminder';
+  String get dialogTitle => AppLocalizations.of(context).reminderDialogTitle;
 
   @override
   BasicFormController get formController => _formController;
@@ -103,7 +104,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LabelAndTextFormField(
-          label: 'Message',
+          label: AppLocalizations.of(context).reminderMessageLabel,
           autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
           maxLines: Responsive.isCompactDialogHeight(context) ? 1 : 3,
           spellCheck: true,
@@ -127,7 +128,7 @@ class _ReminderWidgetState extends BaseDialogState<_ReminderProvidedWidget> {
         ),
         const SizedBox(height: 12),
         SpinnerField(
-          label: 'Remind before',
+          label: AppLocalizations.of(context).reminderRemindBeforeLabel,
           controller: _formController.offsetController,
           maxValue: 100,
           maxSpinnerWidth: 120,

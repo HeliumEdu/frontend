@@ -275,11 +275,7 @@ void main() {
         },
         act: (bloc) => bloc.add(CheckAuthEvent()),
         expect: () => [
-          isA<AuthUnauthenticated>().having(
-            (e) => e.message,
-            'message',
-            contains('No access token'),
-          ),
+          isA<AuthUnauthenticated>(),
         ],
       );
 
@@ -329,11 +325,7 @@ void main() {
         act: (bloc) => bloc.add(RefreshTokenEvent()),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthUnauthenticated>().having(
-            (e) => e.message,
-            'message',
-            contains('No refresh token'),
-          ),
+          isA<AuthUnauthenticated>(),
         ],
       );
 
@@ -354,11 +346,7 @@ void main() {
         act: (bloc) => bloc.add(RefreshTokenEvent()),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthUnauthenticated>().having(
-            (s) => s.message,
-            'message',
-            'Refresh token expired',
-          ),
+          isA<AuthUnauthenticated>(),
         ],
         verify: (_) {
           verify(() => mockDioClient.clearStorage()).called(1);

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -29,7 +30,7 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState
     extends BasePageScreenState<ResetPasswordScreen> {
   @override
-  String get screenTitle => 'Reset Password';
+  String get screenTitle => AppLocalizations.of(context).resetPasswordTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -62,7 +63,7 @@ class _ResetPasswordScreenState
       BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
-            showSnackBar(context, 'Password reset! Welcome back.', seconds: 4);
+            showSnackBar(context, AppLocalizations.of(context).resetPasswordSuccessMessage, seconds: 4);
 
             if (!context.mounted) return;
             context.go(AppRoute.plannerScreen);
@@ -136,8 +137,8 @@ class _ResetPasswordScreenState
 
           Text(
             hasValidLink
-                ? 'Enter your new password below.'
-                : 'This reset link is invalid or has expired. Please request a new one.',
+                ? AppLocalizations.of(context).resetPasswordInstructions
+                : AppLocalizations.of(context).resetPasswordInvalidLinkMessage,
             style: AppStyles.headingText(context),
             textAlign: TextAlign.center,
           ),
@@ -146,7 +147,7 @@ class _ResetPasswordScreenState
 
           if (hasValidLink) ...[
             LabelAndTextFormField(
-              hintText: 'New password',
+              hintText: AppLocalizations.of(context).resetPasswordNewPasswordHint,
               autofocus: PlatformBehavior.autofocusesOnOpen,
               prefixIcon: Icons.lock_outline,
               controller: _passwordController,
@@ -158,7 +159,7 @@ class _ResetPasswordScreenState
             const SizedBox(height: 12),
 
             LabelAndTextFormField(
-              hintText: 'Confirm new password',
+              hintText: AppLocalizations.of(context).resetPasswordConfirmHint,
               prefixIcon: Icons.lock_outline,
               controller: _confirmPasswordController,
               obscureText: true,
@@ -174,7 +175,7 @@ class _ResetPasswordScreenState
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 return HeliumElevatedButton(
-                  buttonText: 'Set New Password',
+                  buttonText: AppLocalizations.of(context).resetPasswordSubmitButton,
                   isLoading: isSubmitting,
                   onPressed: _onSubmit,
                 );
@@ -204,7 +205,7 @@ class _ResetPasswordScreenState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Back to sign in',
+                    AppLocalizations.of(context).authBackToSignInLink,
                     style: AppStyles.buttonText(
                       context,
                     ).copyWith(color: context.colorScheme.primary),

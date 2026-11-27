@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_router.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/config/pref_service.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -132,6 +133,7 @@ class AgendaWidgetService {
     await _writeSnapshot({
       'version': 1,
       'signedIn': false,
+      'language': LocaleNotifier().displayedLanguage,
       'generatedAt': DateTime.now().toUtc().toIso8601String(),
       'timeZone': 'UTC',
       'olderOverdueCount': 0,
@@ -179,6 +181,7 @@ class AgendaWidgetService {
     return {
       'version': 1,
       'signedIn': true,
+      'language': LocaleNotifier().displayedLanguage,
       'generatedAt': now.toUtc().toIso8601String(),
       'timeZone': timeZone.name,
       'olderOverdueCount': olderOverdueCount,
@@ -232,7 +235,7 @@ class AgendaWidgetService {
       'end': item.end.toUtc().toIso8601String(),
       'allDay': item.allDay,
       'day': HeliumDateTime.formatDateForApi(localStart),
-      'timeLabel': item.allDay ? 'All day' : HeliumDateTime.formatTime(localStart),
+      'timeLabel': item.allDay ? LocaleNotifier().localizations.agendaWidgetAllDay : HeliumDateTime.formatTime(localStart),
       'className': course?.title,
       'color': HeliumColors.colorToHex(
         PlannerHelper.itemColor(item, settings, course: course, category: categoriesById[item.category.id]),

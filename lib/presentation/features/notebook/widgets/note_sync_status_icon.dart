@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 
@@ -31,8 +32,8 @@ class NoteSyncStatusIcon extends StatelessWidget {
         color: context.semanticColors.warning,
         filled: false,
         label: saveStatus == NoteSaveStatus.error && willRetrySave
-            ? 'Auto-save paused, will retry'
-            : 'Auto-save paused',
+            ? AppLocalizations.of(context).noteAutoSavePausedRetryingLabel
+            : AppLocalizations.of(context).noteAutoSavePausedLabel,
       );
     }
 
@@ -45,11 +46,11 @@ class NoteSyncStatusIcon extends StatelessWidget {
       color = context.colorScheme.onSurface.withValues(
         alpha: AppStyles.mutedTextAlpha,
       );
-      tooltip = 'Auto-save not yet active';
+      tooltip = AppLocalizations.of(context).noteAutoSaveInactiveTooltip;
     } else {
       icon = Icons.cloud_done_outlined;
       color = context.colorScheme.primary;
-      tooltip = 'Auto-save active';
+      tooltip = AppLocalizations.of(context).noteAutoSaveActiveTooltip;
     }
 
     return Tooltip(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/core/helium_exception.dart';
@@ -25,10 +26,6 @@ import 'package:logging/logging.dart';
 final _log = Logger('presentation.bloc');
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  static const invalidAuthorizationMessage =
-      "This connection request isn't valid. Start connecting again in the "
-      'app that sent you here.';
-
   final AuthRepository authRepository;
   final DioClient dioClient;
   final OAuthSignInService _oauthSignInService;
@@ -71,6 +68,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<DecideAuthorizationEvent>(_onDecideAuthorization);
   }
 
+  @override
+  Future<void> close() {
+    dioClient.removeForcedLogoutListener(_onForcedLogoutSignal);
+    return super.close();
+  }
+
+  static String get invalidAuthorizationMessage =>
+      LocaleNotifier().localizations.connectInvalidRequestMessage;
+
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
 
@@ -93,7 +99,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -110,7 +116,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       emit(AuthError(message: e.message));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -132,7 +138,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -159,7 +165,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -191,7 +197,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -213,7 +219,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -239,7 +245,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -274,7 +280,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -339,7 +345,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e, s) {
       _log.severe('$provider Sign-In error', e, s);
       emit(
-        AuthError(message: 'Sign in with $provider failed. Please try again.'),
+        AuthError(message: LocaleNotifier().localizations.authOAuthSignInFailedMessage(provider)),
       );
     }
   }
@@ -426,7 +432,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -438,12 +444,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     await _oauthSignInService.signOut();
     emit(AuthLoggedOut());
-  }
-
-  @override
-  Future<void> close() {
-    dioClient.removeForcedLogoutListener(_onForcedLogoutSignal);
-    return super.close();
   }
 
   Future<void> _onFetchProfile(
@@ -467,7 +467,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -489,18 +489,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             _log.info('Access token seems expired, will attempt refresh ...');
             add(RefreshTokenEvent());
           } else {
-            emit(
-              AuthUnauthenticated(
-                message: 'Access token expired, no refresh token found',
-              ),
-            );
+            emit(AuthUnauthenticated());
           }
         }
       } else {
-        emit(AuthUnauthenticated(message: 'No access token found'));
+        emit(AuthUnauthenticated());
       }
     } catch (e) {
-      emit(AuthUnauthenticated(message: 'Authentication check failed'));
+      emit(AuthUnauthenticated());
     }
   }
 
@@ -514,7 +510,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final refreshToken = await dioClient.getRefreshToken();
 
       if (refreshToken == null || refreshToken.isEmpty) {
-        emit(AuthUnauthenticated(message: 'No refresh token found'));
+        emit(AuthUnauthenticated());
         return;
       }
 
@@ -522,9 +518,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authRepository.refreshToken(request);
 
       emit(AuthTokenRefreshed());
-    } on UnauthorizedException catch (e) {
+    } on UnauthorizedException {
       await dioClient.clearStorage();
-      emit(AuthUnauthenticated(message: e.message));
+      emit(AuthUnauthenticated());
     } on HeliumException catch (e) {
       emit(AuthError(
         message: e.displayMessage,
@@ -533,7 +529,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -557,7 +553,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -580,7 +576,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -603,7 +599,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -626,7 +622,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -649,7 +645,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -677,7 +673,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -701,7 +697,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -726,7 +722,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         parsedError: e.parsedError,
       ));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -752,7 +748,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       emit(_authorizationError(e));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 
@@ -773,7 +769,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on HeliumException catch (e) {
       emit(_authorizationError(e));
     } catch (e) {
-      emit(AuthError(message: HeliumException.unexpectedError));
+      emit(AuthError(message: HeliumException.unexpectedErrorMessage));
     }
   }
 

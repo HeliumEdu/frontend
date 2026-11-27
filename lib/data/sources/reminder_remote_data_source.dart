@@ -96,7 +96,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... fetched ${reminders.length} Reminder(s)');
         return reminders;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch reminders.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -104,7 +104,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -138,7 +138,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... fetched Reminders count: $count');
         return count;
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch reminders count.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -146,7 +146,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -167,7 +167,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         unawaited(AnalyticsService().setUserProperty(name: 'uses_reminders', value: 'true'));
         return reminder;
       } else {
-        throw unexpectedStatus(response, 'Failed to create reminder.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -175,7 +175,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -196,7 +196,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return ReminderModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update reminder.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -204,7 +204,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -220,7 +220,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... Reminder $id deleted');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to delete reminder.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -228,7 +228,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -258,7 +258,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
         _log.info('... all Reminders dismissed');
         await dioClient.cacheService.invalidateAll();
       } else {
-        throw unexpectedStatus(response, 'Failed to dismiss all reminders.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -266,7 +266,7 @@ class ReminderRemoteDataSourceImpl extends ReminderRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

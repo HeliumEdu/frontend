@@ -352,43 +352,7 @@ void main() {
       const categoryId = 3;
 
       blocTest<CategoryBloc, CategoryState>(
-        'emits [CategoriesLoading, CategoryDeleted] when deletion succeeds (not last category)',
-        build: () {
-          when(
-            () => mockCategoryRepository.deleteCategory(
-              courseGroupId,
-              courseId,
-              categoryId,
-            ),
-          ).thenAnswer((_) async {});
-          return categoryBloc;
-        },
-        act: (bloc) => bloc.add(
-          DeleteCategoryEvent(
-            origin: EventOrigin.dialog,
-            courseGroupId: courseGroupId,
-            courseId: courseId,
-            categoryId: categoryId,
-            isLastCategory: false,
-          ),
-        ),
-        expect: () => [
-          isA<CategoriesLoading>(),
-          isA<CategoryDeleted>().having((s) => s.id, 'id', categoryId),
-        ],
-        verify: (_) {
-          verify(
-            () => mockCategoryRepository.deleteCategory(
-              courseGroupId,
-              courseId,
-              categoryId,
-            ),
-          ).called(1);
-        },
-      );
-
-      blocTest<CategoryBloc, CategoryState>(
-        'emits [CategoriesLoading, CategoryDeleted, CategoriesFetched] when deleting last category',
+        'emits [CategoriesLoading, CategoryDeleted, CategoriesFetched] when deletion succeeds',
         build: () {
           when(
             () => mockCategoryRepository.deleteCategory(
@@ -398,7 +362,7 @@ void main() {
             ),
           ).thenAnswer((_) async {});
           when(
-            () => mockCategoryRepository.getCategories(courseId: courseId),
+            () => mockCategoryRepository.getCategories(courseId: courseId, forceRefresh: true),
           ).thenAnswer(
             (_) async => [MockModels.createCategory(title: 'Uncategorized')],
           );
@@ -410,19 +374,26 @@ void main() {
             courseGroupId: courseGroupId,
             courseId: courseId,
             categoryId: categoryId,
-            isLastCategory: true,
           ),
         ),
-        wait: const Duration(seconds: 3),
         expect: () => [
           isA<CategoriesLoading>(),
           isA<CategoryDeleted>().having((s) => s.id, 'id', categoryId),
           isA<CategoriesFetched>().having(
-            (s) => s.categories.first.title,
-            'first category title',
+            (s) => s.categories.single.title,
+            'refetched category title',
             'Uncategorized',
           ),
         ],
+        verify: (_) {
+          verify(
+            () => mockCategoryRepository.deleteCategory(
+              courseGroupId,
+              courseId,
+              categoryId,
+            ),
+          ).called(1);
+        },
       );
 
       blocTest<CategoryBloc, CategoryState>(
@@ -443,7 +414,6 @@ void main() {
             courseGroupId: courseGroupId,
             courseId: courseId,
             categoryId: categoryId,
-            isLastCategory: false,
           ),
         ),
         expect: () => [

@@ -1,3 +1,4 @@
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/attachment_model.dart';
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/utils/sort_helpers.dart';
@@ -30,9 +31,9 @@ class AttachmentGroups {
   ) {
     final resourceIds = {for (final resource in homework.resources) resource.id};
     return [
-      ..._group('Class', attachments.where((a) => a.course == homework.course.id)),
+      ..._group(LocaleNotifier().localizations.attachmentsClassGroupTitle, attachments.where((a) => a.course == homework.course.id)),
       ..._group(
-        'Resource',
+        LocaleNotifier().localizations.attachmentsResourceGroupTitle,
         attachments.where((a) => resourceIds.contains(a.resource)),
       ),
     ];

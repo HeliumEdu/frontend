@@ -7,6 +7,7 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/dialogs/grade_calculator_gpa.dart';
 import 'package:heliumapp/presentation/ui/components/category_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
@@ -117,7 +118,7 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     final orderedCategories = widget.categories
         .where((c) => validIds.contains(c.id))
         .toList();
-    Sort.byTitle(orderedCategories);
+    Sort.byGradeCategoryTitle(orderedCategories);
     return orderedCategories.map((c) => c.id).toList();
   }
 
@@ -155,16 +156,16 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!widget.hasAssignments)
-          const EmptyCard(
+          EmptyCard(
             icon: Icons.hourglass_empty,
-            title: 'Come back later',
-            message: 'Check back when this class has assignments.',
+            title: AppLocalizations.of(context).gradeCalculatorComeBackLaterTitle,
+            message: AppLocalizations.of(context).gradeProjectionNeedsAssignmentsMessage,
           )
         else if (widget.ungradedAssignments.isEmpty)
-          const EmptyCard(
+          EmptyCard(
             icon: Icons.check_circle_outline,
-            title: 'All caught up',
-            message: 'Check back again when you have ungraded work to use this feature.',
+            title: AppLocalizations.of(context).gradeProjectionAllCaughtUpTitle,
+            message: AppLocalizations.of(context).gradeProjectionAllCaughtUpMessage,
           )
         else
           Expanded(
@@ -187,7 +188,7 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
         ],
 
         HeliumElevatedButton(
-          buttonText: 'Reset',
+          buttonText: AppLocalizations.of(context).gradeProjectionResetButton,
           backgroundColor: context.colorScheme.onSurfaceVariant,
           onPressed: _onReset,
           enabled: widget.ungradedAssignments.isNotEmpty,
@@ -210,11 +211,11 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
           padding: const EdgeInsets.only(top: 8, bottom: 4),
           child: category != null
               ? CategoryTitleLabel(
-                  title: category.title,
+                  title: category.displayTitle,
                   color: category.color,
                   compact: true,
                 )
-              : Text('Category', style: AppStyles.formLabel(context)),
+              : Text(AppLocalizations.of(context).gradeCalculatorCategoryLabel, style: AppStyles.formLabel(context)),
         ),
         const SizedBox(height: 4),
         for (final item in assignments)
@@ -300,7 +301,7 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     }
 
     final threshold = widget.userSettings.atRiskThreshold.toDouble();
-    final text = 'Projected grade: ${GradeHelper.gradeForDisplay(grade)}';
+    final text = AppLocalizations.of(context).gradeProjectionGradeStatus(GradeHelper.gradeForDisplay(grade));
 
     return grade >= threshold
         ? SuccessContainer(text: text)
@@ -318,11 +319,27 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
         ? null
         : gpa.cumulativeGpaWith(gradePoint);
 
-    var text = 'Projected GPA: ${GradeHelper.gradePointForDisplay(termGpa)}'
-        '${_gpaChange(gpa.termGpa, termGpa)}';
-    if (cumulativeGpa != null) {
-      text += ' • All ${GradeHelper.gradePointForDisplay(cumulativeGpa)}'
-          '${_gpaChange(gpa.cumulativeGpa, cumulativeGpa)}';
+    final l10n = AppLocalizations.of(context);
+    final termText = GradeHelper.gradePointForDisplay(termGpa);
+    final termChange = _gpaChange(gpa.termGpa, termGpa);
+    final String text;
+    if (cumulativeGpa == null) {
+      text = l10n.gradeProjectionGpaStatus(termChange == null ? 'none' : 'changed', termText, termChange ?? '');
+    } else {
+      final allChange = _gpaChange(gpa.cumulativeGpa, cumulativeGpa);
+      final changes = switch ((termChange != null, allChange != null)) {
+        (true, true) => 'both',
+        (true, false) => 'term',
+        (false, true) => 'all',
+        (false, false) => 'none',
+      };
+      text = l10n.gradeProjectionGpaWithAllStatus(
+        changes,
+        termText,
+        termChange ?? '',
+        GradeHelper.gradePointForDisplay(cumulativeGpa),
+        allChange ?? '',
+      );
     }
 
     final currentGpa = gpa.termGpa;
@@ -334,11 +351,11 @@ class _GradeProjectionTabState extends State<GradeProjectionTab> {
     return holdsOrImproves ? SuccessContainer(text: text) : WarningContainer(text: text);
   }
 
-  String _gpaChange(double? current, double projected) {
-    if (current == null) return '';
+  String? _gpaChange(double? current, double projected) {
+    if (current == null) return null;
     final change = GradeHelper.displayedGpa(projected) - GradeHelper.displayedGpa(current);
-    if (change == 0) return '';
+    if (change == 0) return null;
     final amount = GradeHelper.gradePointForDisplay(change.abs());
-    return change > 0 ? ' (+$amount)' : ' (-$amount)';
+    return change > 0 ? '+$amount' : '-$amount';
   }
 }

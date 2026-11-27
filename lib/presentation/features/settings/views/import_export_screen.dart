@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:heliumapp/config/analytics_event.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/core/api_url.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -17,6 +18,7 @@ import 'package:heliumapp/core/helium_exception.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -27,7 +29,6 @@ import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
-import 'package:heliumapp/utils/format_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
 import 'package:heliumapp/utils/storage_helpers.dart';
@@ -83,12 +84,11 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InfoContainer(
-              text:
-                  'Backup, restore, or import data from an automated tool or shared schedule.',
+              text: AppLocalizations.of(context).importExportInfo,
               trailing: HeliumIconButton(
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                label: 'Learn more',
+                label: AppLocalizations.of(context).settingsLearnMoreLabel,
                 onPressed: () => UrlHelpers.launchWebUrl(
                   AppConstants.supportImportExportUrl,
                 ),
@@ -114,9 +114,9 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Import', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).importExportImportTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
-        Text('Import a file', style: AppStyles.standardBodyTextLight(context)),
+        Text(AppLocalizations.of(context).importExportImportDescription, style: AppStyles.standardBodyTextLight(context)),
         const SizedBox(height: 16),
         IntrinsicHeight(
           child: Row(
@@ -149,7 +149,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _selectedFileName ?? 'No file selected',
+                          _selectedFileName ?? AppLocalizations.of(context).importExportNoFileSelectedLabel,
                           style: AppStyles.standardBodyTextLight(context)
                               .copyWith(
                                 color: _selectedFileName != null
@@ -168,7 +168,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               const SizedBox(width: 12),
               HeliumElevatedButton(
                 onPressed: _openFileChooser,
-                buttonText: 'Choose',
+                buttonText: AppLocalizations.of(context).importExportChooseButton,
                 icon: Icons.folder_open_outlined,
                 fullWidth: false,
               ),
@@ -179,7 +179,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         const SizedBox(height: 16),
         HeliumElevatedButton(
           onPressed: _importData,
-          buttonText: 'Import',
+          buttonText: AppLocalizations.of(context).importExportImportButton,
           icon: Icons.upload_outlined,
           isLoading: _isImporting,
           enabled:
@@ -205,7 +205,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Import into', style: AppStyles.formLabel(context)),
+          Text(AppLocalizations.of(context).importExportDestinationLabel, style: AppStyles.formLabel(context)),
           const SizedBox(height: 9),
           // The same field while loading (disabled, a spinner for its arrow), so the
           // layout doesn't shift when the destinations arrive.
@@ -214,7 +214,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
             initialValue: _selectedTarget,
             isExpanded: true,
             hint: Text(
-              'Select a destination',
+              AppLocalizations.of(context).importExportDestinationHint,
               style: AppStyles.formText(context),
             ),
             decoration: InputDecoration(
@@ -278,7 +278,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               children: [
                 Icon(Icons.add, size: 16, color: context.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Create a new class', style: AppStyles.formText(context)),
+                Text(AppLocalizations.of(context).importExportCreateClassOption, style: AppStyles.formText(context)),
               ],
             ),
           ),
@@ -315,7 +315,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
               color: context.colorScheme.primary,
             ),
             const SizedBox(width: 8),
-            Text('Import as Events', style: AppStyles.formText(context)),
+            Text(AppLocalizations.of(context).importExportImportAsEventsOption, style: AppStyles.formText(context)),
           ],
         ),
       ),
@@ -334,7 +334,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           children: [
             Icon(Icons.add, size: 16, color: context.colorScheme.primary),
             const SizedBox(width: 8),
-            Text('Create new groups', style: AppStyles.formText(context)),
+            Text(AppLocalizations.of(context).importExportCreateGroupsOption, style: AppStyles.formText(context)),
           ],
         ),
       ),
@@ -372,16 +372,16 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Export', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).importExportExportTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
         Text(
-          'Export your data to a Helium file (no attachments)',
+          AppLocalizations.of(context).importExportExportDescription,
           style: AppStyles.standardBodyTextLight(context),
         ),
         const SizedBox(height: 16),
         HeliumElevatedButton(
           onPressed: _exportData,
-          buttonText: 'Export',
+          buttonText: AppLocalizations.of(context).importExportExportButton,
           icon: Icons.download_outlined,
           isLoading: _isExporting,
           enabled: !_isExporting,
@@ -394,16 +394,16 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Example Schedule', style: AppStyles.featureText(context)),
+        Text(AppLocalizations.of(context).importExportExampleTitle, style: AppStyles.featureText(context)),
         const SizedBox(height: 8),
         Text(
-          'Restore demo data to explore Helium',
+          AppLocalizations.of(context).importExportExampleDescription,
           style: AppStyles.standardBodyTextLight(context),
         ),
         const SizedBox(height: 16),
         HeliumElevatedButton(
           onPressed: _importExampleSchedule,
-          buttonText: 'Re-Import Example Schedule',
+          buttonText: AppLocalizations.of(context).importExportReimportExampleButton,
           icon: Icons.restore_outlined,
           isLoading: _isImportingExample,
           enabled:
@@ -426,7 +426,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     if (!mounted) return;
 
     for (final error in result.errors) {
-      SnackBarHelper.show(context, error.userMessage, type: SnackType.error);
+      SnackBarHelper.show(context, error.displayMessage, type: SnackType.error);
     }
 
     if (result.cancelled || result.files.isEmpty) return;
@@ -492,10 +492,10 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       }
       decoded = jsonDecode(text);
     } catch (_) {
-      return 'This file isn\'t valid JSON.';
+      return AppLocalizations.of(context).importExportInvalidJsonError;
     }
     if (decoded is! Map) {
-      return 'This doesn\'t look like a Helium export file.';
+      return AppLocalizations.of(context).importExportInvalidHeliumFileError;
     }
     return null;
   }
@@ -503,7 +503,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   String? _validateIcsFile(Uint8List bytes) {
     final text = utf8.decode(bytes, allowMalformed: true);
     if (!text.contains('BEGIN:VCALENDAR')) {
-      return 'This doesn\'t look like a valid calendar file.';
+      return AppLocalizations.of(context).importExportInvalidCalendarError;
     }
     return null;
   }
@@ -552,7 +552,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
     });
     SnackBarHelper.show(
       context,
-      'Could not load your classes.',
+      AppLocalizations.of(context).importExportLoadClassesFailedMessage,
       type: SnackType.error,
     );
   }
@@ -598,7 +598,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
         if (summary.importedNothing) {
           SnackBarHelper.show(
             context,
-            'Nothing to import from this file.',
+            AppLocalizations.of(context).importExportNothingToImportMessage,
             type: SnackType.error,
           );
           return;
@@ -625,14 +625,14 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);
         }
       } else {
-        SnackBarHelper.show(context, 'Import failed.', type: SnackType.error);
+        SnackBarHelper.show(context, AppLocalizations.of(context).importExportFailedMessage, type: SnackType.error);
       }
     } on DioException catch (e, s) {
       DioErrorMapper.map(e, s);
       if (mounted) {
         SnackBarHelper.show(
           context,
-          DioErrorMapper.clientErrorMessage(e) ?? 'Failed to import file.',
+          DioErrorMapper.clientErrorMessage(e) ?? AppLocalizations.of(context).importExportFileFailedMessage,
           type: SnackType.error,
         );
       }
@@ -662,22 +662,23 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
   }
 
   _ImportSummary _summarizeImport(Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context);
     var total = 0;
     final parts = <String>[];
 
-    for (final entity in _importedEntities) {
+    for (final entity in _ImportedEntity.values) {
       final count = data[entity.key] as int? ?? 0;
       if (count == 0) continue;
 
       total += count;
 
-      final singular = entity.singular;
-      if (singular != null) {
-        parts.add('$count ${count.plural(singular, entity.plural)}');
+      final description = entity.describe(count);
+      if (description != null) {
+        parts.add(description);
       }
     }
 
-    return _ImportSummary(total: total, description: parts.join(', '));
+    return _ImportSummary(total: total, description: parts.isEmpty ? '' : parts.reduce(l10n.commonListJoin));
   }
 
   Future<void> _exportData() async {
@@ -723,22 +724,22 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
 
         if (mounted && !result.cancelled) {
           if (result.saved) {
-            SnackBarHelper.show(context, '"$filename" downloaded.');
+            SnackBarHelper.show(context, AppLocalizations.of(context).importExportDownloadedMessage(filename));
           } else {
             SnackBarHelper.show(
               context,
-              result.errorMessage ?? 'Nothing exported.',
+              result.errorMessage ?? AppLocalizations.of(context).importExportNothingExportedMessage,
               type: SnackType.error,
             );
           }
         }
       } else {
-        SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
+        SnackBarHelper.show(context, AppLocalizations.of(context).importExportExportFailedMessage, type: SnackType.error);
       }
     } on DioException catch (e, s) {
       DioErrorMapper.map(e, s);
       if (mounted) {
-        SnackBarHelper.show(context, 'Export failed.', type: SnackType.error);
+        SnackBarHelper.show(context, AppLocalizations.of(context).importExportExportFailedMessage, type: SnackType.error);
       }
     } finally {
       if (mounted) {
@@ -786,7 +787,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
           context.read<AuthBloc>().add(RefreshScheduleDataEvent());
           SnackBarHelper.show(
             context,
-            'Example schedule re-imported.',
+            AppLocalizations.of(context).importExportExampleImportedMessage,
             useRootMessenger: true,
           );
           widget.onNavigateRequested?.call(AppRoute.coursesScreen);
@@ -794,7 +795,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       } else {
         SnackBarHelper.show(
           context,
-          'Failed to import example schedule.',
+          AppLocalizations.of(context).importExportExampleFailedMessage,
           type: SnackType.error,
         );
       }
@@ -803,7 +804,7 @@ class _ImportExportScreenState extends State<ImportExportScreen> {
       if (mounted) {
         SnackBarHelper.show(
           context,
-          DioErrorMapper.clientErrorMessage(e) ?? 'Failed to import example schedule.',
+          DioErrorMapper.clientErrorMessage(e) ?? AppLocalizations.of(context).importExportExampleFailedMessage,
           type: SnackType.error,
         );
       }
@@ -847,27 +848,36 @@ class _ImportTarget {
 
 /// Every count the import API returns. Omitting one lets an import that landed
 /// rows summarize as empty.
-const _importedEntities = <_ImportedEntity>[
-  _ImportedEntity('course_groups'),
-  _ImportedEntity('courses', 'class', 'classes'),
-  _ImportedEntity('course_schedules'),
-  _ImportedEntity('categories', 'category', 'categories'),
-  _ImportedEntity('homework', 'assignment'),
-  _ImportedEntity('events', 'event'),
-  _ImportedEntity('resource_groups'),
-  _ImportedEntity('resources', 'resource'),
-  _ImportedEntity('reminders', 'reminder'),
-  _ImportedEntity('notes', 'note'),
-  _ImportedEntity('external_calendars', 'external calendar'),
-];
+enum _ImportedEntity {
+  courseGroups('course_groups'),
+  courses('courses'),
+  courseSchedules('course_schedules'),
+  categories('categories'),
+  homework('homework'),
+  events('events'),
+  resourceGroups('resource_groups'),
+  resources('resources'),
+  reminders('reminders'),
+  notes('notes'),
+  externalCalendars('external_calendars');
 
-/// A null [singular] counts toward the total without being named.
-class _ImportedEntity {
   final String key;
-  final String? singular;
-  final String? plural;
 
-  const _ImportedEntity(this.key, [this.singular, this.plural]);
+  const _ImportedEntity(this.key);
+
+  /// The imported [count], or null for one that counts toward the total
+  /// without being named.
+  String? describe(int count) => switch (this) {
+    courseGroups || courseSchedules || resourceGroups => null,
+    courses => LocaleNotifier().localizations.importExportImportedClasses(count),
+    categories => LocaleNotifier().localizations.importExportImportedCategories(count),
+    homework => LocaleNotifier().localizations.importExportImportedAssignments(count),
+    events => LocaleNotifier().localizations.importExportImportedEvents(count),
+    resources => LocaleNotifier().localizations.importExportImportedResources(count),
+    reminders => LocaleNotifier().localizations.importExportImportedReminders(count),
+    notes => LocaleNotifier().localizations.importExportImportedNotes(count),
+    externalCalendars => LocaleNotifier().localizations.importExportImportedExternalCalendars(count),
+  };
 }
 
 class _ImportSummary {
@@ -878,6 +888,7 @@ class _ImportSummary {
 
   bool get importedNothing => total == 0;
 
-  String get message =>
-      description.isEmpty ? 'Import complete.' : 'Imported: $description.';
+  String get message => description.isEmpty
+      ? LocaleNotifier().localizations.importExportImportCompleteMessage
+      : LocaleNotifier().localizations.importExportImportedMessage(description);
 }

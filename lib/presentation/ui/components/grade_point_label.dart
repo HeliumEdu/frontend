@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
 
@@ -27,8 +28,10 @@ class GradePointLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 8),
       child: Tooltip(
         message: showsGradePoint
-            ? (showsLetterGrade ? 'Letter grade and grade point' : 'Grade point')
-            : 'Letter grade',
+            ? (showsLetterGrade
+                ? AppLocalizations.of(context).gradePointLetterAndPointTooltip
+                : AppLocalizations.of(context).gradePointPointTooltip)
+            : AppLocalizations.of(context).gradePointLetterTooltip,
         child: Text(
           [
             if (showsLetterGrade) letterGrade!,

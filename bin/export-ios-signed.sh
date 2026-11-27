@@ -7,28 +7,28 @@
 # An unsigned archive carries no entitlements, and the export doesn't add them back, so the app and each of its app
 # extensions are ad-hoc signed with their entitlements first (any `$(NAME)` in them filled from the environment, as
 # Xcode would from build settings), inside out: frameworks, then extensions, then the app. An extension `<Name>.appex`
-# takes its entitlements from `ios/<Name>/<Name>.entitlements`. The exported IPA is then checked to carry exactly
-# those entitlements on every bundle.
+# takes its entitlements from `ios/<Name>/<Name>.entitlements`. The exported IPA is then checked to carry those
+# entitlements on every bundle.
 
 set -euo pipefail
 shopt -s nullglob
 
-ARCHIVE_PATH="${ARCHIVE_PATH:-build/ios/archive/Helium.xcarchive}"
-EXPORT_PATH="${EXPORT_PATH:-build/ios/ipa}"
-EXPORT_OPTIONS_PLIST="${EXPORT_OPTIONS_PLIST:-ios/ExportOptions.plist}"
-ENTITLEMENTS="${ENTITLEMENTS:-ios/Runner/Runner.entitlements}"
-EXTENSIONS_DIR="${EXTENSIONS_DIR:-ios}"
+ARCHIVE_PATH="build/ios/archive/Helium.xcarchive"
+EXPORT_PATH="build/ios/ipa"
+EXPORT_OPTIONS_PLIST="ios/ExportOptions.plist"
+ENTITLEMENTS="ios/Runner/Runner.entitlements"
+EXTENSIONS_DIR="ios"
 APP_STORE_CONNECT_API_KEY_ID="${APP_STORE_CONNECT_API_KEY_ID:-}"
 APP_STORE_CONNECT_API_ISSUER_ID="${APP_STORE_CONNECT_API_ISSUER_ID:-}"
 
-if [[ -z "$APP_STORE_CONNECT_API_KEY_ID" ]]; then echo "APP_STORE_CONNECT_API_KEY_ID is not set"; exit 1; fi
-if [[ -z "$APP_STORE_CONNECT_API_ISSUER_ID" ]]; then echo "APP_STORE_CONNECT_API_ISSUER_ID is not set"; exit 1; fi
+if [[ -z "$APP_STORE_CONNECT_API_KEY_ID" ]]; then echo "Error: APP_STORE_CONNECT_API_KEY_ID is not set" >&2; exit 1; fi
+if [[ -z "$APP_STORE_CONNECT_API_ISSUER_ID" ]]; then echo "Error: APP_STORE_CONNECT_API_ISSUER_ID is not set" >&2; exit 1; fi
 
 KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-if [[ ! -f "$KEY_PATH" ]]; then echo "Error: API key not found at $KEY_PATH"; exit 1; fi
+if [[ ! -f "$KEY_PATH" ]]; then echo "Error: API key not found at $KEY_PATH" >&2; exit 1; fi
 
 APPS=("$ARCHIVE_PATH"/Products/Applications/*.app)
-if [[ ${#APPS[@]} -ne 1 ]]; then echo "Error: expected one app in $ARCHIVE_PATH, found ${#APPS[@]}"; exit 1; fi
+if [[ ${#APPS[@]} -ne 1 ]]; then echo "Error: expected one app in $ARCHIVE_PATH, found ${#APPS[@]}" >&2; exit 1; fi
 APP_PATH="${APPS[0]}"
 
 WORK_DIR=$(mktemp -d)
@@ -56,7 +56,7 @@ def resolve(value):
 
 def environment_value(name):
     if not os.environ.get(name):
-        print(f"Error: the entitlements use $({name}), but {name} is not set")
+        print(f"Error: the entitlements use $({name}), but {name} is not set", file=sys.stderr)
         sys.exit(1)
     return os.environ[name]
 
@@ -83,7 +83,7 @@ for extension in "$APP_PATH"/PlugIns/*.appex; do
   name=$(basename "$extension" .appex)
   source_entitlements="$EXTENSIONS_DIR/$name/$name.entitlements"
   if [[ ! -f "$source_entitlements" ]]; then
-    echo "Error: $source_entitlements not found for the $name extension"
+    echo "Error: $source_entitlements not found for the $name extension" >&2
     exit 1
   fi
   resolve_entitlements "$source_entitlements" "$WORK_DIR/$name.entitlements"
@@ -106,14 +106,14 @@ xcodebuild -exportArchive \
   -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID"
 
 IPAS=("$EXPORT_PATH"/*.ipa)
-if [[ ${#IPAS[@]} -ne 1 ]]; then echo "Error: expected one IPA in $EXPORT_PATH, found ${#IPAS[@]}"; exit 1; fi
+if [[ ${#IPAS[@]} -ne 1 ]]; then echo "Error: expected one IPA in $EXPORT_PATH, found ${#IPAS[@]}" >&2; exit 1; fi
 
 unzip -q "${IPAS[0]}" -d "$WORK_DIR/ipa"
 EXPORTED_APPS=("$WORK_DIR"/ipa/Payload/*.app)
 
 for signed_bundle in "${SIGNED_BUNDLES[@]}"; do
   bundle_path="${EXPORTED_APPS[0]}${signed_bundle%%:*}"
-  if [[ ! -d "$bundle_path" ]]; then echo "Error: the exported IPA has no ${signed_bundle%%:*}"; exit 1; fi
+  if [[ ! -d "$bundle_path" ]]; then echo "Error: the exported IPA has no ${signed_bundle%%:*}" >&2; exit 1; fi
   codesign -d --entitlements - --xml "$bundle_path" > "$WORK_DIR/exported.entitlements" 2>/dev/null
 
   python3 - "${signed_bundle#*:}" "$WORK_DIR/exported.entitlements" "$(basename "$bundle_path")" <<'EOF'
@@ -128,7 +128,8 @@ bundle = sys.argv[3]
 mismatched = sorted(key for key, value in expected.items() if exported.get(key) != value)
 if mismatched:
     for key in mismatched:
-        print(f"Error: entitlement {key} is {exported.get(key)!r} in the exported {bundle}, expected {expected[key]!r}")
+        print(f"Error: entitlement {key} is {exported.get(key)!r} in the exported {bundle}, expected {expected[key]!r}",
+              file=sys.stderr)
     sys.exit(1)
 print(f"Exported {bundle} carries all {len(expected)} entitlements")
 EOF

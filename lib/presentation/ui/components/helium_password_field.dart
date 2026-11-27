@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 
 class HeliumPasswordField extends StatefulWidget {
@@ -61,7 +62,7 @@ class _HeliumPasswordFieldState extends State<HeliumPasswordField> {
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               color: context.colorScheme.onSurface,
-              semanticLabel: _isVisible ? 'Hide password' : 'Show password',
+              semanticLabel: _isVisible ? AppLocalizations.of(context).passwordHideLabel : AppLocalizations.of(context).passwordShowLabel,
             ),
           ),
         ),

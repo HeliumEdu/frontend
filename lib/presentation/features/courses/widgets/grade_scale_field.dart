@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/data/models/drop_down_item.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/dialogs/grade_scale_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
@@ -48,7 +49,7 @@ class GradeScaleField extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropDown<int>(
       key: ValueKey(selected),
-      label: 'Grade scale',
+      label: AppLocalizations.of(context).gradeScaleFieldLabel,
       initialValue: items.firstWhereOrNull((item) => item.id == selected),
       items: items,
       onChanged: enabled ? _onItemChanged : null,
@@ -56,9 +57,9 @@ class GradeScaleField extends StatelessWidget {
         onPressed: () => _showBands(context),
         enabled: bands.isNotEmpty,
         icon: Icons.table_rows_outlined,
-        label: 'View grade scale',
+        label: AppLocalizations.of(context).gradeScaleViewLabel,
       ),
-      helperText: hint ?? (bands.isEmpty ? '' : _topBandSummary(bands.last)),
+      helperText: hint ?? (bands.isEmpty ? '' : _topBandSummary(context, bands.last)),
     );
   }
 
@@ -70,9 +71,12 @@ class GradeScaleField extends StatelessWidget {
     if (item != null) onChanged(item.id);
   }
 
-  String _topBandSummary(GradeScaleBandModel band) {
-    final label = band.label.isEmpty ? '' : '${band.label} at ';
-    return 'Top grade: $label${GradeHelper.minGradeForDisplay(band.minGrade)} = '
-        '${GradeHelper.gradePointForDisplay(band.gradePoint)}';
+  String _topBandSummary(BuildContext context, GradeScaleBandModel band) {
+    final l10n = AppLocalizations.of(context);
+    final minGrade = GradeHelper.minGradeForDisplay(band.minGrade);
+    final points = GradeHelper.gradePointForDisplay(band.gradePoint);
+    return band.label.isEmpty
+        ? l10n.gradeScaleTopBand(minGrade, points)
+        : l10n.gradeScaleTopBandWithLetter(band.label, minGrade, points);
   }
 }

@@ -1,4 +1,4 @@
-.PHONY: all env install screenshots screenshots-caption clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test check-l10n generate-forwarding-localizations update-ui-literals-baselinerun-pseudo-locale start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
+.PHONY: all env install screenshots screenshots-caption clean clean-chrome icons sync-assets build-android build-android-release build-aab build-ios-dev build-ios build-ios-release build-ipa update-version firebase-config build-web upload-web-symbols upload-ios-symbols upload-android-symbols test check generate-forwarding-localizations run-pseudo-locale start-platform stop-platform install-chromedriver test-integration test-integration-smoke test-playwright coverage run-devserver build-docker-local build-docker run-docker stop-docker restart-docker publish promote
 
 SHELL := /usr/bin/env bash
 FLUTTER_DART := $(dir $(shell command -v flutter))dart
@@ -248,22 +248,19 @@ firebase-config:
 	flutterfire config --project=helium-edu --yes
 
 test: install
-	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter test --no-pub --coverage
 
-check-l10n: install
+check: install
+	flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 	flutter gen-l10n
-	python3 bin/check-arb-descriptions.py
 	python3 bin/check-ui-literals.py
+	python3 bin/check-untranslated-messages.py
 	$(FLUTTER_DART) bin/generate_forwarding_localizations.dart .dart_tool/forwarding_localizations.dart
 	@diff -u lib/utils/forwarding_localizations.dart .dart_tool/forwarding_localizations.dart || \
 		{ echo "lib/utils/forwarding_localizations.dart is out of date: run make generate-forwarding-localizations"; exit 1; }
 
 generate-forwarding-localizations: install
 	$(FLUTTER_DART) bin/generate_forwarding_localizations.dart
-
-update-ui-literals-baseline:
-	python3 bin/check-ui-literals.py --update
 
 run-pseudo-locale: install
 	python3 bin/generate-pseudo-locale.py

@@ -2,6 +2,7 @@
 // Written from platform/helium/common/enums.py by:
 //   platform/bin/sync-shared-constants.py
 
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 
 class GradeScaleTemplate {
@@ -10,19 +11,6 @@ class GradeScaleTemplate {
   static const int none = 0;
 
   static const int custom = -1;
-
-  static const Map<int, String> labels = {
-    0: 'Percentages only',
-    1: '4.0',
-    2: '4.0 with +/-',
-    3: '4.33 with +/-',
-    4: '4.5',
-    5: '7.0',
-    6: '9.0',
-    7: '10.0',
-    8: '1.0-5.0 (pass at 50%)',
-    9: '1.0-5.0 (pass at 75%)',
-  };
 
   static const Map<int, List<GradeScaleBandModel>> scales = {
     0: [],
@@ -132,6 +120,22 @@ class GradeScaleTemplate {
     ],
   };
 
-  static String summaryLabel(int template) =>
-      template == custom ? 'Custom' : labels[template]!;
+  static Map<int, String> get labels {
+    final l10n = LocaleNotifier().localizations;
+    return {
+      0: l10n.gradeScaleNone,
+      1: '4.0',
+      2: l10n.gradeScale40PlusMinus,
+      3: l10n.gradeScale433PlusMinus,
+      4: '4.5',
+      5: '7.0',
+      6: '9.0',
+      7: '10.0',
+      8: l10n.gradeScale15Pass50,
+      9: l10n.gradeScale15Pass75,
+    };
+  }
+
+  static String labelFor(int template) =>
+      template == custom ? LocaleNotifier().localizations.gradeScaleCustom : labels[template]!;
 }

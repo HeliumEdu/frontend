@@ -5,6 +5,7 @@ import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_group_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/request/course_request_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
@@ -122,7 +123,7 @@ class CourseDetailsState extends State<CourseDetails>
   void showSavedEntity(CourseModel entity) => setState(() => _course = entity);
 
   @override
-  String get itemNoun => 'class';
+  String get conflictItem => 'class';
 
   @override
   ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem => (
@@ -157,7 +158,7 @@ class CourseDetailsState extends State<CourseDetails>
               courseId: widget.courseId,
             )) {
           setState(() {
-            _error = state.message ?? HeliumException.unexpectedError;
+            _error = state.message ?? HeliumException.unexpectedErrorMessage;
             isLoading = false;
           });
         }
@@ -190,10 +191,10 @@ class CourseDetailsState extends State<CourseDetails>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Details', style: AppStyles.featureText(context)),
+                  Text(AppLocalizations.of(context).courseDetailsStep, style: AppStyles.featureText(context)),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
-                    label: 'Title',
+                    label: AppLocalizations.of(context).courseTitleLabel,
                     autofocus: PlatformBehavior.autofocusesOnOpen || !widget.isEdit,
                     controller: formController.titleController,
                     validator: BasicFormController.validateRequiredField,
@@ -210,7 +211,7 @@ class CourseDetailsState extends State<CourseDetails>
                   ),
                   const SizedBox(height: 14),
                   LabelAndTextFormField(
-                    label: 'Website',
+                    label: AppLocalizations.of(context).courseWebsiteLabel,
                     controller: formController.urlController,
                     validator: BasicFormController.validateUrl,
                     fieldKey: formController.getFieldKey('url'),
@@ -223,7 +224,7 @@ class CourseDetailsState extends State<CourseDetails>
                         );
                       },
                       icon: Icons.launch_outlined,
-                      label: 'Launch class website',
+                      label: AppLocalizations.of(context).plannerLaunchClassWebsiteLabel,
                       color: context.semanticColors.success,
                     ),
                   ),
@@ -233,7 +234,7 @@ class CourseDetailsState extends State<CourseDetails>
                     children: [
                       Expanded(
                         child: LabelAndTextFormField(
-                          label: 'Teacher',
+                          label: AppLocalizations.of(context).courseTeacherLabel,
                           controller: formController.teacherNameController,
                           onChanged: (_) => formController.markChanged(),
                         ),
@@ -241,7 +242,7 @@ class CourseDetailsState extends State<CourseDetails>
                       const SizedBox(width: 12),
                       Expanded(
                         child: LabelAndTextFormField(
-                          label: 'Email',
+                          label: AppLocalizations.of(context).courseTeacherEmailLabel,
                           controller: formController.teacherEmailController,
                           onChanged: (_) => formController.markChanged(),
                           validator: BasicFormController.validateEmail,
@@ -251,7 +252,7 @@ class CourseDetailsState extends State<CourseDetails>
                               UrlHelpers.launchMailUrl(formController.teacherEmailController.text);
                             },
                             icon: Icons.email_outlined,
-                            label: 'Email teacher',
+                            label: AppLocalizations.of(context).plannerEmailTeacherLabel,
                             color: context.semanticColors.info,
                           ),
                         ),
@@ -267,7 +268,7 @@ class CourseDetailsState extends State<CourseDetails>
                         Expanded(
                           child: HeliumCheckboxListTile(
                             title: Text(
-                              'Online',
+                              AppLocalizations.of(context).courseOnlineLabel,
                               style: AppStyles.formLabel(context),
                             ),
                             value: formController.isOnline,
@@ -285,7 +286,7 @@ class CourseDetailsState extends State<CourseDetails>
                           const SizedBox(width: 12),
                           Expanded(
                             child: LabelAndTextFormField(
-                              label: 'Location',
+                              label: AppLocalizations.of(context).courseLocationLabel,
                               controller: formController.roomController,
                               onChanged: (_) => formController.markChanged(),
                             ),
@@ -305,7 +306,7 @@ class CourseDetailsState extends State<CourseDetails>
                             children: [
                               const SizedBox(width: 9),
                               ColorSelector(
-                                label: 'Color',
+                                label: AppLocalizations.of(context).commonColorLabel,
                                 selectedColor: formController.selectedColor,
                                 onColorSelected: (color) {
                                   if (!mounted) return;
@@ -325,7 +326,7 @@ class CourseDetailsState extends State<CourseDetails>
                             child: SizedBox(
                               width: 120,
                               child: SpinnerField(
-                                label: 'Credits',
+                                label: AppLocalizations.of(context).courseCreditsLabel,
                                 controller: formController.creditsController,
                                 maxValue: 99,
                                 step: 0.5,
@@ -373,7 +374,7 @@ class CourseDetailsState extends State<CourseDetails>
       item: _course!,
       label: _course!.title,
       additionalWarning:
-          'Its assignments, attachments, and note, along with other data, will also be deleted.',
+          AppLocalizations.of(context).courseDeleteWarning,
       onDelete: (course) {
         widget.onActionStarted?.call();
         context.read<CourseBloc>().add(
@@ -389,7 +390,7 @@ class CourseDetailsState extends State<CourseDetails>
 
   Widget _buildGradeScaleField(CourseGroupModel group) {
     final template = formController.gradeScaleTemplate;
-    final groupLabel = GradeScaleTemplate.summaryLabel(
+    final groupLabel = GradeScaleTemplate.labelFor(
       group.gradeScaleTemplate ?? GradeScaleTemplate.custom,
     );
     final presets = [
@@ -400,7 +401,7 @@ class CourseDetailsState extends State<CourseDetails>
       items: [
         GradeScaleField.option(
           id: _sameAsGroup,
-          label: 'Same as group ($groupLabel)',
+          label: AppLocalizations.of(context).courseGradeScaleSameAsGroupOption(groupLabel),
           bands: group.gradeScale,
         ),
         for (final preset in presets)
@@ -418,7 +419,7 @@ class CourseDetailsState extends State<CourseDetails>
           : GradeScaleTemplate.scales[template]!,
       bandsTitle: template == null
           ? groupLabel
-          : GradeScaleTemplate.summaryLabel(template),
+          : GradeScaleTemplate.labelFor(template),
       onChanged: _onGradeScaleChanged,
     );
   }
@@ -429,10 +430,10 @@ class CourseDetailsState extends State<CourseDetails>
     List<int> presets,
   ) {
     if (presets.isEmpty) {
-      final scale = group.gradeScaleTemplate == null
-          ? 'This custom scale'
-          : groupLabel;
-      return '$scale has no other compatible scales.';
+      final l10n = AppLocalizations.of(context);
+      return group.gradeScaleTemplate == null
+          ? l10n.courseCustomScaleNoAlternativesHint
+          : l10n.courseScaleNoAlternativesHint(groupLabel);
     }
     return null;
   }
@@ -500,7 +501,7 @@ class CourseDetailsState extends State<CourseDetails>
     } else {
       SnackBarHelper.show(
         context,
-        'Fix the highlighted fields, then try again.',
+        AppLocalizations.of(context).plannerItemFixFieldsMessage,
         type: SnackType.error,
       );
       return false;
@@ -572,7 +573,7 @@ class CourseDetailsState extends State<CourseDetails>
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;

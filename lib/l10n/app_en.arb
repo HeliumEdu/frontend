@@ -1,39 +1,3399 @@
 {
   "@@locale": "en",
-  "calendarNoEventsLabel": "Nothing to see here",
-  "@calendarNoEventsLabel": {
-    "description": "Shown in the Planner when a day has no classes, assignments, events or other items: for the date the Agenda view is showing (today unless the student moved to another date), and on phones below the selected day in the month view."
+  "accountManageSignInMethodsLabel": "Manage sign-in methods",
+  "agendaWidgetAllDay": "All day",
+  "assignmentAddTitle": "Add Assignment",
+  "assignmentEditTitle": "Edit Assignment",
+  "attachmentDeletedElsewhereMessage": "\"{title}\" was deleted.",
+  "@attachmentDeletedElsewhereMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "syllabus.pdf"
+      }
+    }
   },
+  "attachmentDeletedMessage": "Attachment deleted.",
+  "attachmentDownloadedMessage": "\"{title}\" downloaded.",
+  "@attachmentDownloadedMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "syllabus.pdf"
+      }
+    }
+  },
+  "attachmentsChooseFilesButton": "Choose Files",
+  "attachmentsClassGroupTitle": "Class",
+  "@attachmentsClassGroupTitle": {
+    "description": "Heading over attachments that belong to the assignment's class."
+  },
+  "attachmentsEmptyMessage": "Click \"Choose Files\" to add attachments",
+  "attachmentsMenuEmptyMessage": "No attachments",
+  "attachmentsMenuTitle": "Attachments",
+  "attachmentsNothingSelectedMessage": "Nothing selected for upload.",
+  "attachmentsRemoveFromUploadLabel": "Remove from upload",
+  "attachmentsResourceGroupTitle": "Resource",
+  "@attachmentsResourceGroupTitle": {
+    "description": "Heading over attachments that belong to the assignment's resources (books and materials)."
+  },
+  "attachmentsShowTooltip": "Show attachments",
+  "attachmentsTitle": "Attachments",
+  "attachmentsTooManyFilesMessage": "You can't upload more than {count} files at a time.",
+  "@attachmentsTooManyFilesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "attachmentsUploadButton": "Upload",
+  "@attachmentsUploadButton": {
+    "description": "Button that uploads the chosen files as attachments."
+  },
+  "attachmentsUploadFailedCount": "{count, plural, =1{1 attachment failed to upload} other{{count} attachments failed to upload}}",
+  "@attachmentsUploadFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "attachmentsUploadedCount": "{count, plural, =1{1 attachment uploaded.} other{{count} attachments uploaded.}}",
+  "@attachmentsUploadedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "authBackToSignInLink": "Back to sign in",
+  "authEmailHint": "Email",
+  "authEmailUsesOtherMethodLinkMessage": "That email is already registered with a different sign-in method. Sign in that way to link {provider} too.",
+  "@authEmailUsesOtherMethodLinkMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authEmailUsesOtherMethodMessage": "That email is already registered with a different sign-in method. Sign in that way instead.",
+  "authOAuthSignInFailedMessage": "Sign in with {provider} failed. Please try again.",
+  "@authOAuthSignInFailedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authOrDivider": "OR",
+  "@authOrDivider": {
+    "description": "Divider between the email and password form and the Google, Apple and Microsoft buttons."
+  },
+  "authPasswordHint": "Password",
+  "authProviderSignInFailedMessage": "Sign in with {provider} failed.",
+  "@authProviderSignInFailedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authProviderUnavailableMessage": "Sign in with {provider} is temporarily unavailable.",
+  "@authProviderUnavailableMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authSignInFailedMessage": "Sign in failed.",
+  "authSignInToContinueMessage": "Please sign in to continue.",
+  "authSignOutFailedMessage": "Failed to sign out.",
+  "authVerificationEmailSentMessage": "Verification email sent! Check your inbox.",
+  "calendarNoEventsLabel": "Nothing to see here",
   "calendarNoSelectedDateLabel": "Select a date to get started",
-  "@calendarNoSelectedDateLabel": {
-    "description": "Shown on phones below the Planner's month view when no day is selected. The Planner selects today on its own, so this rarely appears."
+  "categoryAddLabel": "Add category",
+  "categoryAssignmentsTooltip": "Assignments",
+  "@categoryAssignmentsTooltip": {
+    "description": "Tooltip on how many assignments a category has."
+  },
+  "categoryDeleteWarning": "Any assignments associated with this category will be moved to \"{category}\".",
+  "@categoryDeleteWarning": {
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Uncategorized",
+        "description": "The built-in category's name, categoryUncategorizedTitle."
+      }
+    }
+  },
+  "categoryDeletedMessage": "Category deleted.",
+  "categoryDialogTitle": "Category",
+  "categoryEmptyMessage": "Click \"+\" to add a category",
+  "categoryNotFoundMessage": "Category not found.",
+  "categorySavedMessage": "Category saved.",
+  "categoryTitleLabel": "Title",
+  "categoryUncategorizedTitle": "Uncategorized",
+  "@categoryUncategorizedTitle": {
+    "description": "Name of the built-in category that holds a class's assignments without one. The platform's django.po names it in its error messages; translate them the same way."
+  },
+  "categoryWeightLabel": "Weight (%)",
+  "@categoryWeightLabel": {
+    "description": "Label of the category's share of the class grade, in percent."
+  },
+  "categoryWeightTooltip": "Weight",
+  "@categoryWeightTooltip": {
+    "description": "Tooltip on a category's share of the class grade."
+  },
+  "changeEmailCancelledMessage": "The pending email change was cancelled.",
+  "changeEmailMustDifferError": "New email must be different from your current email",
+  "changeEmailNewEmailLabel": "New email",
+  "changeEmailSentMessage": "Verification email sent to {email}.",
+  "@changeEmailSentMessage": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "alex@example.com",
+        "description": "The new email address."
+      }
+    }
+  },
+  "changePasswordChangeTitle": "Change Password",
+  "changePasswordConfirmLabel": "Confirm password",
+  "changePasswordNewLabel": "New password",
+  "changePasswordRevokesTokenWarning": "Changing your password also revokes your API token, so anything using it will stop working.",
+  "changePasswordSetTitle": "Set Password",
+  "clearExampleDataButton": "Clear",
+  "@clearExampleDataButton": {
+    "description": "Button that removes the example schedule."
+  },
+  "clearExampleDataMessage": "This removes the example schedule. Anything you've added or changed stays.",
+  "clearExampleDataTitle": "Clear Example Data?",
+  "colorPickerCustomButton": "Custom color",
+  "colorPickerPresetsButton": "Presets",
+  "colorPickerSwatchLabel": "Color {index} of {count}",
+  "@colorPickerSwatchLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "3"
+      },
+      "count": {
+        "type": "int",
+        "example": "16"
+      }
+    }
+  },
+  "commonAddToGetStartedMessage": "Click \"+\" to get started",
+  "commonBackLabel": "Back",
+  "@commonBackLabel": {
+    "description": "Spoken name of the back arrow at the top of a screen or dialog."
+  },
+  "commonCancelButton": "Cancel",
+  "commonClearTooltip": "Clear",
+  "@commonClearTooltip": {
+    "description": "Tooltip and spoken name of the X button that empties a search field."
+  },
+  "commonCloseLabel": "Close",
+  "@commonCloseLabel": {
+    "description": "Spoken name of the close (X) button at the top of a screen or dialog."
+  },
+  "commonColorLabel": "Color",
+  "commonDeleteButton": "Delete",
+  "commonDeleteLabel": "Delete",
+  "commonDismissLabel": "Dismiss",
+  "commonDownloadLabel": "Download",
+  "@commonDownloadLabel": {
+    "description": "Spoken name of the button that downloads an attached file."
+  },
+  "commonEditLabel": "Edit",
+  "commonKeepEditingButton": "Keep Editing",
+  "commonLearnMoreTooltip": "Learn more",
+  "commonListJoin": "{first}, {second}",
+  "@commonListJoin": {
+    "description": "Joins two items of a list, or a list so far and one more item.",
+    "placeholders": {
+      "first": {
+        "type": "String",
+        "example": "Mon",
+        "description": "The first item, or the list so far."
+      },
+      "second": {
+        "type": "String",
+        "example": "Wed",
+        "description": "The item added to the list."
+      }
+    }
+  },
+  "commonPrintTooltip": "Print",
+  "@commonPrintTooltip": {
+    "description": "Button that prints the page."
+  },
+  "commonReloadButton": "Reload",
+  "commonRemoveLabel": "Remove",
+  "commonSearchHint": "Search ...",
+  "commonSelectButton": "Select",
+  "commonSupportPortalButton": "Support Portal",
+  "@commonSupportPortalButton": {
+    "description": "Button that opens Helium's help website. \"Support Portal\" is the name of that website."
+  },
+  "commonUnexpectedErrorMessage": "An unexpected error occurred.",
+  "confirmDeleteNamedMessage": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@confirmDeleteNamedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The item's title."
+      }
+    }
+  },
+  "confirmDeleteNamedWarningMessage": "Are you sure you want to delete \"{name}\"? {warning} This action cannot be undone.",
+  "@confirmDeleteNamedWarningMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The item's title."
+      },
+      "warning": {
+        "type": "String",
+        "example": "Its attachments and note will also be deleted.",
+        "description": "A sentence saying what else is deleted."
+      }
+    }
+  },
+  "confirmDeleteTitle": "Confirm Delete",
+  "confirmDeleteUnnamedMessage": "Are you sure you want to delete this item? This action cannot be undone.",
+  "confirmDeleteUnnamedWarningMessage": "Are you sure you want to delete this item? {warning} This action cannot be undone.",
+  "@confirmDeleteUnnamedWarningMessage": {
+    "placeholders": {
+      "warning": {
+        "type": "String",
+        "example": "Its attachments and note will also be deleted.",
+        "description": "A sentence saying what else is deleted."
+      }
+    }
+  },
+  "conflictChangedAtMessage": "{item, select, assignment{This assignment was changed on another device {when}, after you opened it. Save your changes over that version?} event{This event was changed on another device {when}, after you opened it. Save your changes over that version?} class{This class was changed on another device {when}, after you opened it. Save your changes over that version?} resource{This resource was changed on another device {when}, after you opened it. Save your changes over that version?} note{This note was changed on another device {when}, after you opened it. Save your changes over that version?} other{This was changed on another device {when}, after you opened it. Save your changes over that version?}}",
+  "@conflictChangedAtMessage": {
+    "description": "Message of the dialog shown when what the user is editing was saved on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class, resource or note."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "conflictChangedElsewhereMessage": "This was changed on another device.",
+  "conflictChangedMessage": "{item, select, assignment{This assignment was changed on another device after you opened it. Save your changes over that version?} event{This event was changed on another device after you opened it. Save your changes over that version?} class{This class was changed on another device after you opened it. Save your changes over that version?} resource{This resource was changed on another device after you opened it. Save your changes over that version?} note{This note was changed on another device after you opened it. Save your changes over that version?} other{This was changed on another device after you opened it. Save your changes over that version?}}",
+  "@conflictChangedMessage": {
+    "description": "Message of the dialog shown when what the user is editing was saved on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class, resource or note."
+      }
+    }
+  },
+  "conflictChangedTitle": "Changed on Another Device",
+  "conflictDiscardChangesButton": "Discard Changes",
+  "conflictSaveChangesButton": "Save Changes",
+  "connectAllowButton": "Allow",
+  "connectDenyButton": "Deny",
+  "connectInvalidRequestMessage": "This connection request isn't valid. Start connecting again in the app that sent you here.",
+  "connectRequestMessage": "{clientName} wants to access your Helium account.",
+  "@connectRequestMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturnMessage": "Return to {clientName} to finish.",
+  "@connectReturnMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturnUnknownAppMessage": "Return to the app you came from to finish.",
+  "connectReturningMessage": "Returning you to {clientName} ...",
+  "@connectReturningMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturningUnknownAppMessage": "Returning you to the app you came from ...",
+  "connectScopesIntro": "It will be able to:",
+  "@connectScopesIntro": {
+    "description": "Introduces the list of what the other app will be able to do in the user's account."
+  },
+  "connectSwitchAccountButton": "Not you?",
+  "@connectSwitchAccountButton": {
+    "description": "Link under the signed-in account's email to sign in with a different account."
+  },
+  "connectTitle": "Connect to Helium",
+  "connectWarningMessage": "Only allow this if you are connecting {clientName} to Helium yourself.",
+  "@connectWarningMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "courseAddTitle": "Add Class",
+  "courseCancellationsTitle": "Cancellations",
+  "@courseCancellationsTitle": {
+    "description": "Title of the dialog listing dates a class doesn't meet, and the button that opens it."
+  },
+  "courseCategoriesTitle": "Categories",
+  "courseCreatedMessage": "Class created.",
+  "courseCreditsLabel": "Credits",
+  "courseCustomScaleNoAlternativesHint": "This custom scale has no other compatible scales.",
+  "courseDeleteWarning": "Its assignments, attachments, and note, along with other data, will also be deleted.",
+  "courseDeletedMessage": "Class deleted.",
+  "courseDetailsStep": "Details",
+  "courseEditTitle": "Edit Class",
+  "courseExceptionsAddLabel": "Add date",
+  "courseExceptionsAllMeetings": "All meetings",
+  "courseExceptionsDatesTitle": "Dates",
+  "courseExceptionsEmptyMessage": "Click \"+\" to add a date",
+  "courseExceptionsGroupCancelledLabel": "Also cancelled via Holidays & Breaks",
+  "@courseExceptionsGroupCancelledLabel": {
+    "description": "Heading of dates the class also skips because its group's Holidays & Breaks cancel them. Holidays & Breaks is a feature name."
+  },
+  "courseExceptionsScopeTitle": "Cancel which meetings?",
+  "courseGradeScaleSameAsGroupOption": "Same as group ({scale})",
+  "@courseGradeScaleSameAsGroupOption": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Standard",
+        "description": "The group's grade scale name."
+      }
+    }
+  },
+  "courseGroupCreatedMessage": "Group created.",
+  "courseGroupDeleteWarning": "Anything in this group, including classes and their assignments, attachments, notes, and other data, will also be deleted.",
+  "courseGroupDeletedMessage": "Group deleted.",
+  "courseGroupDialogTitle": "Group",
+  "@courseGroupDialogTitle": {
+    "description": "Title of the dialog for adding or editing a group of classes (such as a term)."
+  },
+  "courseGroupHideLabel": "Hide this group's classes and assignments from the Planner and Resources",
+  "courseGroupHolidaysTitle": "Holidays & Breaks",
+  "@courseGroupHolidaysTitle": {
+    "description": "Title of the dialog listing a group's days off, and the button that opens it. A feature name."
+  },
+  "courseGroupNotFoundMessage": "Group not found.",
+  "courseGroupTitleLabel": "Title",
+  "courseLocationLabel": "Location",
+  "courseOnlineLabel": "Online",
+  "courseScaleNoAlternativesHint": "{scale} has no other compatible scales.",
+  "@courseScaleNoAlternativesHint": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Pass/Fail",
+        "description": "The grade scale's name."
+      }
+    }
+  },
+  "courseScheduleEditAction": "Edit class schedule",
+  "courseScheduleFromDateLabel": "From {date}",
+  "@courseScheduleFromDateLabel": {
+    "description": "When a schedule has a start date but no end date.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4"
+      }
+    }
+  },
+  "courseScheduleNotFoundMessage": "No Schedule found for Class.",
+  "courseScheduleOpenWebsiteAction": "Open class website",
+  "courseScheduleRemindersStep": "Schedule reminders",
+  "courseScheduleRemindersTitle": "Schedule Reminders",
+  "courseScheduleSkipClassAction": "Skip this class",
+  "courseScheduleSkipDayAction": "Skip all meetings on {date}",
+  "@courseScheduleSkipDayAction": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4",
+        "description": "The date, without the year."
+      }
+    }
+  },
+  "courseScheduleSkipMeetingAction": "Skip this meeting",
+  "courseScheduleUntilDateLabel": "Until {date}",
+  "@courseScheduleUntilDateLabel": {
+    "description": "When a schedule has an end date but no start date.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Dec 12"
+      }
+    }
+  },
+  "courseSchedulesTitle": "Schedules",
+  "courseTeacherEmailLabel": "Email",
+  "courseTeacherLabel": "Teacher",
+  "courseTitleLabel": "Title",
+  "courseWebsiteLabel": "Website",
+  "coursesCategoryCount": "{count, plural, =1{1 category} other{{count} categories}}",
+  "@coursesCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "coursesCreateGroupFirstMessage": "Create a group first.",
+  "coursesCreditCount": "{credits, plural, =1{{formatted} credit} other{{formatted} credits}}",
+  "@coursesCreditCount": {
+    "description": "How many credits a class is worth, on its card.",
+    "placeholders": {
+      "credits": {
+        "type": "num",
+        "example": "3",
+        "description": "The credits, to pick the plural form."
+      },
+      "formatted": {
+        "type": "String",
+        "example": "3",
+        "description": "The credits, written in the user's number format."
+      }
+    }
+  },
+  "coursesGradeScaleTooltip": "Grade scale",
+  "coursesNoClassesInGroupTitle": "No classes in this group yet",
+  "coursesNoClassesTitle": "You haven't added any classes yet",
+  "coursesNoGroupsMessage": "Click \"+ Add Group\" to get started",
+  "coursesNoGroupsTitle": "You haven't added any groups yet",
+  "coursesWeightedGradingTooltip": "Weighted grading",
+  "coursesWhereToStartButton": "Where to Start",
+  "@coursesWhereToStartButton": {
+    "description": "Button that opens the Where to Start support article."
+  },
+  "dateTimeAboutDays": "{days, plural, =1{about a day} other{about {days} days}}",
+  "@dateTimeAboutDays": {
+    "description": "A length of time, rounded to the nearest day.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeAboutHours": "{hours, plural, =1{about an hour} other{about {hours} hours}}",
+  "@dateTimeAboutHours": {
+    "description": "A length of time, rounded to the nearest hour.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeAtTime": "at {time}",
+  "@dateTimeAtTime": {
+    "description": "When something happened earlier today. Completes a sentence like \"…changed on another device at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "dateTimeDateRange": "{startDate} to {endDate}",
+  "@dateTimeDateRange": {
+    "placeholders": {
+      "startDate": {
+        "type": "String",
+        "example": "Sep 4"
+      },
+      "endDate": {
+        "type": "String",
+        "example": "Dec 12"
+      }
+    }
+  },
+  "dateTimeMinutes": "{minutes, plural, =1{a minute} other{{minutes} minutes}}",
+  "@dateTimeMinutes": {
+    "description": "A length of time, rounded up to the minute.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeMultiDayRange": "{startDate} • {startTime} to {endDate} • {endTime}",
+  "@dateTimeMultiDayRange": {
+    "description": "When something starts and ends on different days.",
+    "placeholders": {
+      "startDate": {
+        "type": "String",
+        "example": "Sep 4"
+      },
+      "startTime": {
+        "type": "String",
+        "example": "9:00 AM"
+      },
+      "endDate": {
+        "type": "String",
+        "example": "Sep 5"
+      },
+      "endTime": {
+        "type": "String",
+        "example": "5:00 PM"
+      }
+    }
+  },
+  "dateTimeOnDateAtTime": "on {date} at {time}",
+  "@dateTimeOnDateAtTime": {
+    "description": "When something happened more than a week ago. Completes a sentence like \"…changed on another device on Oct 21 at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Oct 21",
+        "description": "The date, with the year when it isn't this year."
+      },
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "dateTimeOnWeekdayAtTime": "on {weekday} at {time}",
+  "@dateTimeOnWeekdayAtTime": {
+    "description": "When something happened within the past week. Completes a sentence like \"…changed on another device on Tue at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "weekday": {
+        "type": "String",
+        "example": "Tue",
+        "description": "The short weekday name."
+      },
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "discardChangesButton": "Discard",
+  "discardChangesMessage": "You have unsaved changes. Are you sure you want to discard them?",
+  "discardChangesTitle": "Unsaved Changes",
+  "dropdownShowOptionsLabel": "Show options",
+  "emptyCardTitle": "Nothing to see here",
+  "eventAddTitle": "Add Event",
+  "eventEditTitle": "Edit Event",
+  "externalCalendarCreatedMessage": "External calendar created.",
+  "externalCalendarDeletedMessage": "External calendar deleted.",
+  "externalCalendarDialogTitle": "External Calendar",
+  "externalCalendarNameLabel": "Name",
+  "externalCalendarNotFoundMessage": "External calendar not found.",
+  "externalCalendarShowLabel": "Show",
+  "@externalCalendarShowLabel": {
+    "description": "Short label of the switch that shows the external calendar in the Planner, used on narrow phones."
+  },
+  "externalCalendarShowOnCalendarLabel": "Show on calendar",
+  "externalCalendarUrlLabel": "URL (iCal)",
+  "@externalCalendarUrlLabel": {
+    "description": "Label of the external calendar's web address field. iCal is a calendar file format."
+  },
+  "externalCalendarsAddLabel": "Add external calendar",
+  "externalCalendarsEmptyMessage": "Click \"+\" to add an external calendar",
+  "externalCalendarsInfo": "External Calendars allow you to bring other calendars into Helium.",
+  "@externalCalendarsInfo": {
+    "description": "Explains the External Calendars settings screen. External Calendars is a feature name."
+  },
+  "externalEventManageAction": "Manage External Calendars",
+  "@externalEventManageAction": {
+    "description": "Action on an external calendar event that opens the External Calendars settings. External Calendars is a feature name."
+  },
+  "externalEventOpenLinkAction": "Open event link",
+  "feedsAssignmentsCopiedMessage": "Assignments feed URL copied.",
+  "feedsAssignmentsLabel": "Assignments",
+  "feedsClassSchedulesCopiedMessage": "Class Schedules feed URL copied.",
+  "feedsClassSchedulesLabel": "Class Schedules",
+  "feedsCopyButton": "Copy",
+  "@feedsCopyButton": {
+    "description": "Button that copies a feed's web address."
+  },
+  "feedsDisableAllButton": "Disable All",
+  "feedsDisableButton": "Disable",
+  "feedsDisableMessage": "Disabling Feeds will break any existing integrations. Enabling again later will generate new URLs, and will not re-establish these connections. This action cannot be undone.",
+  "feedsDisableTitle": "Disable All Feeds",
+  "feedsDisabledMessage": "Feeds are disabled",
+  "feedsEnableButton": "Enable",
+  "feedsEventsCopiedMessage": "Events feed URL copied.",
+  "feedsEventsLabel": "Events",
+  "feedsInfo": "Feeds allow you to take Helium's calendars elsewhere.",
+  "@feedsInfo": {
+    "description": "Explains the Feeds settings screen. Feeds is a feature name."
+  },
+  "feedsSecretWarning": "Keep private feed URLs secret. Disabling and re-enabling a feed will regenerate its URL.",
+  "feedsShareFailedMessage": "Failed to share link.",
+  "feedsShareLabel": "Share",
+  "@feedsShareLabel": {
+    "description": "Spoken name of the button that shares a feed's web address."
+  },
+  "forgotPasswordCheckEmailMessage": "Check your email for a link to reset your password.",
+  "forgotPasswordInstructions": "Enter the email associated with your account and we'll send you a password reset link.",
+  "forgotPasswordSendButton": "Send Reset Link",
+  "forgotPasswordSentDetail": "If an account with a password exists for that address, you'll receive a reset link shortly.",
+  "forgotPasswordTitle": "Forgot Password",
+  "formConfirmPasswordRequiredError": "Re-enter the password",
+  "formInvalidEmailError": "Enter a valid email address",
+  "formInvalidUrlError": "Enter a valid URL",
+  "formPasswordTooShortError": "Password must be at least 8 characters long",
+  "formPasswordsMismatchError": "The passwords do not match",
+  "formRequiredFieldError": "This field is required",
+  "gettingStartedClassesDescription": "View Classes to see how your schedules, categories, and assignments connect. Track deadlines, class times, locations, and Resources — all in one place.",
+  "@gettingStartedClassesDescription": {
+    "description": "Body of the Getting Started card about classes. \"Classes\" and \"Resources\" are names of tabs in the app (Resources holds textbooks and other materials)."
+  },
+  "gettingStartedClassesTitle": "Organized by class",
+  "gettingStartedClearExampleDataButton": "Clear Example Data",
+  "gettingStartedClearExampleDataFailedMessage": "Failed to delete example schedule: {error}",
+  "@gettingStartedClearExampleDataFailedMessage": {
+    "description": "Error shown when clearing the example schedule from the Getting Started dialog fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Server error. Please try again later.",
+        "description": "Helium's explanation of what went wrong."
+      }
+    }
+  },
+  "gettingStartedDevicesDescription": "Native apps for iOS and Android, plus web in any modern browser. Your schedule and notes stay in sync no matter which device you use — always right there.",
+  "gettingStartedDevicesTitle": "Available everywhere",
+  "gettingStartedExploreButton": "I'll explore first",
+  "gettingStartedGoToPageLabel": "Go to page {page}",
+  "@gettingStartedGoToPageLabel": {
+    "placeholders": {
+      "page": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "gettingStartedGradesDescription": "Visit Grades to see your scores by class, category, and term in real time. Know where to focus, what is piling up, and calculate what you need to score on the final.",
+  "@gettingStartedGradesDescription": {
+    "description": "Body of the Getting Started card about grades. \"Grades\" is the name of a tab; \"the final\" is a class's final exam."
+  },
+  "gettingStartedGradesTitle": "Know your grades",
+  "gettingStartedNextLabel": "Next",
+  "@gettingStartedNextLabel": {
+    "description": "Button that shows the next Getting Started card."
+  },
+  "gettingStartedNotesDescription": "Write notes linked to anything in your Planner — lecture summaries, paper drafts, whatever else. Format like a doc, search everything, and print when you need a hard copy.",
+  "@gettingStartedNotesDescription": {
+    "description": "Body of the Getting Started card about notes. \"Planner\" is the name of the app's calendar tab."
+  },
+  "gettingStartedNotesTitle": "Notes for anything",
+  "gettingStartedPlannerDescription": "Switch between Month, Week, Day, Agenda, and Todos views. Open for details, drag to reschedule, filter, search, sort — everything you need to stay on top of your schedule.",
+  "@gettingStartedPlannerDescription": {
+    "description": "Body of the Getting Started card about the Planner. Month, Week, Day, Agenda and Todos are the names of the Planner's views."
+  },
+  "gettingStartedPlannerTitle": "One Planner, every view",
+  "@gettingStartedPlannerTitle": {
+    "description": "Title of the Getting Started card about the Planner tab. \"Planner\" is the name of the app's calendar tab."
+  },
+  "gettingStartedPreviousLabel": "Previous",
+  "@gettingStartedPreviousLabel": {
+    "description": "Button that shows the previous Getting Started card."
+  },
+  "gettingStartedReadyDescription": "This welcome returns on every device until you clear the example data. Until then, feel free to explore it and get a feel for everything Helium has to offer.",
+  "gettingStartedReadyTitle": "Ready when you are",
+  "gettingStartedSyncDescription": "Use External Calendars to pull in events from Google, Apple, or other calendars. Enable Feeds to share your Helium schedule back to those other apps.",
+  "@gettingStartedSyncDescription": {
+    "description": "Body of the Getting Started card about calendar sync. \"External Calendars\" and \"Feeds\" are names of settings in the app; Google and Apple are the calendar providers."
+  },
+  "gettingStartedSyncTitle": "Sync with other calendars",
+  "gettingStartedWelcomeDescription": "We've preloaded your account with an example schedule so you can see Helium in action. Take your time exploring — click through to see what you can do.",
+  "@gettingStartedWelcomeDescription": {
+    "description": "Body of the first Getting Started card, under \"Welcome to Helium!\". \"Click through\" means paging through the dialog's cards."
+  },
+  "gettingStartedWelcomeTitle": "Welcome to Helium!",
+  "googleAccountContinueButton": "Continue as {name}",
+  "@googleAccountContinueButton": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alex Smith",
+        "description": "The Google account's name, or its email address when it has no name."
+      }
+    }
+  },
+  "googleAccountUseDifferentButton": "Not you? Use a different account",
+  "gradeCalculatorAssignmentAboveTargetMessage": "You're already above your target based on your current points.",
+  "gradeCalculatorAssignmentAchievableMessage": "You need to score {score} ({points}) on \"{assignment}\" to achieve {target} in this class.",
+  "@gradeCalculatorAssignmentAchievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      },
+      "assignment": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's title."
+      },
+      "target": {
+        "type": "String",
+        "example": "90%",
+        "description": "The class grade the student wants."
+      }
+    }
+  },
+  "gradeCalculatorAssignmentLabel": "Assignment",
+  "gradeCalculatorAssignmentOption": "{title} ({points} pts)",
+  "@gradeCalculatorAssignmentOption": {
+    "description": "An assignment in the dropdown, with its points possible (pts is short for points).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's title."
+      },
+      "points": {
+        "type": "String",
+        "example": "20",
+        "description": "The assignment's points possible."
+      }
+    }
+  },
+  "gradeCalculatorAssignmentUnachievableMessage": "You would need to score {score} ({points}) to reach your target.",
+  "@gradeCalculatorAssignmentUnachievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      }
+    }
+  },
+  "gradeCalculatorBandWithLetter": "{letter} ({minGrade})",
+  "@gradeCalculatorBandWithLetter": {
+    "description": "A grade band: its letter and lowest percent, such as A (90%+).",
+    "placeholders": {
+      "letter": {
+        "type": "String",
+        "example": "A",
+        "description": "The band's letter grade."
+      },
+      "minGrade": {
+        "type": "String",
+        "example": "90%+",
+        "description": "The band's lowest percent."
+      }
+    }
+  },
+  "gradeCalculatorBandWithPoint": "{minGrade} ({points})",
+  "@gradeCalculatorBandWithPoint": {
+    "description": "A grade band without a letter: its lowest percent and grade point, such as 90%+ (4.0).",
+    "placeholders": {
+      "minGrade": {
+        "type": "String",
+        "example": "90%+",
+        "description": "The band's lowest percent."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade point."
+      }
+    }
+  },
+  "gradeCalculatorCalculateButton": "Calculate",
+  "gradeCalculatorCalculateForLabel": "Calculate for",
+  "@gradeCalculatorCalculateForLabel": {
+    "description": "Label before the choice of calculating for a class grade or a term GPA."
+  },
+  "gradeCalculatorCategoryAboveTargetMessage": "You're already above your target based on current category performance.",
+  "gradeCalculatorCategoryAchievableMessage": "You need to score {score} on \"{category}\" to achieve {target} in this class.",
+  "@gradeCalculatorCategoryAchievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "category": {
+        "type": "String",
+        "example": "Exams",
+        "description": "The category's title."
+      },
+      "target": {
+        "type": "String",
+        "example": "90%",
+        "description": "The class grade the student wants."
+      }
+    }
+  },
+  "gradeCalculatorCategoryLabel": "Category",
+  "gradeCalculatorCategoryUnachievableMessage": "You would need to score {score} to reach your target.",
+  "@gradeCalculatorCategoryUnachievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      }
+    }
+  },
+  "gradeCalculatorClassGradeOption": "Class grade",
+  "gradeCalculatorComeBackLaterTitle": "Come back later",
+  "gradeCalculatorDesiredGpaLabel": "Desired term GPA",
+  "gradeCalculatorDesiredGradeLabel": "Desired class grade (%)",
+  "gradeCalculatorGpaAboveTargetMessage": "You're already above your target: this class stays at {band} or better, for a term GPA of {direction, select, atLeast{at least} other{at most}} {gpa}.",
+  "@gradeCalculatorGpaAboveTargetMessage": {
+    "description": "Grade Calculator result when the class is already above the band the target GPA needs.",
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaAchievableMessage": "You need to score {score} on \"{item}\" to reach {band} in this class, for a term GPA of {direction, select, atLeast{at least} other{at most}} {gpa}.",
+  "@gradeCalculatorGpaAchievableMessage": {
+    "description": "Grade Calculator result when a score on the assignment or category reaches the target GPA.",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85% (17 / 20 points)",
+        "description": "The needed score, with its points when the item has them."
+      },
+      "item": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's or category's title."
+      },
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaNeedsCreditsHint": "Add credits to this class to use GPA.",
+  "gradeCalculatorGpaUnachievableMessage": "You would need to score {score} to reach {band} in this class, for a term GPA of {direction, select, atLeast{at least} other{at most}} {gpa}.",
+  "@gradeCalculatorGpaUnachievableMessage": {
+    "description": "Grade Calculator result when the score needed for the target GPA isn't possible.",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85% (17 / 20 points)",
+        "description": "The needed score, with its points when the item has them."
+      },
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaUnreachableMessage": "Even {band} in this class can't bring your term GPA to {gpa}.",
+  "@gradeCalculatorGpaUnreachableMessage": {
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "A (93%+)",
+        "description": "The highest grade band: its letter and lowest percent."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.8",
+        "description": "The target term GPA."
+      }
+    }
+  },
+  "gradeCalculatorInvalidGpaError": "Enter a valid GPA between {min} and {max}",
+  "@gradeCalculatorInvalidGpaError": {
+    "placeholders": {
+      "min": {
+        "type": "String",
+        "example": "0.0",
+        "description": "The scale's lowest grade point."
+      },
+      "max": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The scale's highest grade point."
+      }
+    }
+  },
+  "gradeCalculatorInvalidGradeError": "Enter a valid grade between 0 and 100",
+  "gradeCalculatorInvalidWeightsMessage": "Category weights do not add up to 100%, so we can't help make accurate predictions.",
+  "gradeCalculatorNeedsLastUngradedMessage": "Check back when a category is down to its last ungraded assignment.",
+  "gradeCalculatorNeedsUngradedMessage": "Check back when this class has an ungraded assignment.",
+  "gradeCalculatorNoWeightMessage": "Selected category has no weight, so we can't help make accurate predictions.",
+  "gradeCalculatorPointsOfLabel": "{needed} / {possible} points",
+  "@gradeCalculatorPointsOfLabel": {
+    "placeholders": {
+      "needed": {
+        "type": "String",
+        "example": "17",
+        "description": "The points needed."
+      },
+      "possible": {
+        "type": "String",
+        "example": "20",
+        "description": "The points possible."
+      }
+    }
+  },
+  "gradeCalculatorScoreWithPoints": "{score} ({points})",
+  "@gradeCalculatorScoreWithPoints": {
+    "description": "A needed score and the points it means, such as 85% (17 / 20 points).",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      }
+    }
+  },
+  "gradeCalculatorSelectAssignmentError": "Select an assignment",
+  "gradeCalculatorSelectCategoryError": "Select a category",
+  "gradeCalculatorTermGpaOption": "Term GPA",
+  "gradeCalculatorThisCategoryFallback": "this category",
+  "@gradeCalculatorThisCategoryFallback": {
+    "description": "Stands in for a category's name when it can't be found, inside a sentence about the category."
+  },
+  "gradeCalculatorTitle": "Grade Calculator",
+  "@gradeCalculatorTitle": {
+    "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
+  },
+  "gradeCalculatorWhatCouldIGetTab": "What Could I Get?",
+  "@gradeCalculatorWhatCouldIGetTab": {
+    "description": "Grade Calculator tab that projects the grade from hypothetical scores."
+  },
+  "gradeCalculatorWhatDoINeedTab": "What Do I Need?",
+  "@gradeCalculatorWhatDoINeedTab": {
+    "description": "Grade Calculator tab that works out the score needed for a target."
+  },
+  "gradePointLetterAndPointTooltip": "Letter grade and grade point",
+  "gradePointLetterTooltip": "Letter grade",
+  "gradePointPointTooltip": "Grade point",
+  "gradeProjectionAllCaughtUpMessage": "Check back again when you have ungraded work to use this feature.",
+  "gradeProjectionAllCaughtUpTitle": "All caught up",
+  "gradeProjectionGpaStatus": "{changes, select, changed{Projected GPA: {gpa} ({change})} other{Projected GPA: {gpa}}}",
+  "@gradeProjectionGpaStatus": {
+    "description": "The projected term GPA, with how much it changes when it changes.",
+    "placeholders": {
+      "changes": {
+        "type": "String",
+        "example": "changed",
+        "description": "changed when the GPA changes, otherwise none."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The projected term GPA."
+      },
+      "change": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the term GPA."
+      }
+    }
+  },
+  "gradeProjectionGpaWithAllStatus": "{changes, select, both{Projected GPA: {gpa} ({change}) • All {allGpa} ({allChange})} term{Projected GPA: {gpa} ({change}) • All {allGpa}} all{Projected GPA: {gpa} • All {allGpa} ({allChange})} other{Projected GPA: {gpa} • All {allGpa}}}",
+  "@gradeProjectionGpaWithAllStatus": {
+    "description": "The projected term GPA and the GPA across all terms (All), each with how much it changes when it changes.",
+    "placeholders": {
+      "changes": {
+        "type": "String",
+        "example": "both",
+        "description": "Which GPAs change: both, term, all, or none."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The projected term GPA."
+      },
+      "change": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the term GPA."
+      },
+      "allGpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The projected GPA across all terms."
+      },
+      "allChange": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the GPA across all terms."
+      }
+    }
+  },
+  "gradeProjectionGradeStatus": "Projected grade: {grade}",
+  "@gradeProjectionGradeStatus": {
+    "placeholders": {
+      "grade": {
+        "type": "String",
+        "example": "91.5%",
+        "description": "The projected class grade."
+      }
+    }
+  },
+  "gradeProjectionNeedsAssignmentsMessage": "Check back when this class has assignments.",
+  "gradeProjectionResetButton": "Reset",
+  "gradeScale15Pass50": "1.0-5.0 (pass at 50%)",
+  "@gradeScale15Pass50": {
+    "description": "Grade scale name: the 1.0 to 5.0 scale where 50% is a passing grade. Keep the numbers as written."
+  },
+  "gradeScale15Pass75": "1.0-5.0 (pass at 75%)",
+  "@gradeScale15Pass75": {
+    "description": "Grade scale name: the 1.0 to 5.0 scale where 75% is a passing grade. Keep the numbers as written."
+  },
+  "gradeScale40PlusMinus": "4.0 with +/-",
+  "@gradeScale40PlusMinus": {
+    "description": "Grade scale name: the 4.0 grade point scale with plus and minus letter grades. Keep the numbers as written."
+  },
+  "gradeScale433PlusMinus": "4.33 with +/-",
+  "@gradeScale433PlusMinus": {
+    "description": "Grade scale name: the 4.33 grade point scale with plus and minus letter grades. Keep the numbers as written."
+  },
+  "gradeScaleCloseButton": "Close",
+  "@gradeScaleCloseButton": {
+    "description": "Button that closes the grade scale dialog."
+  },
+  "gradeScaleCustom": "Custom",
+  "@gradeScaleCustom": {
+    "description": "Grade scale choice for a scale the student defines."
+  },
+  "gradeScaleDialogTitle": "{scale} Grade Scale",
+  "@gradeScaleDialogTitle": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Standard",
+        "description": "The grade scale's name."
+      }
+    }
+  },
+  "gradeScaleFieldLabel": "Grade scale",
+  "gradeScaleGradeColumn": "Grade",
+  "@gradeScaleGradeColumn": {
+    "description": "Grade scale column: the lowest percent for each band."
+  },
+  "gradeScaleLetterColumn": "Letter",
+  "@gradeScaleLetterColumn": {
+    "description": "Grade scale column: the letter grade for each band."
+  },
+  "gradeScaleLetterRange": "{highest} to {lowest}",
+  "@gradeScaleLetterRange": {
+    "description": "The range of a grade scale's letters, such as A+ to F.",
+    "placeholders": {
+      "highest": {
+        "type": "String",
+        "example": "A+",
+        "description": "The scale's highest letter."
+      },
+      "lowest": {
+        "type": "String",
+        "example": "F",
+        "description": "The scale's lowest letter."
+      }
+    }
+  },
+  "gradeScaleNone": "Percentages only",
+  "@gradeScaleNone": {
+    "description": "Grade scale choice that shows grades as percentages only, with no letter grades or grade points."
+  },
+  "gradeScalePointsColumn": "Points",
+  "@gradeScalePointsColumn": {
+    "description": "Grade scale column: the grade points for each band."
+  },
+  "gradeScaleTopBand": "Top grade: {minGrade} = {points}",
+  "@gradeScaleTopBand": {
+    "description": "Summary of a grade scale's top band: its lowest percent and grade points.",
+    "placeholders": {
+      "minGrade": {
+        "type": "String",
+        "example": "93%",
+        "description": "The band's lowest grade."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade points."
+      }
+    }
+  },
+  "gradeScaleTopBandWithLetter": "Top grade: {letter} at {minGrade} = {points}",
+  "@gradeScaleTopBandWithLetter": {
+    "description": "Summary of a grade scale's top band: its letter, lowest percent and grade points.",
+    "placeholders": {
+      "letter": {
+        "type": "String",
+        "example": "A",
+        "description": "The band's letter grade."
+      },
+      "minGrade": {
+        "type": "String",
+        "example": "93%",
+        "description": "The band's lowest grade."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade points."
+      }
+    }
+  },
+  "gradeScaleViewLabel": "View grade scale",
+  "gradeTrendAllSeries": "All",
+  "@gradeTrendAllSeries": {
+    "description": "Legend name of the line for the GPA across all terms (All GPA)."
+  },
+  "gradeTrendNoTitleFallback": "No assignment title",
+  "gradeTrendOverallPoint": "Overall • {grade}",
+  "@gradeTrendOverallPoint": {
+    "placeholders": {
+      "grade": {
+        "type": "String",
+        "example": "91.5%",
+        "description": "The class grade at this point."
+      }
+    },
+    "description": "Grade-trend tooltip: the class grade at this point."
+  },
+  "gradeTrendOverallSeries": "Overall Grade",
+  "gradeTrendTermGpaPoint": "Term GPA • {gpa}",
+  "@gradeTrendTermGpaPoint": {
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The term GPA at this point."
+      }
+    },
+    "description": "Grade-trend tooltip: the term GPA at this point."
+  },
+  "gradeTrendTermGpaSeries": "Term GPA",
+  "gradesAllGpaSummary": "All {gpa}",
+  "@gradesAllGpaSummary": {
+    "description": "The GPA across all terms (All GPA).",
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The GPA across all terms."
+      }
+    }
+  },
+  "gradesAllPassingMessage": "All classes passing!",
+  "gradesAtRiskBadge": "At-Risk",
+  "@gradesAtRiskBadge": {
+    "description": "Badge on a class whose grade is below the at-risk threshold."
+  },
+  "gradesAtRiskTitle": "At-Risk Classes",
+  "gradesAtRiskZoneLabel": "At-Risk Zone",
+  "@gradesAtRiskZoneLabel": {
+    "description": "Label of the shaded band on the grade graph below the at-risk threshold."
+  },
+  "gradesAutoAdjustOption": "Auto-adjust to graded range",
+  "gradesAverageColumn": "Average",
+  "gradesBelowThresholdLabel": "below {threshold}%",
+  "@gradesBelowThresholdLabel": {
+    "description": "Under the count of at-risk classes: their grade is below the at-risk threshold.",
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesCategoryColumn": "Category",
+  "gradesClassesWithoutCreditsHint": "{count, plural, =1{1 class without credits isn't counted.} other{{count} classes without credits aren't counted.}}",
+  "@gradesClassesWithoutCreditsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesCollapseLabel": "Collapse",
+  "gradesContributionColumn": "Contribution",
+  "@gradesContributionColumn": {
+    "description": "Column for how much the category adds to the class grade."
+  },
+  "gradesEntireTermTitle": "Entire Term",
+  "gradesExpandLabel": "Expand",
+  "gradesGpaAcrossTermsTitle": "GPA Across Terms",
+  "gradesGpaMenuTitle": "GPA",
+  "gradesGradeCalculatorTooltip": "Grade Calculator",
+  "@gradesGradeCalculatorTooltip": {
+    "description": "Grade Calculator is a feature name."
+  },
+  "gradesGradePreferencesOption": "Grade preferences",
+  "gradesGradeTrendTitle": "Grade Trend",
+  "gradesGradedColumn": "Graded",
+  "@gradesGradedColumn": {
+    "description": "Column for how many of the category's assignments are graded."
+  },
+  "gradesGradedCount": "{count, plural, =1{1 graded} other{{count} graded}}",
+  "@gradesGradedCount": {
+    "description": "How many of the class's assignments are graded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesGradedOfTotal": "{graded} of {total}",
+  "@gradesGradedOfTotal": {
+    "placeholders": {
+      "graded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    },
+    "description": "How many of the category's assignments are graded, in the Graded column."
+  },
+  "gradesGraphErrorMessage": "An unknown error occurred loading the graph",
+  "gradesGraphSettingsLabel": "Graph settings",
+  "gradesHideLegendOption": "Hide legend",
+  "gradesNoClassesInTermTitle": "No classes in this term yet",
+  "gradesNoClassesMessage": "Head over to \"Classes\" to get started",
+  "@gradesNoClassesMessage": {
+    "description": "\"Classes\" is the name of the Classes tab."
+  },
+  "gradesNoGradesMessage": "Grade an assignment on the Planner and your trend shows up here.",
+  "gradesNoGradesTitle": "No grades yet",
+  "gradesNotCountedMessage": "{count, plural, =1{1 graded assignment isn't counted in this grade} other{{count} graded assignments aren't counted in this grade}}",
+  "@gradesNotCountedMessage": {
+    "description": "Under a class's grade, when graded assignments are in a category with no weight in a class with weighted grading. Tapping it shows them on the Planner.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesOverallGradeTitle": "Overall Grade",
+  "gradesPaceAhead": "Ahead",
+  "@gradesPaceAhead": {
+    "description": "Pace status: work done is ahead of the time passed in the term."
+  },
+  "gradesPaceAllDone": "All Done",
+  "@gradesPaceAllDone": {
+    "description": "Pace status when all work and the term are complete."
+  },
+  "gradesPaceBehind": "Behind",
+  "@gradesPaceBehind": {
+    "description": "Pace status: work done is behind the time passed in the term."
+  },
+  "gradesPaceOnTrack": "On Track",
+  "@gradesPaceOnTrack": {
+    "description": "Pace status: work done keeps up with the time passed in the term."
+  },
+  "gradesPaceTimeLabel": "Time",
+  "@gradesPaceTimeLabel": {
+    "description": "Label of the bar for how much of the term has passed."
+  },
+  "gradesPaceWarmingUp": "Warming Up",
+  "@gradesPaceWarmingUp": {
+    "description": "Pace status before there's enough work to compare against the term's progress."
+  },
+  "gradesPaceWorkLabel": "Work",
+  "@gradesPaceWorkLabel": {
+    "description": "Label of the bar for how much of the term's work is done."
+  },
+  "gradesPendingImpactTitle": "Pending Impact",
+  "gradesPriorCreditsHint": "{credits, plural, =1{All includes {formatted} prior credit at a {gpa} GPA.} other{All includes {formatted} prior credits at a {gpa} GPA.}}",
+  "@gradesPriorCreditsHint": {
+    "description": "All is the GPA across all terms.",
+    "placeholders": {
+      "credits": {
+        "type": "num"
+      },
+      "formatted": {
+        "type": "String",
+        "example": "12.5",
+        "description": "{credits}, written in the user's number format."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The prior credits' GPA."
+      }
+    }
+  },
+  "gradesPriorCreditsPoint": "Prior",
+  "@gradesPriorCreditsPoint": {
+    "description": "Point on the GPA Across Terms graph for credits from before using Helium."
+  },
+  "gradesProgressPaceTitle": "Progress vs. Pace",
+  "gradesScaleDiffersHint": "This group's grade scale differs from your most recent one, so it isn't counted in your GPA across all terms.",
+  "gradesShowGpaDetailsTooltip": "Show GPA details",
+  "gradesShowNotCountedTooltip": "Show these assignments",
+  "gradesTermGpaSummary": "GPA {gpa}",
+  "@gradesTermGpaSummary": {
+    "description": "The selected term's GPA.",
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The selected term's GPA."
+      }
+    }
+  },
+  "gradesUngradedAssignmentsLabel": "{count, plural, =1{ungraded assignment} other{ungraded assignments}}",
+  "@gradesUngradedAssignmentsLabel": {
+    "description": "Under the count of ungraded assignments, which is shown separately above it; only the words.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesUngradedInClassLabel": "{count} in {className}",
+  "@gradesUngradedInClassLabel": {
+    "description": "How many of the ungraded assignments are in the class they affect most.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "className": {
+        "type": "String",
+        "example": "Intro to Psychology",
+        "description": "The class's title."
+      }
+    }
+  },
+  "gradesUngradedShortLabel": "ungraded",
+  "@gradesUngradedShortLabel": {
+    "description": "Under the count of ungraded assignments, on narrow phones."
+  },
+  "groupAddButton": "Add Group",
+  "@groupAddButton": {
+    "description": "Button in a group dropdown that creates a new group (a term grouping classes, or a group of resources)."
+  },
+  "importExportChooseButton": "Choose",
+  "importExportCreateClassOption": "Create a new class",
+  "importExportCreateGroupsOption": "Create new groups",
+  "importExportDestinationHint": "Select a destination",
+  "importExportDestinationLabel": "Import into",
+  "importExportDownloadedMessage": "\"{filename}\" downloaded.",
+  "@importExportDownloadedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "Helium_backup.json",
+        "description": "The exported file's name."
+      }
+    }
+  },
+  "importExportExampleDescription": "Restore demo data to explore Helium",
+  "importExportExampleFailedMessage": "Failed to import example schedule.",
+  "importExportExampleImportedMessage": "Example schedule re-imported.",
+  "importExportExampleTitle": "Example Schedule",
+  "importExportExportButton": "Export",
+  "importExportExportDescription": "Export your data to a Helium file (no attachments)",
+  "importExportExportFailedMessage": "Export failed.",
+  "importExportExportTitle": "Export",
+  "importExportFailedMessage": "Import failed.",
+  "importExportFileFailedMessage": "Failed to import file.",
+  "importExportImportAsEventsOption": "Import as Events",
+  "importExportImportButton": "Import",
+  "importExportImportCompleteMessage": "Import complete.",
+  "importExportImportDescription": "Import a file",
+  "importExportImportTitle": "Import",
+  "importExportImportedAssignments": "{count, plural, =1{1 assignment} other{{count} assignments}}",
+  "@importExportImportedAssignments": {
+    "description": "How many assignments an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedCategories": "{count, plural, =1{1 category} other{{count} categories}}",
+  "@importExportImportedCategories": {
+    "description": "How many assignment categories an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedClasses": "{count, plural, =1{1 class} other{{count} classes}}",
+  "@importExportImportedClasses": {
+    "description": "How many classes an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedEvents": "{count, plural, =1{1 event} other{{count} events}}",
+  "@importExportImportedEvents": {
+    "description": "How many events an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedExternalCalendars": "{count, plural, =1{1 external calendar} other{{count} external calendars}}",
+  "@importExportImportedExternalCalendars": {
+    "description": "How many external calendars an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedMessage": "Imported: {items}.",
+  "@importExportImportedMessage": {
+    "description": "Confirmation after an import. {items} lists what was imported, such as \"3 classes, 12 assignments\".",
+    "placeholders": {
+      "items": {
+        "type": "String",
+        "example": "3 classes, 12 assignments",
+        "description": "What was imported, as a list."
+      }
+    }
+  },
+  "importExportImportedNotes": "{count, plural, =1{1 note} other{{count} notes}}",
+  "@importExportImportedNotes": {
+    "description": "How many notes an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedReminders": "{count, plural, =1{1 reminder} other{{count} reminders}}",
+  "@importExportImportedReminders": {
+    "description": "How many reminders an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedResources": "{count, plural, =1{1 resource} other{{count} resources}}",
+  "@importExportImportedResources": {
+    "description": "How many resources an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportInfo": "Back up, restore, or import data from an automated tool or shared schedule.",
+  "importExportInvalidCalendarError": "This doesn't look like a valid calendar file.",
+  "importExportInvalidHeliumFileError": "This doesn't look like a Helium export file.",
+  "importExportInvalidJsonError": "This file isn't valid JSON.",
+  "importExportLoadClassesFailedMessage": "Could not load your classes.",
+  "importExportNoFileSelectedLabel": "No file selected",
+  "importExportNothingExportedMessage": "Nothing exported.",
+  "importExportNothingToImportMessage": "Nothing to import from this file.",
+  "importExportReimportExampleButton": "Re-Import Example Schedule",
+  "linkedNoteBothChangedAtDeleteMessage": "{item, select, assignment{This assignment and its note changed on another device after you opened it, most recently {when}. Save your changes and delete the note?} event{This event and its note changed on another device after you opened it, most recently {when}. Save your changes and delete the note?} class{This class and its note changed on another device after you opened it, most recently {when}. Save your changes and delete the note?} resource{This resource and its note changed on another device after you opened it, most recently {when}. Save your changes and delete the note?} other{This item and its note changed on another device after you opened it, most recently {when}. Save your changes and delete the note?}}",
+  "@linkedNoteBothChangedAtDeleteMessage": {
+    "description": "Shown when both the item and its note changed on another device and the user cleared the note to delete it, with when that device last saved.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteBothChangedAtSaveMessage": "{item, select, assignment{This assignment and its note changed on another device after you opened it, most recently {when}. Save your changes over those versions?} event{This event and its note changed on another device after you opened it, most recently {when}. Save your changes over those versions?} class{This class and its note changed on another device after you opened it, most recently {when}. Save your changes over those versions?} resource{This resource and its note changed on another device after you opened it, most recently {when}. Save your changes over those versions?} other{This item and its note changed on another device after you opened it, most recently {when}. Save your changes over those versions?}}",
+  "@linkedNoteBothChangedAtSaveMessage": {
+    "description": "Shown when both the item and its note were changed on another device first, with when that device last saved.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteBothChangedDeleteMessage": "{item, select, assignment{This assignment and its note changed on another device after you opened it. Save your changes and delete the note?} event{This event and its note changed on another device after you opened it. Save your changes and delete the note?} class{This class and its note changed on another device after you opened it. Save your changes and delete the note?} resource{This resource and its note changed on another device after you opened it. Save your changes and delete the note?} other{This item and its note changed on another device after you opened it. Save your changes and delete the note?}}",
+  "@linkedNoteBothChangedDeleteMessage": {
+    "description": "Shown when both changed on another device and the user cleared the note to delete it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteBothChangedSaveMessage": "{item, select, assignment{This assignment and its note changed on another device after you opened it. Save your changes over those versions?} event{This event and its note changed on another device after you opened it. Save your changes over those versions?} class{This class and its note changed on another device after you opened it. Save your changes over those versions?} resource{This resource and its note changed on another device after you opened it. Save your changes over those versions?} other{This item and its note changed on another device after you opened it. Save your changes over those versions?}}",
+  "@linkedNoteBothChangedSaveMessage": {
+    "description": "Shown when both the item and its note were changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedAtDeleteMessage": "{item, select, assignment{Your other changes are saved, but this assignment's note changed on another device {when}, after you opened it. Delete the note anyway, including those changes?} event{Your other changes are saved, but this event's note changed on another device {when}, after you opened it. Delete the note anyway, including those changes?} class{Your other changes are saved, but this class's note changed on another device {when}, after you opened it. Delete the note anyway, including those changes?} resource{Your other changes are saved, but this resource's note changed on another device {when}, after you opened it. Delete the note anyway, including those changes?} other{Your other changes are saved, but this item's note changed on another device {when}, after you opened it. Delete the note anyway, including those changes?}}",
+  "@linkedNoteChangedAtDeleteMessage": {
+    "description": "Shown when the user cleared the note to delete it, but it was changed on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteChangedAtSaveMessage": "{item, select, assignment{Your other changes are saved, but this assignment's note changed on another device {when}, after you opened it. Save your note changes over that version?} event{Your other changes are saved, but this event's note changed on another device {when}, after you opened it. Save your note changes over that version?} class{Your other changes are saved, but this class's note changed on another device {when}, after you opened it. Save your note changes over that version?} resource{Your other changes are saved, but this resource's note changed on another device {when}, after you opened it. Save your note changes over that version?} other{Your other changes are saved, but this item's note changed on another device {when}, after you opened it. Save your note changes over that version?}}",
+  "@linkedNoteChangedAtSaveMessage": {
+    "description": "Shown when the item saved but its note was changed on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteChangedDeleteMessage": "{item, select, assignment{Your other changes are saved, but this assignment's note changed on another device after you opened it. Delete the note anyway, including those changes?} event{Your other changes are saved, but this event's note changed on another device after you opened it. Delete the note anyway, including those changes?} class{Your other changes are saved, but this class's note changed on another device after you opened it. Delete the note anyway, including those changes?} resource{Your other changes are saved, but this resource's note changed on another device after you opened it. Delete the note anyway, including those changes?} other{Your other changes are saved, but this item's note changed on another device after you opened it. Delete the note anyway, including those changes?}}",
+  "@linkedNoteChangedDeleteMessage": {
+    "description": "Shown when the user cleared the note to delete it, but it was changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedSaveMessage": "{item, select, assignment{Your other changes are saved, but this assignment's note changed on another device after you opened it. Save your note changes over that version?} event{Your other changes are saved, but this event's note changed on another device after you opened it. Save your note changes over that version?} class{Your other changes are saved, but this class's note changed on another device after you opened it. Save your note changes over that version?} resource{Your other changes are saved, but this resource's note changed on another device after you opened it. Save your note changes over that version?} other{Your other changes are saved, but this item's note changed on another device after you opened it. Save your note changes over that version?}}",
+  "@linkedNoteChangedSaveMessage": {
+    "description": "Shown when the item saved but its note was changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedTitle": "Note Changed on Another Device",
+  "linkedNoteDeleteButton": "Delete Note",
+  "linkedNoteKeepButton": "Keep Note",
+  "linkedNoteRecreatedMessage": "This note was deleted on another device, so it was saved as a new note.",
+  "linkedNoteSaveFailedMessage": "Your other changes are saved, but the note failed to save: {reason}",
+  "@linkedNoteSaveFailedMessage": {
+    "description": "Error when the item saved but its note didn't. The reason comes from the server.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "Server error. Please try again later.",
+        "description": "Why the note didn't save."
+      }
+    }
+  },
+  "mobileWebAppStoreButton": "Download on the App Store",
+  "@mobileWebAppStoreButton": {
+    "description": "Text of the Apple App Store button on the get-the-app screen. Use Apple's official wording for the App Store badge in your language."
   },
   "mobileWebContinueOnWebButton": "Continue on web",
-  "@mobileWebContinueOnWebButton": {
-    "description": "Text button on the get-the-app screen that dismisses it and keeps the visitor in the phone's web browser."
+  "mobileWebGooglePlayButton": "Get it on Google Play",
+  "@mobileWebGooglePlayButton": {
+    "description": "Text of the Google Play button on the get-the-app screen. Use Google's official wording for the Google Play badge in your language."
   },
   "mobileWebNativeAppPitch": "The native app is faster, smoother, and designed for your phone.",
-  "@mobileWebNativeAppPitch": {
-    "description": "Subtitle on the screen shown to phone browser visitors, encouraging them to install the iOS or Android app instead of using the website."
+  "mobileWebNotificationsDescription": "Stay on top of everything with reminders.",
+  "mobileWebNotificationsTitle": "Push notifications",
+  "mobileWebStoreLinkFailedMessage": "Failed to open the app store link.",
+  "mobileWebSyncDescription": "Seamlessly transition between web, iOS, and Android.",
+  "mobileWebSyncTitle": "Everything stays synced",
+  "mobileWebTitle": "Get the Helium App",
+  "mobileWebTouchDescription": "Designed for touch, gestures, and small screens.",
+  "mobileWebTouchTitle": "Better mobile UX",
+  "@mobileWebTouchTitle": {
+    "description": "Name of a benefit of the native app, on the get-the-app screen. \"UX\" means user experience."
+  },
+  "navAppStoreTooltip": "Download on the App Store",
+  "@navAppStoreTooltip": {
+    "description": "Tooltip of the Apple button in the web app's side navigation that opens the iOS app's App Store page. Use Apple's official wording for your language."
+  },
+  "navClassesLabel": "Classes",
+  "@navClassesLabel": {
+    "description": "Name of the tab where students manage their classes (courses), in the navigation bar and as that screen's title."
+  },
+  "navGooglePlayTooltip": "Get it on Google Play",
+  "@navGooglePlayTooltip": {
+    "description": "Tooltip of the Android button in the web app's side navigation that opens the Google Play page. Use Google's official wording for your language."
+  },
+  "navGradesLabel": "Grades",
+  "@navGradesLabel": {
+    "description": "Name of the grades tab, in the navigation bar and as that screen's title."
+  },
+  "navKeepHeliumFreeTooltip": "Keep Helium Free",
+  "@navKeepHeliumFreeTooltip": {
+    "description": "Tooltip of the heart button in the side navigation that opens Helium's Patreon page to support the app."
+  },
+  "navNotebookLabel": "Notebook",
+  "@navNotebookLabel": {
+    "description": "Name of the tab where students write notes, in the navigation bar and as that screen's title."
+  },
+  "navPlannerLabel": "Planner",
+  "@navPlannerLabel": {
+    "description": "Name of the app's calendar tab, in the navigation bar and as that screen's title."
+  },
+  "navResourcesLabel": "Resources",
+  "@navResourcesLabel": {
+    "description": "Name of the tab for textbooks and other class materials, in the navigation bar and as that screen's title."
+  },
+  "networkServerErrorMessage": "Server error. Please try again later.",
+  "networkTimedOutMessage": "Took too long to reach Helium. Check your connection and try again.",
+  "networkUnreachableMessage": "Couldn't reach Helium. Check your connection and try again.",
+  "noteAddTitle": "Add Note",
+  "noteAutoSaveActiveTooltip": "Auto-save active",
+  "noteAutoSaveInactiveTooltip": "Auto-save not yet active",
+  "noteAutoSavePausedLabel": "Auto-save paused",
+  "noteAutoSavePausedRetryingLabel": "Auto-save paused, will retry",
+  "noteChangesRecoveredMessage": "Your unsaved changes were recovered.",
+  "noteCreatedMessage": "Note created.",
+  "noteDeletedMessage": "Note deleted.",
+  "noteEditTitle": "Edit Note",
+  "noteEmptyNotSavedMessage": "Note was empty, so nothing to save.",
+  "noteLinkAssignmentTitle": "Link Assignment",
+  "noteLinkAssignmentTooltip": "Assignment",
+  "noteLinkClassTitle": "Link Class",
+  "noteLinkClassTooltip": "Class",
+  "@noteLinkClassTooltip": {
+    "description": "Tooltip on the choice that lists classes to link the note to."
+  },
+  "noteLinkEventTitle": "Link Event",
+  "noteLinkEventTooltip": "Event",
+  "noteLinkNoAssignmentsMatchMessage": "No assignments match",
+  "noteLinkNoAssignmentsMessage": "No available assignments",
+  "noteLinkNoClassesMatchMessage": "No classes match",
+  "noteLinkNoClassesMessage": "No available classes",
+  "noteLinkNoEventsMatchMessage": "No events match",
+  "noteLinkNoEventsMessage": "No available events",
+  "noteLinkNoResourcesMatchMessage": "No resources match",
+  "noteLinkNoResourcesMessage": "No available resources",
+  "noteLinkRepeatsFromDate": "From {date}",
+  "@noteLinkRepeatsFromDate": {
+    "description": "Date shown beside a repeating item: when it starts repeating.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4"
+      }
+    }
+  },
+  "noteLinkRepeatsLabel": "Repeats",
+  "@noteLinkRepeatsLabel": {
+    "description": "Name of the icon beside an item that repeats."
+  },
+  "noteLinkResourceTitle": "Link Resource",
+  "noteLinkResourceTooltip": "Resource",
+  "@noteLinkResourceTooltip": {
+    "description": "Tooltip on the choice that lists resources (books and materials) to link the note to."
   },
   "noteLinkTextLabel": "Link text",
-  "@noteLinkTextLabel": {
-    "description": "Label of the field for the visible text of a link, in the dialog that adds a link to a note."
-  },
   "noteLinkUrlLabel": "Link URL",
-  "@noteLinkUrlLabel": {
-    "description": "Label of the field for the web address of a link, in the dialog that adds a link to a note."
+  "noteLinkableItemsFailedMessage": "Failed to load items.",
+  "noteOpenInClassesTooltip": "Open in Classes",
+  "@noteOpenInClassesTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Classes tab. Classes is the name of a Helium tab."
+  },
+  "noteOpenInPlannerTooltip": "Open in Planner",
+  "@noteOpenInPlannerTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Planner tab. Planner is the name of a Helium tab."
+  },
+  "noteOpenInResourcesTooltip": "Open in Resources",
+  "@noteOpenInResourcesTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Resources tab. Resources is the name of a Helium tab."
+  },
+  "notePdfFilename": "note.pdf",
+  "@notePdfFilename": {
+    "description": "File name of the PDF of a note with no title. Keep the .pdf extension and use no spaces."
+  },
+  "notePdfPreviewTitle": "Note Preview",
+  "noteRecoverButton": "Recover",
+  "noteRecoverChangedAtMessage": "This note was changed on another device {when}. Recover your changes anyway, replacing that version?",
+  "@noteRecoverChangedAtMessage": {
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "at 5:42 PM",
+        "description": "When the other device saved, like \"at 5:42 PM\" or \"on Tue at 5:42 PM\"."
+      }
+    }
+  },
+  "noteRecoverChangedMessage": "This note was changed on another device. Recover your changes anyway, replacing that version?",
+  "noteRecoverChangedRelativeMessage": "{direction, select, before{This note was changed on another device {gap} before your recovered changes. Recover your changes anyway, replacing that version?} after{This note was changed on another device {gap} after your recovered changes. Recover your changes anyway, replacing that version?} other{This note was changed on another device around the same time as your recovered changes. Recover your changes anyway, replacing that version?}}",
+  "@noteRecoverChangedRelativeMessage": {
+    "description": "The other choice is when both changes happened within a minute.",
+    "placeholders": {
+      "direction": {
+        "type": "String",
+        "example": "before",
+        "description": "before or after the recovered changes, otherwise sameTime."
+      },
+      "gap": {
+        "type": "String",
+        "example": "about 2 days",
+        "description": "A length of time, like \"about 2 days\"."
+      }
+    }
+  },
+  "noteRecoverChangesTitle": "Recover Your Changes?",
+  "noteSemanticsLabel": "Note",
+  "@noteSemanticsLabel": {
+    "description": "Spoken name of a note's text area."
+  },
+  "noteStandaloneLabel": "Standalone",
+  "@noteStandaloneLabel": {
+    "description": "Label for a note that isn't linked to an assignment, class, event or resource."
+  },
+  "noteTitleHint": "Title",
+  "noteUnlinkLabel": "Unlink",
+  "notebookAlsoSearchContentTooltip": "Also search note content",
+  "notebookEmptyTitle": "You haven't added any notes yet",
+  "notebookFilterTypeClasses": "Classes",
+  "notebookFilterTypeResources": "Resources",
+  "@notebookFilterTypeResources": {
+    "description": "Filter for notes linked to resources (books and materials)."
+  },
+  "notebookHideHiddenGroupsLabel": "Hide notes linked to hidden groups",
+  "notebookLinkedToColumn": "Linked To",
+  "notebookModifiedColumn": "Modified",
+  "@notebookModifiedColumn": {
+    "description": "Notebook column heading for when a note last changed."
+  },
+  "notebookNoMatchesMessage": "No notes match the applied filters or search",
+  "notebookNoteRecoveredMessage": "Your unsaved note was recovered.",
+  "notebookRecoveredDraftNamedTitle": "[Recovered Draft] {title}",
+  "@notebookRecoveredDraftNamedTitle": {
+    "description": "Title saved on a note recovered from unsaved changes, before its own title. Saved as the note's title.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Lecture 4"
+      }
+    }
+  },
+  "notebookRecoveredDraftTitle": "[Recovered Draft]",
+  "@notebookRecoveredDraftTitle": {
+    "description": "Title saved on a note recovered from unsaved changes when its own title can't be kept."
+  },
+  "notebookSearchContentButton": "Search note content",
+  "notebookStopSearchingContentTooltip": "Stop searching note content",
+  "notesEditorLabel": "Notes",
+  "notesInvalidFormatMessage": "This note is not in a valid format and cannot be loaded.",
+  "notesOpenInNotebookButton": "Open in Notebook",
+  "@notesOpenInNotebookButton": {
+    "description": "Button beside the notes field that opens the note in the Notebook tab."
+  },
+  "notificationChannelDescription": "Notifications for Helium",
+  "notificationChannelName": "Helium App",
+  "@notificationChannelName": {
+    "description": "Name of the app's notification channel in Android's notification settings. Helium is the app's name."
+  },
+  "notificationsAllRemindersDismissedMessage": "All Reminders dismissed.",
+  "notificationsDismissAllTooltip": "Dismiss all",
+  "notificationsDismissReminderLabel": "Dismiss reminder",
+  "notificationsEmptyMessage": "Reminders will appear here when they are due",
+  "notificationsReminderDismissedMessage": "Reminder dismissed.",
+  "notificationsTitle": "Notifications",
+  "oauthRelinkButton": "Link {provider}",
+  "@oauthRelinkButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkDeclineButton": "Don't link",
+  "oauthRelinkLinkedMessage": "{provider} is now linked to your account.",
+  "@oauthRelinkLinkedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkNotLinkedMessage": "{provider} wasn't linked. Sign in with {provider} any time to link it.",
+  "@oauthRelinkNotLinkedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkPendingMessage": "{provider} still needs to be linked to your account. Link it so both keep working?",
+  "@oauthRelinkPendingMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkRemovedMessage": "Signing in with {signedInWith} removed {provider} from your account. Link it so both keep working?",
+  "@oauthRelinkRemovedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      },
+      "signedInWith": {
+        "type": "String",
+        "example": "Apple",
+        "description": "The provider the user just signed in with: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkTitle": "Link {provider}?",
+  "@oauthRelinkTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "pageAddLabel": "Add",
+  "pageNotificationsLabel": "Notifications",
+  "pageSaveLabel": "Save",
+  "pagerAllOption": "All",
+  "@pagerAllOption": {
+    "description": "Choice in the rows-per-page dropdown that shows every row on one page."
+  },
+  "pagerFirstPageLabel": "First page",
+  "pagerLastPageLabel": "Last page",
+  "pagerNextPageLabel": "Next page",
+  "pagerPreviousPageLabel": "Previous page",
+  "pagerRangeLabel": "{start} to {end} of {total}",
+  "@pagerRangeLabel": {
+    "description": "Shorter text below a table on narrow screens, saying which rows are on the current page. Example: \"1 to 10 of 42\".",
+    "placeholders": {
+      "start": {
+        "type": "int",
+        "example": "1"
+      },
+      "end": {
+        "type": "int",
+        "example": "10"
+      },
+      "total": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  "pagerShowLabel": "Show",
+  "@pagerShowLabel": {
+    "description": "Label before the dropdown that picks how many rows a table shows per page (\"Show [10]\")."
+  },
+  "pagerShowingRangeLabel": "Showing {start} to {end} of {total}",
+  "@pagerShowingRangeLabel": {
+    "placeholders": {
+      "start": {
+        "type": "int",
+        "example": "1"
+      },
+      "end": {
+        "type": "int",
+        "example": "10"
+      },
+      "total": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  "passwordHideLabel": "Hide password",
+  "passwordShowLabel": "Show password",
+  "pickerFromLabel": "From",
+  "@pickerFromLabel": {
+    "description": "Label of the start date field in a date range."
+  },
+  "pickerToLabel": "To",
+  "@pickerToLabel": {
+    "description": "Label of the end date field in a date range."
+  },
+  "plannerAssignmentClonedMessage": "Assignment cloned.",
+  "plannerAssignmentCreatedMessage": "Assignment created.",
+  "plannerAssignmentCreatedOutsideTodosMessage": "Assignment created. It's outside your groups' dates, so it won't show in Todos.",
+  "plannerAssignmentDeletedMessage": "Assignment deleted.",
+  "plannerAssignmentMovedOutsideTodosMessage": "Assignment moved. It's outside your groups' dates, so it won't show in Todos.",
+  "plannerAssignmentNotFoundMessage": "Homework not found.",
+  "plannerAssignmentSavedOutsideTodosMessage": "Assignment saved. It's outside your groups' dates, so it won't show in Todos.",
+  "plannerChangeViewTooltip": "Change view",
+  "plannerCloneLabel": "Clone",
+  "@plannerCloneLabel": {
+    "description": "Spoken name of the button that copies the item."
+  },
+  "plannerCloneOccurrenceLabel": "Clone this occurrence",
+  "plannerCollapseTooltip": "Collapse",
+  "plannerCompleteItemLabel": "Complete {title}",
+  "@plannerCompleteItemLabel": {
+    "description": "Spoken name of the checkbox that marks an assignment complete.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The assignment's title."
+      }
+    }
+  },
+  "plannerDeletesAttachmentsNoteDetail": "Its attachments and note will also be deleted.",
+  "plannerEmailTeacherLabel": "Email teacher",
+  "plannerEventClonedMessage": "Event cloned.",
+  "plannerEventCreatedMessage": "Event created.",
+  "plannerEventDeletedMessage": "Event deleted.",
+  "plannerFilterOnlyCompleteLabel": "Only complete",
+  "@plannerFilterOnlyCompleteLabel": {
+    "description": "Spoken name of the switch that shows only completed assignments (off shows only incomplete)."
+  },
+  "plannerFilterOnlyGradedLabel": "Only graded",
+  "plannerFilterOnlyLabel": "Only",
+  "@plannerFilterOnlyLabel": {
+    "description": "Label beside the switch that narrows a status filter to one side, such as only complete."
+  },
+  "plannerFilterStatusComplete": "Complete",
+  "@plannerFilterStatusComplete": {
+    "description": "Planner filter for completed assignments."
+  },
+  "plannerFilterStatusGraded": "Graded",
+  "@plannerFilterStatusGraded": {
+    "description": "Planner filter for graded assignments."
+  },
+  "plannerFilterStatusIncomplete": "Incomplete",
+  "@plannerFilterStatusIncomplete": {
+    "description": "Planner filter for incomplete assignments."
+  },
+  "plannerFilterStatusOverdue": "Overdue",
+  "@plannerFilterStatusOverdue": {
+    "description": "Planner filter for overdue assignments."
+  },
+  "plannerFilterStatusUngraded": "Ungraded",
+  "@plannerFilterStatusUngraded": {
+    "description": "Planner filter for ungraded assignments."
+  },
+  "plannerFilterTypeAssignments": "Assignments",
+  "plannerFilterTypeClassSchedules": "Class Schedules",
+  "plannerFilterTypeEvents": "Events",
+  "plannerFilterTypeExternalCalendars": "External Calendars",
+  "@plannerFilterTypeExternalCalendars": {
+    "description": "Planner filter that shows events from external calendars. External Calendars is a feature name."
+  },
+  "plannerFiltersCategoriesSection": "CATEGORIES",
+  "@plannerFiltersCategoriesSection": {
+    "description": "Heading of the filter menu's section for assignment categories. Shown in capitals."
+  },
+  "plannerFiltersClassesSection": "CLASSES",
+  "@plannerFiltersClassesSection": {
+    "description": "Heading of the filter menu's section for classes. Shown in capitals."
+  },
+  "plannerFiltersClearAllButton": "Clear All",
+  "plannerFiltersExternalCalendarsSection": "EXTERNAL CALENDARS",
+  "@plannerFiltersExternalCalendarsSection": {
+    "description": "Heading of the filter menu's section for external calendars. Shown in capitals."
+  },
+  "plannerFiltersStatusSection": "STATUS",
+  "@plannerFiltersStatusSection": {
+    "description": "Heading of the filter menu's section for assignment status. Shown in capitals."
+  },
+  "plannerFiltersTitle": "Filters",
+  "plannerFiltersTypesSection": "TYPES",
+  "@plannerFiltersTypesSection": {
+    "description": "Heading of the filter menu's section for item types. Shown in capitals."
+  },
+  "plannerItemAddClassLabel": "Add a class",
+  "plannerItemAllDayLabel": "All day",
+  "plannerItemAssignmentTooltip": "Assignment",
+  "plannerItemCategoryLabel": "Category",
+  "plannerItemClassLabel": "Class",
+  "plannerItemClassUnavailableMessage": "This class is no longer available. Close and reopen this assignment.",
+  "plannerItemCompleteLabel": "Complete",
+  "@plannerItemCompleteLabel": {
+    "description": "Checkbox that marks the assignment complete."
+  },
+  "plannerItemDetailsStep": "Details",
+  "plannerItemEndDateLabel": "End date",
+  "plannerItemEndTimeLabel": "End time",
+  "plannerItemEventTooltip": "Event",
+  "plannerItemFixFieldsMessage": "Fix the highlighted fields, then try again.",
+  "plannerItemGradeHint": "Grade",
+  "plannerItemNoClassesInfo": "Once you've created at least one Class shown on the Planner, you can add Assignments from here too.",
+  "plannerItemPriorityLabel": "Priority",
+  "plannerItemResourcesLabel": "Resources",
+  "plannerItemSelectResourcesButton": "Select resources",
+  "plannerItemShowEndLabel": "Show end",
+  "@plannerItemShowEndLabel": {
+    "description": "Checkbox that shows the item's end date and time fields."
+  },
+  "plannerItemStartDateLabel": "Start date",
+  "plannerItemStartTimeLabel": "Start time",
+  "plannerItemTitleLabel": "Title",
+  "plannerItemUngradedCategoryLabel": "{category} (Not Graded)",
+  "@plannerItemUngradedCategoryLabel": {
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Reading",
+        "description": "The category's name."
+      }
+    }
+  },
+  "plannerItemWeightedCategoryLabel": "{category} ({weight})",
+  "@plannerItemWeightedCategoryLabel": {
+    "description": "A category in the dropdown, with its share of the class grade.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Homework",
+        "description": "The category's name."
+      },
+      "weight": {
+        "type": "String",
+        "example": "20%",
+        "description": "The category's weight, as a percent."
+      }
+    }
+  },
+  "plannerKeepsRemindersDetail": "It keeps its reminders.",
+  "@plannerKeepsRemindersDetail": {
+    "description": "Explains, in the dialog for changing one occurrence of a repeating item, that the occurrence keeps its reminders."
+  },
+  "plannerLaunchClassWebsiteLabel": "Launch class website",
+  "plannerMoreActionsLabel": "More",
+  "@plannerMoreActionsLabel": {
+    "description": "Spoken name of the button that shows more actions for an item."
+  },
+  "plannerMoreItemsLabel": "+{count} more",
+  "@plannerMoreItemsLabel": {
+    "description": "Link in a busy month-view day that shows the items that don't fit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3",
+        "description": "How many items are hidden."
+      }
+    }
+  },
+  "plannerNextLabel": "Next",
+  "plannerOnlineLabel": "Online",
+  "plannerPreviousLabel": "Previous",
+  "plannerSearchLabel": "Search",
+  "@plannerSearchLabel": {
+    "description": "Name of the Planner's search icon."
+  },
+  "plannerShowResourcesTooltip": "Show resources",
+  "plannerTodayButton": "Today",
+  "@plannerTodayButton": {
+    "description": "Button that jumps the Planner to today."
+  },
+  "plannerTooltipExternalCalendarSource": "External Calendar",
+  "@plannerTooltipExternalCalendarSource": {
+    "description": "Fills in for an external calendar's name when it isn't known. External Calendar is a feature name."
+  },
+  "plannerViewAgenda": "Agenda",
+  "@plannerViewAgenda": {
+    "description": "Name of the Planner view that lists items in date order."
+  },
+  "plannerViewDay": "Day",
+  "@plannerViewDay": {
+    "description": "Name of the Planner view that shows one day."
+  },
+  "plannerViewMonth": "Month",
+  "@plannerViewMonth": {
+    "description": "Name of the Planner view that shows one month."
+  },
+  "plannerViewThreeDay": "3-Day",
+  "plannerViewTodos": "Todos",
+  "@plannerViewTodos": {
+    "description": "Name of the Planner view that lists assignments as a to-do list. A feature name."
+  },
+  "plannerViewWeek": "Week",
+  "@plannerViewWeek": {
+    "description": "Name of the Planner view that shows one week."
+  },
+  "preferencesAtRiskDescription": "Classes with an overall grade below this are flagged",
+  "preferencesAtRiskLabel": "At-risk threshold (%)",
+  "preferencesCalendarSection": "CALENDAR",
+  "@preferencesCalendarSection": {
+    "description": "Heading of the Preferences section for calendar settings. Shown in capitals."
+  },
+  "preferencesCollapseBusyDaysDescription": "Limit visible items per day in month view and show \"+N more\"",
+  "@preferencesCollapseBusyDaysDescription": {
+    "description": "Help text under the collapse busy days setting. \"+N more\" is the link shown for hidden items."
+  },
+  "preferencesCollapseBusyDaysLabel": "Collapse busy days",
+  "preferencesColorByCategoryDescription": "Use the category color instead of the class color",
+  "preferencesColorByCategoryLabel": "Color by assignment category",
+  "preferencesDateFormatLabel": "Date format",
+  "preferencesDefaultReminderLabel": "Default reminder",
+  "preferencesDefaultViewLabel": "Default view",
+  "preferencesDisplaySection": "DISPLAY",
+  "@preferencesDisplaySection": {
+    "description": "Heading of the Preferences section for colors. Shown in capitals."
+  },
+  "preferencesDragAndDropLabel": "Drag-and-drop on touch devices",
+  "preferencesEventsColorLabel": "Color for Events",
+  "preferencesGeneralSection": "GENERAL",
+  "@preferencesGeneralSection": {
+    "description": "Heading of the first Preferences section. Shown in capitals."
+  },
+  "preferencesGradesColorLabel": "Color for grades",
+  "preferencesGradesSection": "GRADES",
+  "@preferencesGradesSection": {
+    "description": "Heading of the Preferences section for grade settings. Shown in capitals."
   },
   "preferencesLanguageLabel": "Language",
-  "@preferencesLanguageLabel": {
-    "description": "Label of the Settings dropdown that picks the account's language, next to the time zone: the app's language on every device, and the language of emails and notifications."
+  "preferencesNumberFormatLabel": "Number format",
+  "preferencesOnTrackDescription": "How far off pace your work can be and still be On Track, and how far above the at-risk threshold a grade shows as a warning",
+  "@preferencesOnTrackDescription": {
+    "description": "Help text under the on-track tolerance field. On Track is a grade status."
   },
-  "supportHeliumRateTitle": "Rate Helium",
-  "@supportHeliumRateTitle": {
-    "description": "Title of the row on the Keep Helium Free card in Settings that opens Helium's App Store or Google Play listing so the student can rate it. \"Helium\" is the app's name."
+  "preferencesOnTrackLabel": "On-track tolerance (%)",
+  "preferencesPlannerSection": "PLANNER",
+  "@preferencesPlannerSection": {
+    "description": "Heading of the Preferences section for Planner settings. Shown in capitals."
+  },
+  "preferencesPriorCreditsDescription": "Credits from before you started using Helium, counted in your All GPA",
+  "@preferencesPriorCreditsDescription": {
+    "description": "Help text under the prior credits field. All GPA is the GPA across all terms."
+  },
+  "preferencesPriorCreditsLabel": "Prior credits",
+  "preferencesPriorGpaDescription": "Your GPA over those prior credits",
+  "preferencesPriorGpaLabel": "Prior GPA",
+  "preferencesRememberFiltersDescription": "Keep your chosen filters on this device when you leave and come back",
+  "preferencesRememberFiltersLabel": "Remember filter selections",
+  "preferencesRemindBeforeLabel": "Default \"Remind before\"",
+  "@preferencesRemindBeforeLabel": {
+    "description": "Label of the default time before an item that its reminder goes off."
+  },
+  "preferencesRemindersSection": "REMINDERS",
+  "@preferencesRemindersSection": {
+    "description": "Heading of the Preferences section for reminder settings. Shown in capitals."
+  },
+  "preferencesResourcesColorLabel": "Color for Resources",
+  "preferencesShowTooltipsLabel": "Show tooltips",
+  "preferencesShowWeekNumbersLabel": "Show week numbers",
+  "preferencesTimeFormatLabel": "Time format",
+  "preferencesTimeZoneChangeNotice": "Assignments and Events will shift to {timeZone} time. Class Schedules stay as entered.",
+  "@preferencesTimeZoneChangeNotice": {
+    "placeholders": {
+      "timeZone": {
+        "type": "String",
+        "example": "Pacific",
+        "description": "The name of the newly chosen time zone."
+      }
+    }
+  },
+  "preferencesTimeZoneLabel": "Time zone",
+  "preferencesWeekStartsOnLabel": "Week starts on",
+  "printDefaultTitle": "Print",
+  "@printDefaultTitle": {
+    "description": "Title of the print preview when the page has none. Also used, in lowercase, in the PDF's file name."
+  },
+  "printDocumentName": "Document",
+  "@printDocumentName": {
+    "description": "Name of the print job when the page has no title, shown in the system's print queue."
+  },
+  "printPdfFailedMessage": "Failed to generate PDF.",
+  "printPreviewTitle": "Preview",
+  "@printPreviewTitle": {
+    "description": "Title of the print preview screen."
+  },
+  "printShareTooltip": "Share",
+  "@printShareTooltip": {
+    "description": "Button that shares the PDF."
+  },
+  "quillSearchCloseLabel": "Close search",
+  "quillSearchMatchCaseTooltip": "Match case",
+  "quillSearchNextTooltip": "Next",
+  "@quillSearchNextTooltip": {
+    "description": "Button that jumps to the next match in note search."
+  },
+  "quillSearchPreviousTooltip": "Previous",
+  "@quillSearchPreviousTooltip": {
+    "description": "Button that jumps to the previous match in note search."
+  },
+  "quillSearchWholeWordTooltip": "Match whole word",
+  "quillToolbarLessTooltip": "Less",
+  "@quillToolbarLessTooltip": {
+    "description": "Tooltip and spoken name of the button that collapses the note toolbar's extra formatting buttons."
+  },
+  "quillToolbarMoreTooltip": "More",
+  "@quillToolbarMoreTooltip": {
+    "description": "Tooltip and spoken name of the button that shows the note toolbar's extra formatting buttons."
+  },
+  "recurrenceCustomOption": "Custom",
+  "@recurrenceCustomOption": {
+    "description": "Repeat option shown for a repeat pattern made elsewhere that the form can't edit."
+  },
+  "recurrenceCustomSchedule": "Repeats on a custom schedule",
+  "recurrenceEndAfterOption": "After",
+  "@recurrenceEndAfterOption": {
+    "description": "End option for a repeat that stops after a number of occurrences."
+  },
+  "recurrenceEndDateLabel": "End date",
+  "recurrenceEndNeverOption": "Never",
+  "recurrenceEndOfClassOption": "End of class",
+  "@recurrenceEndOfClassOption": {
+    "description": "End option for a repeating assignment that repeats until its class ends."
+  },
+  "recurrenceEndOnDateOption": "On date",
+  "recurrenceEndsLabel": "Ends",
+  "@recurrenceEndsLabel": {
+    "description": "Label of the dropdown that picks when a repeat stops."
+  },
+  "recurrenceEveryLabel": "Every",
+  "@recurrenceEveryLabel": {
+    "description": "Label of the field for how many days, weeks, months or years apart the item repeats; the unit follows the number."
+  },
+  "recurrenceFrequencyDaily": "Daily",
+  "recurrenceFrequencyMonthly": "Monthly",
+  "recurrenceFrequencyNone": "Does not repeat",
+  "recurrenceFrequencyWeekly": "Weekly",
+  "recurrenceFrequencyYearly": "Yearly",
+  "recurrenceIntervalUnitDays": "{count, plural, =1{day} other{days}}",
+  "@recurrenceIntervalUnitDays": {
+    "description": "The unit after the Every field: every 1 day, every 2 days. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitMonths": "{count, plural, =1{month} other{months}}",
+  "@recurrenceIntervalUnitMonths": {
+    "description": "The unit after the Every field: every 1 month, every 2 months. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitWeeks": "{count, plural, =1{week} other{weeks}}",
+  "@recurrenceIntervalUnitWeeks": {
+    "description": "The unit after the Every field: every 1 week, every 2 weeks. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitYears": "{count, plural, =1{year} other{years}}",
+  "@recurrenceIntervalUnitYears": {
+    "description": "The unit after the Every field: every 1 year, every 2 years. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceLastDayOfMonthDescription": "Otherwise, months without day {day} are skipped.",
+  "@recurrenceLastDayOfMonthDescription": {
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "example": "30",
+        "description": "The day of the month the item starts on."
+      }
+    }
+  },
+  "recurrenceLastDayOfMonthLabel": "On the last day of the month",
+  "recurrenceOccurrencesLabel": "Occurrences",
+  "recurrenceOnDate": "{repeats} on {date}",
+  "@recurrenceOnDate": {
+    "description": "Adds the date, such as March 7, to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "date": {
+        "type": "String",
+        "example": "March 7",
+        "description": "The month and day."
+      }
+    }
+  },
+  "recurrenceOnDay": "{repeats} on day {day}",
+  "@recurrenceOnDay": {
+    "description": "Adds the day of the month to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "day": {
+        "type": "int",
+        "example": "15",
+        "description": "The day of the month."
+      }
+    }
+  },
+  "recurrenceOnLastDay": "{repeats} on the last day",
+  "@recurrenceOnLastDay": {
+    "description": "Adds the last day of the month to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      }
+    }
+  },
+  "recurrenceOnLastDayOfMonth": "{repeats} on the last day of {month}",
+  "@recurrenceOnLastDayOfMonth": {
+    "description": "Adds the last day of a month to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "month": {
+        "type": "String",
+        "example": "November",
+        "description": "The full month name."
+      }
+    }
+  },
+  "recurrenceOnPositionWeekday": "{repeats} on the {position, select, first{1st} second{2nd} third{3rd} fourth{4th} last{last} secondToLast{second-to-last} other{{position}}} {weekday}",
+  "@recurrenceOnPositionWeekday": {
+    "description": "Adds a weekday of the month, such as the 2nd Tuesday, to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "position": {
+        "type": "String",
+        "example": "second",
+        "description": "Which weekday of the month: first, second, third, fourth, last or secondToLast."
+      },
+      "weekday": {
+        "type": "String",
+        "example": "Tuesday",
+        "description": "The full weekday name."
+      }
+    }
+  },
+  "recurrenceOnPositionWeekdayOfMonth": "{repeats} on the {position, select, first{1st} second{2nd} third{3rd} fourth{4th} last{last} secondToLast{second-to-last} other{{position}}} {weekday} of {month}",
+  "@recurrenceOnPositionWeekdayOfMonth": {
+    "description": "Adds a weekday of a month, such as the 4th Thursday of November, to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "position": {
+        "type": "String",
+        "example": "second",
+        "description": "Which weekday of the month: first, second, third, fourth, last or secondToLast."
+      },
+      "weekday": {
+        "type": "String",
+        "example": "Tuesday",
+        "description": "The full weekday name."
+      },
+      "month": {
+        "type": "String",
+        "example": "November",
+        "description": "The full month name."
+      }
+    }
+  },
+  "recurrenceOnWeekdays": "{repeats} on {weekdays}",
+  "@recurrenceOnWeekdays": {
+    "description": "Adds the weekdays to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "weekdays": {
+        "type": "String",
+        "example": "Mon, Wed",
+        "description": "Short weekday names, joined by commonListJoin."
+      }
+    }
+  },
+  "recurrenceRepeatLabel": "Repeat",
+  "@recurrenceRepeatLabel": {
+    "description": "Label of the dropdown that picks how an item repeats."
+  },
+  "recurrenceRepeatsDaily": "Repeats {interval, plural, =1{daily} other{every {interval} days}}",
+  "@recurrenceRepeatsDaily": {
+    "description": "How often an item repeats, by days. Other messages may add which days and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many days apart."
+      }
+    }
+  },
+  "recurrenceRepeatsMonthly": "Repeats {interval, plural, =1{monthly} other{every {interval} months}}",
+  "@recurrenceRepeatsMonthly": {
+    "description": "How often an item repeats, by months. Other messages may add which day and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many months apart."
+      }
+    }
+  },
+  "recurrenceRepeatsWeekly": "Repeats {interval, plural, =1{weekly} other{every {interval} weeks}}",
+  "@recurrenceRepeatsWeekly": {
+    "description": "How often an item repeats, by weeks. Other messages may add which days and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many weeks apart."
+      }
+    }
+  },
+  "recurrenceRepeatsYearly": "Repeats {interval, plural, =1{yearly} other{every {interval} years}}",
+  "@recurrenceRepeatsYearly": {
+    "description": "How often an item repeats, by years. Other messages may add which day and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many years apart."
+      }
+    }
+  },
+  "recurrenceScopeAllOption": "All occurrences",
+  "recurrenceScopeDeleteAssignmentTitle": "Delete Repeating Assignment",
+  "recurrenceScopeDeleteEventTitle": "Delete Repeating Event",
+  "recurrenceScopeEditAssignmentTitle": "Edit Repeating Assignment",
+  "recurrenceScopeEditEventTitle": "Edit Repeating Event",
+  "recurrenceScopeMoveAssignmentTitle": "Move Repeating Assignment",
+  "recurrenceScopeMoveButton": "Move",
+  "recurrenceScopeMoveEventTitle": "Move Repeating Event",
+  "recurrenceScopeSaveButton": "Save",
+  "recurrenceScopeThisOption": "This occurrence",
+  "recurrenceTimes": "{schedule}, {count, plural, =1{once} other{{count} times}}",
+  "@recurrenceTimes": {
+    "description": "Adds how many times an item repeats before stopping.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "count": {
+        "type": "int",
+        "example": "6",
+        "description": "How many times."
+      }
+    }
+  },
+  "recurrenceTimesUntil": "{schedule}, up to {count, plural, =1{once} other{{count} times}} until {date}",
+  "@recurrenceTimesUntil": {
+    "description": "Adds both how many times and the date an item stops repeating, whichever comes first.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "count": {
+        "type": "int",
+        "example": "3",
+        "description": "How many times at most."
+      },
+      "date": {
+        "type": "String",
+        "example": "Dec 31, 2026",
+        "description": "The last date."
+      }
+    }
+  },
+  "recurrenceUntil": "{schedule}, until {date}",
+  "@recurrenceUntil": {
+    "description": "Adds the date an item stops repeating.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "date": {
+        "type": "String",
+        "example": "May 28, 2027",
+        "description": "The last date."
+      }
+    }
+  },
+  "reminderDeletedMessage": "Reminder deleted.",
+  "reminderDialogTitle": "Reminder",
+  "reminderEmailSummary": "Email {offset} before",
+  "@reminderEmailSummary": {
+    "description": "A reminder in the list: an email sent this long before the item.",
+    "placeholders": {
+      "offset": {
+        "type": "String",
+        "example": "15 minutes",
+        "description": "How long before, such as \"15 minutes\" (reminderOffset* messages)."
+      }
+    }
+  },
+  "reminderMessageLabel": "Message",
+  "reminderOffsetDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@reminderOffsetDays": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@reminderOffsetHours": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@reminderOffsetMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetUnitDays": "Days",
+  "reminderOffsetUnitHours": "Hours",
+  "reminderOffsetUnitMinutes": "Minutes",
+  "reminderOffsetUnitWeeks": "Weeks",
+  "reminderOffsetWeeks": "{count, plural, =1{1 week} other{{count} weeks}}",
+  "@reminderOffsetWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderPushSummary": "Push {offset} before",
+  "@reminderPushSummary": {
+    "description": "A reminder in the list: a push notification sent this long before the item.",
+    "placeholders": {
+      "offset": {
+        "type": "String",
+        "example": "15 minutes",
+        "description": "How long before, such as \"15 minutes\" (reminderOffset* messages)."
+      }
+    }
+  },
+  "reminderRemindBeforeLabel": "Remind before",
+  "reminderSavedMessage": "Reminder saved.",
+  "reminderTypeEmail": "Email",
+  "@reminderTypeEmail": {
+    "description": "Reminder type that sends an email."
+  },
+  "reminderTypePush": "Push",
+  "@reminderTypePush": {
+    "description": "Reminder type that sends a push notification to the user's phone."
+  },
+  "remindersAddLabel": "Add reminder",
+  "remindersEmptyMessage": "Click \"+\" to add a reminder",
+  "remindersTitle": "Reminders",
+  "resetPasswordConfirmHint": "Confirm new password",
+  "resetPasswordInstructions": "Enter your new password below.",
+  "resetPasswordInvalidLinkMessage": "This reset link is invalid or has expired. Please request a new one.",
+  "resetPasswordNewPasswordHint": "New password",
+  "resetPasswordSubmitButton": "Set New Password",
+  "resetPasswordSuccessMessage": "Password reset! Welcome back.",
+  "resetPasswordTitle": "Reset Password",
+  "resourceAddTitle": "Add Resource",
+  "resourceClassesLabel": "Classes",
+  "resourceConditionBrandNew": "Brand New",
+  "@resourceConditionBrandNew": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionBroken": "Broken",
+  "@resourceConditionBroken": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionDigital": "Digital",
+  "@resourceConditionDigital": {
+    "description": "Condition of a resource (a book or material for a class): it's a digital copy, like an e-book, so it has no physical condition."
+  },
+  "resourceConditionLabel": "Condition",
+  "resourceConditionRefurbished": "Refurbished",
+  "@resourceConditionRefurbished": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionUsedAcceptable": "Used - Acceptable",
+  "@resourceConditionUsedAcceptable": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedGood": "Used - Good",
+  "@resourceConditionUsedGood": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedLikeNew": "Used - Like New",
+  "@resourceConditionUsedLikeNew": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedPoor": "Used - Poor",
+  "@resourceConditionUsedPoor": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedVeryGood": "Used - Very Good",
+  "@resourceConditionUsedVeryGood": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceCreatedMessage": "Resource created.",
+  "resourceDeleteWarning": "Its attachments and note will also be deleted.",
+  "resourceDeletedMessage": "Resource deleted.",
+  "resourceDetailsStep": "Details",
+  "resourceEditTitle": "Edit Resource",
+  "resourceGroupCreatedMessage": "Group created.",
+  "resourceGroupDeleteWarning": "Anything in this group, including resources and their attachments and notes, will also be deleted.",
+  "resourceGroupDeletedMessage": "Group deleted.",
+  "resourceGroupDialogTitle": "Group",
+  "@resourceGroupDialogTitle": {
+    "description": "Title of the dialog for adding or editing a group of resources (books and materials)."
+  },
+  "resourceGroupHideLabel": "Hide this group's resources from the Planner",
+  "resourceGroupLabel": "Group",
+  "@resourceGroupLabel": {
+    "description": "Label of the field that picks the group of resources (books and materials) this resource belongs to."
+  },
+  "resourceGroupNotFoundMessage": "Group not found.",
+  "resourceGroupTitleLabel": "Title",
+  "resourcePriceLabel": "Price",
+  "resourceSelectClassesButton": "Select classes",
+  "resourceStatusDigital": "Digital",
+  "@resourceStatusDigital": {
+    "description": "Status of a resource (a book or material for a class): it's a digital copy, like an e-book."
+  },
+  "resourceStatusLabel": "Status",
+  "resourceStatusNeeded": "Needed",
+  "@resourceStatusNeeded": {
+    "description": "Status of a resource (a book or material for a class): the student still needs to get it."
+  },
+  "resourceStatusOrdered": "Ordered",
+  "@resourceStatusOrdered": {
+    "description": "Status of a resource (a book or material for a class): the student has ordered it."
+  },
+  "resourceStatusOwned": "Owned",
+  "@resourceStatusOwned": {
+    "description": "Status of a resource (a book or material for a class): the student owns it."
+  },
+  "resourceStatusReceived": "Received",
+  "@resourceStatusReceived": {
+    "description": "Status of a resource (a book or material for a class): the student has received it."
+  },
+  "resourceStatusRented": "Rented",
+  "@resourceStatusRented": {
+    "description": "Status of a resource (a book or material for a class): the student is renting it."
+  },
+  "resourceStatusShipped": "Shipped",
+  "@resourceStatusShipped": {
+    "description": "Status of a resource (a book or material for a class): it has shipped and is on its way."
+  },
+  "resourceStatusToSell": "To Sell",
+  "@resourceStatusToSell": {
+    "description": "Status of a resource (a book or material for a class): the student plans to sell it."
+  },
+  "resourceTitleLabel": "Title",
+  "resourceWebsiteLabel": "Website",
+  "resourcesCreateGroupFirstMessage": "Create a group first.",
+  "resourcesMenuLaunchWebsiteLabel": "Launch resource's website",
+  "resourcesMenuTitle": "Resources",
+  "resourcesNoGroupsMessage": "Click \"+ Add Group\" to get started",
+  "resourcesNoGroupsTitle": "You haven't added any groups yet",
+  "resourcesNoResourcesInGroupTitle": "No resources in this group yet",
+  "resourcesNoResourcesTitle": "You haven't added any resources yet",
+  "resourcesShowAllGroup": "Show All",
+  "@resourcesShowAllGroup": {
+    "description": "Choice in the group list that shows resources from every group."
+  },
+  "scheduleADay": "A Day",
+  "@scheduleADay": {
+    "description": "The A day of an A/B day rotation."
+  },
+  "scheduleAddLabel": "Add schedule",
+  "scheduleAnchorDayRequired": "Select the date of cycle Day 1.",
+  "scheduleAnchorWeekRequired": "Select the date the first week begins.",
+  "scheduleBDay": "B Day",
+  "@scheduleBDay": {
+    "description": "The B day of an A/B day rotation."
+  },
+  "scheduleClassDatesTitle": "Class Dates",
+  "scheduleClassDaysTitle": "Class Days",
+  "scheduleClassTimeTitle": "Class Time",
+  "scheduleClassTimesTitle": "Class Times",
+  "scheduleCustomRangeDescription": "Limit this schedule to just part of the term.",
+  "scheduleCustomRangeLabel": "Custom range",
+  "scheduleCycleDayLabel": "Day {day}",
+  "@scheduleCycleDayLabel": {
+    "description": "A numbered day of a rotating class schedule, such as Day 3 of a 6-day cycle.",
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "example": "3",
+        "description": "The day's number in the rotation."
+      }
+    }
+  },
+  "scheduleCycleDayOneLabel": "Cycle Day 1 falls on",
+  "@scheduleCycleDayOneLabel": {
+    "description": "Label of the date of the rotation's first day."
+  },
+  "scheduleCycleDaysRequired": "Select at least one meeting day for the cycle.",
+  "scheduleCycleLengthLabel": "Cycle length (days)",
+  "scheduleDeletedMessage": "Schedule deleted.",
+  "scheduleEditorTitle": "Schedule",
+  "scheduleEmptyMessage": "Click \"+\" to add a schedule",
+  "scheduleEndLabel": "End",
+  "@scheduleEndLabel": {
+    "description": "Label of a meeting's end time."
+  },
+  "scheduleNotFoundMessage": "Schedule not found.",
+  "scheduleRotatingOption": "Rotating",
+  "@scheduleRotatingOption": {
+    "description": "Schedule type: follows a rotation such as A/B days or a 6-day cycle."
+  },
+  "scheduleRotationTitle": "Rotation",
+  "scheduleSavedMessage": "Schedule saved.",
+  "scheduleStartLabel": "Start",
+  "@scheduleStartLabel": {
+    "description": "Label of a meeting's start time."
+  },
+  "scheduleSummaryEmptyLabel": "This schedule is empty",
+  "scheduleTemplateAbDay": "A/B Day",
+  "@scheduleTemplateAbDay": {
+    "description": "Rotating schedule where classes alternate between an A day and a B day."
+  },
+  "scheduleTemplateCustomCycle": "{length}-Day Cycle",
+  "@scheduleTemplateCustomCycle": {
+    "placeholders": {
+      "length": {
+        "type": "int",
+        "example": "3",
+        "description": "How many school days the cycle has."
+      }
+    }
+  },
+  "scheduleTemplateEightDayCycle": "8-Day Cycle",
+  "scheduleTemplateSevenDayCycle": "7-Day Cycle",
+  "scheduleTemplateSixDayCycle": "6-Day Cycle",
+  "scheduleTemplateTenDayCycle": "10-Day Cycle",
+  "scheduleTemplateWeekAb": "Week A/B",
+  "@scheduleTemplateWeekAb": {
+    "description": "Rotating schedule where the class meets every other week."
+  },
+  "scheduleVariesByDayLabel": "Varies by day",
+  "scheduleWeekA": "Week A",
+  "@scheduleWeekA": {
+    "description": "Short label for a class that meets in week A of an every-other-week pattern."
+  },
+  "scheduleWeekB": "Week B",
+  "@scheduleWeekB": {
+    "description": "Short label for a class that meets in week B of an every-other-week pattern."
+  },
+  "scheduleWeekBeginsOnLabel": "Week {week} begins on",
+  "@scheduleWeekBeginsOnLabel": {
+    "description": "Label of the date the schedule's first week starts.",
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B for an every-other-week pattern, otherwise a number."
+      }
+    }
+  },
+  "scheduleWeekOption": "Week {week}",
+  "@scheduleWeekOption": {
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B for an every-other-week pattern, otherwise a number."
+      }
+    }
+  },
+  "scheduleWeekPreview": "This schedule (Week {week}) meets the week of {dates}.",
+  "@scheduleWeekPreview": {
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B, or a number."
+      },
+      "dates": {
+        "type": "String",
+        "example": "Sep 7, Sep 21, Oct 5",
+        "description": "The Mondays of the weeks it meets, separated by commas."
+      }
+    }
+  },
+  "scheduleWeeklyOption": "Weekly",
+  "scheduleWhichWeekDescription": "The week this class meets on — the A/B or odd/even week pattern, every other week.",
+  "scheduleWhichWeekLabel": "Which week",
+  "securityAccessRevokedMessage": "Access revoked.",
+  "securityApiDocsLabel": "API docs",
+  "securityApiTokenCopiedMessage": "API token copied.",
+  "securityApiTokenCreatedOn": "Created {date}",
+  "@securityApiTokenCreatedOn": {
+    "description": "When the user's API token was created.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4, 2026",
+        "description": "The date, in the user's date format."
+      }
+    }
+  },
+  "securityApiTokenDescription": "Reach Helium's platform from your own scripts and tools",
+  "securityApiTokenGeneratedMessage": "API token generated.",
+  "securityApiTokenRevealWarning": "Copy your token now, it won't be shown again. Keep it secret, it gives full access to your account.",
+  "securityApiTokenRevokedMessage": "API token revoked.",
+  "securityApiTokenTitle": "API Token",
+  "securityChangePasswordButton": "Change Password",
+  "securityConnectedAppLastUsed": "Last used {date}",
+  "@securityConnectedAppLastUsed": {
+    "description": "When a connected app last reached the user's account.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4, 2026",
+        "description": "The date, in the user's date format."
+      }
+    }
+  },
+  "securityConnectedAppNotUsed": "Not used yet",
+  "securityConnectedAppsDescription": "Apps you've allowed to reach your Helium account",
+  "securityConnectedAppsTitle": "Connected Apps",
+  "securityCopyButton": "Copy",
+  "@securityCopyButton": {
+    "description": "Button that copies the newly generated API token."
+  },
+  "securityGenerateButton": "Generate",
+  "securityInfo": "Manage how you sign in, and how other apps and tools reach your Helium account.",
+  "securityNoApiTokenLabel": "You have no API token.",
+  "securityNoConnectedAppsMessage": "No apps are connected.",
+  "securityPasswordChangedMessage": "Password changed.",
+  "securityPasswordDescription": "Sign in with your email and password",
+  "securityPasswordTitle": "Password",
+  "securityPasswordlessDescription": "Add a password to also sign in with your email",
+  "securityRevokeAccessMessage": "{appName} will no longer be able to reach your Helium account. You can connect it again later.",
+  "@securityRevokeAccessMessage": {
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The connected app's name."
+      }
+    }
+  },
+  "securityRevokeAccessTitle": "Revoke Access",
+  "securityRevokeAppLabel": "Revoke {appName}",
+  "@securityRevokeAppLabel": {
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The connected app's name."
+      }
+    }
+  },
+  "securityRevokeButton": "Revoke",
+  "securityRevokeTokenMessage": "Anything using your API token will stop working. You can generate a new one later.",
+  "securityRevokeTokenTitle": "Revoke API Token",
+  "securityRotateButton": "Rotate",
+  "@securityRotateButton": {
+    "description": "Button that replaces the API token with a new one."
+  },
+  "securityRotateTokenMessage": "Rotating replaces your current token, so anything using it will stop working until you give it the new one.",
+  "securityRotateTokenTitle": "Rotate API Token",
+  "securitySetPasswordButton": "Set Password",
+  "settingsAccountDeletedMessage": "Sorry to see you go! We've deleted all traces of your existence from Helium.",
+  "settingsAllEventsDeletedMessage": "All Events deleted.",
+  "settingsChangeEmailHint": "Update your email address",
+  "settingsChangeEmailTitle": "Change Email",
+  "settingsClearExampleDataHint": "Remove the example schedule",
+  "settingsClearExampleDataLabel": "Clear Example Data",
+  "settingsCurrentPasswordLabel": "Current password",
+  "settingsDangerZoneTitle": "Danger Zone",
+  "@settingsDangerZoneTitle": {
+    "description": "Heading of the settings section with actions that can't be undone."
+  },
+  "settingsDeleteAccountHint": "Permanently delete your account",
+  "settingsDeleteAccountPasswordMessage": "To permanently delete your account — and all data you have stored in Helium — confirm your password below. This action cannot be undone.",
+  "settingsDeleteAccountPasswordlessMessage": "To permanently delete your account — and all data you have stored in Helium — confirm by clicking the Delete button below. This action cannot be undone.",
+  "settingsDeleteAccountTitle": "Delete Account",
+  "settingsDeleteAllEventsHint": "Permanently delete all Events",
+  "settingsDeleteAllEventsMessage": "Are you sure you want to delete all Events? Anything associated with them, including attachments, notes, and other data, will also be deleted. This action cannot be undone.",
+  "settingsDeleteAllEventsTitle": "Delete All Events",
+  "settingsEmailChangePendingMessage": "Change pending — click the link sent to {email} to verify.",
+  "@settingsEmailChangePendingMessage": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "alex@example.com",
+        "description": "The new email address waiting to be verified."
+      }
+    }
+  },
+  "settingsExampleClearedMessage": "Example schedule cleared.",
+  "settingsExternalCalendarsHint": "Bring other calendars into Helium",
+  "settingsExternalCalendarsTitle": "External Calendars",
+  "@settingsExternalCalendarsTitle": {
+    "description": "Title of the settings screen and item for showing other calendars in Helium. A feature name."
+  },
+  "settingsFeedsHint": "Take Helium's calendars elsewhere",
+  "settingsFeedsTitle": "Feeds",
+  "@settingsFeedsTitle": {
+    "description": "Title of the settings screen and item for publishing Helium's calendars to other apps. A feature name."
+  },
+  "settingsImportExportHint": "Back up, restore, or import a schedule",
+  "settingsImportExportTitle": "Import/Export",
+  "settingsLearnMoreLabel": "Learn more",
+  "settingsPasswordLabel": "Password",
+  "settingsPreferencesHint": "Tailor Helium to your tastes",
+  "settingsPreferencesTitle": "Preferences",
+  "settingsProviderRemovedMessage": "{provider} was removed from your account.",
+  "@settingsProviderRemovedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsRemoveProviderButton": "Remove",
+  "settingsRemoveProviderMessage": "You won't be able to sign in with {provider} anymore.",
+  "@settingsRemoveProviderMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsRemoveProviderTitle": "Remove {provider}?",
+  "@settingsRemoveProviderTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsSecurityHint": "Password, token, and apps",
+  "settingsSecurityTitle": "Security & API",
+  "settingsSignOutHint": "Sign out of your account",
+  "settingsSignOutLabel": "Sign out",
+  "settingsSignOutMessage": "Are you sure you want to sign out?",
+  "settingsSignOutTitle": "Sign Out",
+  "settingsThemeDarkTooltip": "Dark",
+  "@settingsThemeDarkTooltip": {
+    "description": "Tooltip of the theme button that always uses the dark theme."
+  },
+  "settingsThemeLightTooltip": "Light",
+  "@settingsThemeLightTooltip": {
+    "description": "Tooltip of the theme button that always uses the light theme."
+  },
+  "settingsThemeSystemTooltip": "System",
+  "@settingsThemeSystemTooltip": {
+    "description": "Tooltip of the theme button that follows the device's light or dark setting."
+  },
+  "settingsTitle": "Settings",
+  "settingsTooltip": "Settings",
+  "setupAccountPreparingMessage": "Getting things ready ...",
+  "setupAccountTimedOutMessage": "Please sign in again to continue.",
+  "signInButton": "Sign In",
+  "signInForgotPasswordLink": "Forgot your password?",
+  "signInMethodRemoveLabel": "Remove {provider}",
+  "@signInMethodRemoveLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "signInMethodsMenuTitle": "Sign-in Methods",
+  "signInNeedAccountLink": "Need an account?",
+  "signInResendEmailAction": "Resend email",
+  "signInTitle": "Sign In",
+  "signInWithProviderButton": "Sign in with {provider}",
+  "@signInWithProviderButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "signUpButton": "Sign Up",
+  "signUpConfirmPasswordHint": "Confirm password",
+  "signUpEmailUnavailableMessage": "Registration succeeded, but we could not load your email. Please sign in to continue.",
+  "signUpLegalNotice": "By signing up, you agree to Helium's {termsOfService} and {privacyPolicy}.",
+  "@signUpLegalNotice": {
+    "description": "Shown under the sign-up button. {termsOfService} and {privacyPolicy} are tappable links, translated on their own.",
+    "placeholders": {
+      "termsOfService": {
+        "type": "String",
+        "example": "Terms of Service",
+        "description": "The Terms of Service link's text."
+      },
+      "privacyPolicy": {
+        "type": "String",
+        "example": "Privacy Policy",
+        "description": "The Privacy Policy link's text."
+      }
+    }
+  },
+  "signUpPrivacyPolicyLink": "Privacy Policy",
+  "signUpTermsOfServiceLink": "Terms of Service",
+  "signUpTitle": "Create an Account",
+  "signUpVerificationSentMessage": "Almost there! Check your email for a verification code.",
+  "signUpWithProviderButton": "Sign up with {provider}",
+  "@signUpWithProviderButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "snackBarClickToCopyHint": "Click to copy",
+  "@snackBarClickToCopyHint": {
+    "description": "Hint under a cut-off message with a mouse: clicking it copies the full text."
+  },
+  "snackBarCopiedLabel": "Copied to clipboard",
+  "snackBarTapToCopyHint": "Tap to copy",
+  "@snackBarTapToCopyHint": {
+    "description": "Hint under a cut-off message on touch devices: tapping it copies the full text."
+  },
+  "spinnerDecreaseLabel": "Decrease value",
+  "spinnerIncreaseLabel": "Increase value",
+  "storageDownloadFailedMessage": "Failed to download \"{filename}\".",
+  "@storageDownloadFailedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileReadErrorMessage": "An error occurred while reading the file: {filename}",
+  "@storageFileReadErrorMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileSizeLimitMessage": "File size cannot exceed {megabytes} MB: {filename}",
+  "@storageFileSizeLimitMessage": {
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileTooLargeMessage": "File size exceeded the allowed limit: {filename}",
+  "@storageFileTooLargeMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileTypeAlternatives": "{first} or {second}",
+  "@storageFileTypeAlternatives": {
+    "description": "Joins two file types, or a list of them and one more, as alternatives.",
+    "placeholders": {
+      "first": {
+        "type": "String",
+        "example": "JSON"
+      },
+      "second": {
+        "type": "String",
+        "example": "CSV"
+      }
+    }
+  },
+  "storageInvalidFileTypeMessage": "Invalid file type",
+  "storageSaveFileSubject": "Save {filename}",
+  "@storageSaveFileSubject": {
+    "description": "Subject of the share sheet that saves a downloaded file.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageWrongFileTypeMessage": "Please select a {types} file",
+  "@storageWrongFileTypeMessage": {
+    "placeholders": {
+      "types": {
+        "type": "String",
+        "example": "JSON",
+        "description": "One or more file types, like \"JSON\" or \"JSON or CSV\"."
+      }
+    }
+  },
+  "supportHeliumKeepFreeCompactHint": "A passion project, free for everyone — made possible by supporters like you.",
+  "supportHeliumKeepFreeHint": "A passion project, free for everyone. Supporters like you are what make that possible, covering real costs like hosting and app store fees.",
+  "supportHeliumKeepFreeTitle": "Keep Helium Free",
+  "@supportHeliumKeepFreeTitle": {
+    "description": "Title of the card asking students to support Helium on Patreon, which keeps the app free."
   },
   "supportHeliumRateHint": "Helps other students find Helium.",
-  "@supportHeliumRateHint": {
-    "description": "Hint under \"Rate Helium\" on the Keep Helium Free card in Settings: why a rating matters."
-  }
+  "supportHeliumRateTitle": "Rate Helium",
+  "todosCategoryColumn": "Category",
+  "todosClassColumn": "Class",
+  "todosCompletedColumn": "Completed",
+  "@todosCompletedColumn": {
+    "description": "Column heading (in the CSV export) and spoken name of the header checkbox for whether each assignment is complete."
+  },
+  "todosCsvFilename": "Helium_todos_{date}.csv",
+  "@todosCsvFilename": {
+    "description": "File name of the Todos CSV export. Keep the .csv extension and use no spaces.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "2026-11-26",
+        "description": "The export date, as YYYY-MM-DD."
+      }
+    }
+  },
+  "todosCsvNo": "No",
+  "@todosCsvNo": {
+    "description": "CSV export value: the assignment isn't complete."
+  },
+  "todosCsvYes": "Yes",
+  "@todosCsvYes": {
+    "description": "CSV export value: the assignment is complete."
+  },
+  "todosDueColumn": "Due",
+  "@todosDueColumn": {
+    "description": "Todos column heading for the due date, also used in the CSV export."
+  },
+  "todosEmptyTitle": "You haven't added any assignments yet",
+  "todosExportCsvButton": "Export CSV",
+  "todosExportedMessage": "Exported {filename}",
+  "@todosExportedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "Helium_todos_2026-11-25.csv",
+        "description": "The saved file's name."
+      }
+    }
+  },
+  "todosGradeColumn": "Grade",
+  "todosHasRemindersTooltip": "Has reminders",
+  "todosNoMatchesMessage": "No assignments match the applied filters or search",
+  "todosNothingExportedMessage": "Nothing exported",
+  "todosPriorityColumn": "Priority",
+  "todosResourcesColumn": "Resources",
+  "todosTitleColumn": "Title",
+  "todosUnknownClassLabel": "Unknown",
+  "@todosUnknownClassLabel": {
+    "description": "Shown as the class name when an assignment's class can't be found."
+  },
+  "updateRequiredMessage": "Time for an update! You'll need the latest version of {appName} to keep using it.",
+  "@updateRequiredMessage": {
+    "description": "Shown in place of the app when this version is too old to keep working with Helium's servers.",
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Helium",
+        "description": "The app's name, Helium."
+      }
+    }
+  },
+  "updateRequiredUpdateButton": "Update",
+  "@updateRequiredUpdateButton": {
+    "description": "Button that opens the app store to update the app."
+  },
+  "urlOpenEmailFailedMessage": "Failed to open email client.",
+  "urlOpenLinkFailedMessage": "Failed to open link.",
+  "verifyEmailCodeHint": "Verification code",
+  "verifyEmailCodeLengthError": "Enter the 6-digit code",
+  "verifyEmailInstructions": "Enter the verification code sent to your email address to complete your registration.",
+  "verifyEmailResendButton": "Resend verification email",
+  "verifyEmailSubmitButton": "Verify & Sign In",
+  "verifyEmailTitle": "Verify Email",
+  "whatsNewDismissButton": "Dive In!",
+  "whatsNewHomeScreenWidgetsDescription": "Add Helium to your home screen to see what's due this week and check off assignments without opening the app",
+  "whatsNewHomeScreenWidgetsTitle": "Home Screen Widgets",
+  "whatsNewIntro": "Your study sidekick just leveled up. Here's what changed.",
+  "@whatsNewIntro": {
+    "description": "Opening line of the What's New dialog, above the list of new features. \"Study sidekick\" is a playful name for the app."
+  },
+  "whatsNewLetterGradesDescription": "Pick your school's grade scale to see letter grades, then add credits to your classes to track your GPA",
+  "whatsNewLetterGradesTitle": "Letter Grades & GPA",
+  "whatsNewRepeatingDescription": "Assignments and events can now repeat, so a weekly reading or a monthly meeting only needs adding once",
+  "whatsNewRepeatingTitle": "Repeating Assignments & Events",
+  "whatsNewTitle": "What's New?"
 }

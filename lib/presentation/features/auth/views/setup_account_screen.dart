@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/agenda_widget_service.dart';
 import 'package:heliumapp/core/dio_client.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/unauthenticated_scaffold.dart';
@@ -72,7 +74,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
         const SizedBox(height: 32),
 
         Text(
-          'Getting things ready ...',
+          AppLocalizations.of(context).setupAccountPreparingMessage,
           style: AppStyles.standardBodyText(
             context,
           ).copyWith(fontSize: 18.0, fontWeight: FontWeight.w500),
@@ -147,7 +149,7 @@ class _SetupAccountScreenState extends BasePageScreenState<SetupAccountScreen> {
       _pollTimer?.cancel();
       _setupStopwatch.stop();
       _log.warning('Setup polling timed out after 30 seconds');
-      await DioClient().forceLogout('Please sign in again to continue.');
+      await DioClient().forceLogout(LocaleNotifier().localizations.setupAccountTimedOutMessage);
       return;
     }
 

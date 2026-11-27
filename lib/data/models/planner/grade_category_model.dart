@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:heliumapp/data/models/base_model.dart';
+import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 import 'package:heliumapp/utils/conversion_helpers.dart';
@@ -56,4 +57,8 @@ class GradeCategoryModel extends BaseTitledModel {
           [],
     );
   }
+
+  bool get isUncategorized => title == CategoryModel.uncategorizedTitle;
+
+  String get displayTitle => CategoryModel.displayTitleOf(title);
 }

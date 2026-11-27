@@ -9,6 +9,7 @@ import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/data/models/planner/resource_group_model.dart';
 import 'package:heliumapp/data/models/planner/resource_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -73,7 +74,7 @@ class _ResourcesScreenState
   @override
   VoidCallback get actionButtonCallback => () {
     if (_resourceGroups.isEmpty) {
-      showSnackBar(context, 'Create a group first.', type: SnackType.info);
+      showSnackBar(context, AppLocalizations.of(context).resourcesCreateGroupFirstMessage, type: SnackType.info);
       return;
     }
     showResourceAdd(
@@ -97,7 +98,7 @@ class _ResourcesScreenState
 
   ResourceGroupModel get _showAllGroup => ResourceGroupModel(
     id: _showAllGroupId,
-    title: 'Show All',
+    title: AppLocalizations.of(context).resourcesShowAllGroup,
     shownOnCalendar: true,
   );
 
@@ -201,7 +202,7 @@ class _ResourcesScreenState
           } else if (state is ResourcesScreenDataFetched) {
             _populateScreenData(state);
           } else if (state is ResourceGroupCreated) {
-            showSnackBar(context, 'Group created.');
+            showSnackBar(context, AppLocalizations.of(context).resourceGroupCreatedMessage);
 
             setState(() {
               _resourceGroups.add(state.resourceGroup);
@@ -216,7 +217,7 @@ class _ResourcesScreenState
           } else if (state is ResourceGroupConflict) {
             _replaceResourceGroup(state.latest);
           } else if (state is ResourceGroupDeleted) {
-            showSnackBar(context, 'Group deleted.');
+            showSnackBar(context, AppLocalizations.of(context).resourceGroupDeletedMessage);
 
             setState(() {
               _resourceGroups.removeWhere((g) => g.id == state.id);
@@ -254,7 +255,7 @@ class _ResourcesScreenState
               ),
             );
           } else if (state is ResourceDeleted) {
-            showSnackBar(context, 'Resource deleted.');
+            showSnackBar(context, AppLocalizations.of(context).resourceDeletedMessage);
 
             setState(() {
               for (final resources in _resourcesMap.values) {
@@ -328,10 +329,10 @@ class _ResourcesScreenState
         }
 
         if (_resourceGroups.isEmpty) {
-          return const EmptyCard(
+          return EmptyCard(
             icon: Icons.book,
-            title: "You haven't added any groups yet",
-            message: 'Click "+ Add Group" to get started',
+            title: AppLocalizations.of(context).resourcesNoGroupsTitle,
+            message: AppLocalizations.of(context).resourcesNoGroupsMessage,
             expanded: false,
           );
         }
@@ -341,10 +342,10 @@ class _ResourcesScreenState
             (g) => _resourcesMap[g.id]?.isNotEmpty ?? false,
           );
           if (!hasAnyResources) {
-            return const EmptyCard(
+            return EmptyCard(
               icon: Icons.book,
-              title: "You haven't added any resources yet",
-              message: 'Click "+" to get started',
+              title: AppLocalizations.of(context).resourcesNoResourcesTitle,
+              message: AppLocalizations.of(context).commonAddToGetStartedMessage,
               expanded: false,
             );
           }
@@ -359,9 +360,9 @@ class _ResourcesScreenState
           return EmptyCard(
             icon: Icons.book,
             title: hasResourcesElsewhere
-                ? 'No resources in this group yet'
-                : "You haven't added any resources yet",
-            message: 'Click "+" to get started',
+                ? AppLocalizations.of(context).resourcesNoResourcesInGroupTitle
+                : AppLocalizations.of(context).resourcesNoResourcesTitle,
+            message: AppLocalizations.of(context).commonAddToGetStartedMessage,
             expanded: false,
           );
         }
@@ -543,7 +544,7 @@ class _ResourcesScreenState
                           UrlHelpers.launchWebUrl(resource.website.toString());
                         },
                         icon: Icons.launch_outlined,
-                        label: "Launch resource's website",
+                        label: AppLocalizations.of(context).resourcesMenuLaunchWebsiteLabel,
                         color: context.semanticColors.success,
                       ),
                     ),
@@ -555,7 +556,7 @@ class _ResourcesScreenState
                         onPressed: () => _onEdit(resource),
                         icon: Icons.edit_outlined,
                         showTooltip: false,
-                        label: 'Edit',
+                        label: AppLocalizations.of(context).commonEditLabel,
                       ),
                     ),
                   ],
@@ -571,12 +572,12 @@ class _ResourcesScreenState
                     : CrossAxisAlignment.center,
                 children: [
                   ...[
-                    PillBadge(text: ResourceConstants.status[resource.status]),
+                    PillBadge(text: ResourceConstants.statusLabels[resource.status]),
                     const SizedBox(width: 8),
-                    if (ResourceConstants.status[resource.status] !=
-                        ResourceConstants.condition[resource.condition])
+                    if (resource.status != ResourceConstants.statusDigital ||
+                        resource.condition != ResourceConstants.conditionDigital)
                       PillBadge(
-                        text: ResourceConstants.condition[resource.condition],
+                        text: ResourceConstants.conditionLabels[resource.condition],
                       ),
                     const SizedBox(width: 8),
                   ],

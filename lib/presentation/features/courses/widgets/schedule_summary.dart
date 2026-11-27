@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/data/models/planner/course_schedule_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/constants/schedule_constants.dart';
 import 'package:heliumapp/presentation/ui/components/pill_badge.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -27,11 +28,11 @@ class ScheduleSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final groups = schedule.groupsByTime().entries.toList();
     if (groups.isEmpty) {
-      return Text('This schedule is empty', style: AppStyles.formLabel(context));
+      return Text(AppLocalizations.of(context).scheduleSummaryEmptyLabel, style: AppStyles.formLabel(context));
     }
 
     final dateRange = schedule.overrideDateRangeLabel();
-    final rotationLabel = ScheduleTemplate.summaryLabel(schedule);
+    final rotationLabel = ScheduleTemplate.labelFor(schedule);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

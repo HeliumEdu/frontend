@@ -6,6 +6,7 @@ import 'package:heliumapp/config/app_router.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/config/dirty_dialog_registry.dart';
 import 'package:heliumapp/core/feedback_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_bloc.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_event.dart';
 import 'package:heliumapp/presentation/features/planner/bloc/planneritem_state.dart';
@@ -324,13 +325,17 @@ class _PlannerItemAddScreenState
   }
 
   @override
-  String? get entityName => switch (_currentIsEvent) {
-        null => null,
-        true => 'Event',
-        false => 'Assignment',
-      };
+  String get screenTitle {
+    final l10n = AppLocalizations.of(context);
+    return switch ((_currentIsEvent, hasSavedEntity)) {
+      (null, _) => '',
+      (true, false) => l10n.eventAddTitle,
+      (true, true) => l10n.eventEditTitle,
+      (false, false) => l10n.assignmentAddTitle,
+      (false, true) => l10n.assignmentEditTitle,
+    };
+  }
 
-  @override
   bool get hasSavedEntity => _currentEntityId != null;
 
   @override
@@ -362,7 +367,7 @@ class _PlannerItemAddScreenState
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: 'Delete',
+        label: AppLocalizations.of(context).commonDeleteLabel,
         color: context.colorScheme.error,
       ),
       const SizedBox(width: 8),
@@ -370,7 +375,7 @@ class _PlannerItemAddScreenState
         enabled: !isSubmitting,
         onPressed: () => _detailsKey.currentState?.onClone(),
         icon: Icons.copy_outlined,
-        label: _itemRepeats ? 'Clone this occurrence' : 'Clone',
+        label: _itemRepeats ? AppLocalizations.of(context).plannerCloneOccurrenceLabel : AppLocalizations.of(context).plannerCloneLabel,
       ),
     ];
   }
@@ -524,7 +529,9 @@ class _PlannerItemAddScreenState
             // Always closes after delete, show on root
             showSnackBar(
               context,
-              '${state is EventDeleted ? 'Event' : 'Assignment'} deleted.',
+              state is EventDeleted
+                  ? AppLocalizations.of(context).plannerEventDeletedMessage
+                  : AppLocalizations.of(context).plannerAssignmentDeletedMessage,
               useRootMessenger: true,
             );
             _deleted = true;
@@ -567,7 +574,9 @@ class _PlannerItemAddScreenState
               );
               showSnackBar(
                 context,
-                '${state.isEvent ? 'Event' : 'Assignment'} cloned.',
+                state.isEvent
+                    ? AppLocalizations.of(context).plannerEventClonedMessage
+                    : AppLocalizations.of(context).plannerAssignmentClonedMessage,
               );
               // Update state and load the cloned item
               _detailsKey.currentState?.resetSubmitting();
@@ -613,16 +622,19 @@ class _PlannerItemAddScreenState
               final outsideTodos =
                   _detailsKey.currentState?.isOutsideTodosWindow ?? false;
               if (state is HomeworkCreated || state is EventCreated) {
-                final created = '${state.isEvent ? 'Event' : 'Assignment'} created.';
                 showSnackBar(
                   context,
-                  outsideTodos ? '$created $outsideTodosWindowNote' : created,
+                  state.isEvent
+                      ? AppLocalizations.of(context).plannerEventCreatedMessage
+                      : outsideTodos
+                      ? AppLocalizations.of(context).plannerAssignmentCreatedOutsideTodosMessage
+                      : AppLocalizations.of(context).plannerAssignmentCreatedMessage,
                   useRootMessenger: _willCloseAfterSave(),
                 );
               } else if (outsideTodos) {
                 showSnackBar(
                   context,
-                  'Assignment saved. $outsideTodosWindowNote',
+                  AppLocalizations.of(context).plannerAssignmentSavedOutsideTodosMessage,
                   useRootMessenger: _willCloseAfterSave(),
                 );
               }
@@ -715,7 +727,7 @@ class _PlannerItemAddScreenState
   late final List<MultiStepDefinition> _steps = [
     MultiStepDefinition(
       icon: Icons.list,
-      tooltip: 'Details',
+      tooltip: AppLocalizations.of(context).plannerItemDetailsStep,
       stepScreenType: ScreenType.entityPage,
       builder: (context) => PlannerItemDetails(
         key: _detailsKey,
@@ -746,18 +758,19 @@ class _PlannerItemAddScreenState
     ),
     MultiStepDefinition(
       icon: Icons.notifications_outlined,
-      tooltip: 'Reminders',
+      tooltip: AppLocalizations.of(context).remindersTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => PlannerItemReminders(
         isEvent: _currentIsEvent ?? false,
         entityId: _currentEntityId!,
         isEdit: widget.isEdit || _currentEntityId != null,
         userSettings: userSettings,
+        headerTitle: AppLocalizations.of(context).remindersTitle,
       ),
     ),
     MultiStepDefinition(
       icon: Icons.attachment_outlined,
-      tooltip: 'Attachments',
+      tooltip: AppLocalizations.of(context).attachmentsTitle,
       stepScreenType: ScreenType.subPage,
       builder: (context) => PlannerItemAttachments(
         contentKey: _attachmentsKey,

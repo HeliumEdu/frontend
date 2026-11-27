@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:collection/collection.dart';
 import 'package:heliumapp/config/analytics_event.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/core/analytics_service.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart';
 import 'package:heliumapp/data/models/planner/category_model.dart';
@@ -153,7 +155,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               !state.background) {
             setState(() {
               isLoading = false;
-              screenError = state.message ?? HeliumException.unexpectedError;
+              screenError = state.message ?? HeliumException.unexpectedErrorMessage;
             });
           } else if (state is NotesError &&
               state.origin == EventOrigin.subScreen &&
@@ -212,7 +214,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               _notes = _notes.where((n) => n.id != state.noteId).toList();
               _contentSearchMatchIds?.remove(state.noteId);
             });
-            showSnackBar(context, 'Note deleted.');
+            showSnackBar(context, AppLocalizations.of(context).noteDeletedMessage);
           }
         },
       ),
@@ -446,8 +448,8 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                       trailing: HeliumSearchFieldButton(
                         icon: Icons.manage_search,
                         tooltip: _searchNoteContent
-                            ? 'Stop searching note content'
-                            : 'Also search note content',
+                            ? AppLocalizations.of(context).notebookStopSearchingContentTooltip
+                            : AppLocalizations.of(context).notebookAlsoSearchContentTooltip,
                         onPressed: _toggleContentSearch,
                         isSelected: _searchNoteContent,
                       ),
@@ -463,7 +465,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                         _shownOnCalendar;
                     return IconButton.outlined(
                       onPressed: () => _openFilterMenu(context),
-                      tooltip: 'Filters',
+                      tooltip: AppLocalizations.of(context).plannerFiltersTitle,
                       icon: const Icon(Icons.filter_alt_outlined),
                       style: IconButton.styleFrom(
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -513,12 +515,12 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           notes: filteredNotes,
           isLoading: notesLoading,
           hasAnyNotes: hasAnyNotes,
-          emptyMessage: 'No notes match the applied filters or search',
+          emptyMessage: AppLocalizations.of(context).notebookNoMatchesMessage,
           emptyAction: offerContentSearch
               ? TextButton.icon(
                   onPressed: _toggleContentSearch,
                   icon: const Icon(Icons.manage_search),
-                  label: const Text('Search note content'),
+                  label: Text(AppLocalizations.of(context).notebookSearchContentButton),
                 )
               : null,
           onNoteTap: _openNote,
@@ -608,7 +610,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       try {
         await noteRepository.createNote(
           request: NoteRequestModel(
-            title: '[Recovered Draft] ${draft.title}'.trim(),
+            title: LocaleNotifier().localizations.notebookRecoveredDraftNamedTitle(draft.title).trim(),
             content: {'ops': draft.ops},
             homeworkId: draft.homeworkId,
             eventId: draft.eventId,
@@ -622,7 +624,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         // both and retry once.
         await noteRepository.createNote(
           request: NoteRequestModel(
-            title: '[Recovered Draft]',
+            title: LocaleNotifier().localizations.notebookRecoveredDraftTitle,
             content: {
               'ops': [
                 if (draft.title.isNotEmpty) {'insert': '${draft.title}\n'},
@@ -635,7 +637,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       NoteDraftStore().clear(NoteDraftStore.newNoteKey);
       if (!mounted) return;
       _fetchNotes();
-      const recoveredMessage = 'Your unsaved note was recovered.';
+      final recoveredMessage = AppLocalizations.of(context).notebookNoteRecoveredMessage;
       showSnackBar(
         context,
         recoveredMessage,
@@ -937,7 +939,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
       final filterOptions = [
         (
           value: 'standalone',
-          label: 'Standalone',
+          label: AppLocalizations.of(context).noteStandaloneLabel,
           iconWidget: Icon(
             Icons.link_off,
             size: 18,
@@ -946,17 +948,17 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         ),
         (
           value: 'homework',
-          label: 'Assignments',
+          label: AppLocalizations.of(context).plannerFilterTypeAssignments,
           iconWidget: PlannerTypeColors.rainbowIcon(AppConstants.assignmentIcon),
         ),
         (
           value: 'course',
-          label: 'Classes',
+          label: AppLocalizations.of(context).notebookFilterTypeClasses,
           iconWidget: PlannerTypeColors.rainbowIcon(Icons.school_outlined),
         ),
         (
           value: 'event',
-          label: 'Events',
+          label: AppLocalizations.of(context).plannerFilterTypeEvents,
           iconWidget: Icon(
             AppConstants.eventIcon,
             size: 18,
@@ -965,7 +967,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
         ),
         (
           value: 'resource',
-          label: 'Resources',
+          label: AppLocalizations.of(context).notebookFilterTypeResources,
           iconWidget: Icon(
             Icons.book_outlined,
             size: 18,
@@ -981,7 +983,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
           children: [
             Row(
               children: [
-                const Expanded(child: HeliumMenuTitle(title: 'Filters')),
+                Expanded(child: HeliumMenuTitle(title: AppLocalizations.of(context).plannerFiltersTitle)),
                 TextButton(
                   onPressed: () {
                     _onFilterApplied('clear');
@@ -1000,11 +1002,11 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                       }
                     });
                   },
-                  child: const Text('Clear All'),
+                  child: Text(AppLocalizations.of(context).plannerFiltersClearAllButton),
                 ),
               ],
             ),
-            const HeliumMenuSectionHeader(title: 'TYPES'),
+            HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersTypesSection),
             ...filterOptions.map((option) {
               final isChecked = _filterEntityTypes.contains(option.value);
               return HeliumCheckboxListTile(
@@ -1044,7 +1046,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
               );
             }),
             if (_areCourseNotesVisible() && displayCourses.length > 1) ...[
-              const HeliumMenuSectionHeader(title: 'CLASSES'),
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersClassesSection),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
                     displayCourses[i].courseGroup !=
@@ -1069,7 +1071,7 @@ class _NotebookScreenState extends BasePageScreenState<_NotebookProvidedScreen> 
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Hide notes linked to hidden groups',
+                      AppLocalizations.of(context).notebookHideHiddenGroupsLabel,
                       style: AppStyles.formText(context),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

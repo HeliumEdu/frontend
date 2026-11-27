@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_quill_toolbar.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/quill_search_bar.dart';
@@ -19,7 +20,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light(),
-        localizationsDelegates: const [HeliumQuillLocalizationsDelegate()],
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          HeliumQuillLocalizationsDelegate(),
+        ],
         home: Scaffold(
           body: layout == NotesEditorLayout.page
               ? NotesEditor(

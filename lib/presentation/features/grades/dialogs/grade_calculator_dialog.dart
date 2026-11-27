@@ -9,6 +9,7 @@ import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_scale_band_model.dart';
 import 'package:heliumapp/data/models/planner/homework_series_item_model.dart';
 import 'package:heliumapp/data/models/planner/needed_grade_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_bloc.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_event.dart';
 import 'package:heliumapp/presentation/features/grades/bloc/grade_state.dart';
@@ -78,7 +79,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       final remainingItems = cat.numHomework - cat.numHomeworkGraded;
       return cat.weight > 0 && remainingItems == 1;
     }).toList();
-    Sort.byTitle(eligible);
+    Sort.byGradeCategoryTitle(eligible);
     return eligible;
   }
 
@@ -140,7 +141,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     if (_selectedTargetId == null) {
       setState(() {
         _result = null;
-        _validationErrorMessage = _hasExplicitWeights ? 'Select a category' : 'Select an assignment';
+        _validationErrorMessage = _hasExplicitWeights ? AppLocalizations.of(context).gradeCalculatorSelectCategoryError : AppLocalizations.of(context).gradeCalculatorSelectAssignmentError;
       });
       return;
     }
@@ -150,15 +151,14 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       if (desired == null || desired < _minGpa || desired > _maxGpa) {
         setState(() {
           _result = null;
-          _validationErrorMessage = 'Enter a valid GPA between '
-              '${GradeHelper.gradePointForDisplay(_minGpa)} and ${GradeHelper.gradePointForDisplay(_maxGpa)}';
+          _validationErrorMessage = AppLocalizations.of(context).gradeCalculatorInvalidGpaError(GradeHelper.gradePointForDisplay(_minGpa), GradeHelper.gradePointForDisplay(_maxGpa));
         });
         return;
       }
     } else if (desired == null || desired < 0 || desired > 100) {
       setState(() {
         _result = null;
-        _validationErrorMessage = 'Enter a valid grade between 0 and 100';
+        _validationErrorMessage = AppLocalizations.of(context).gradeCalculatorInvalidGradeError;
       });
       return;
     }
@@ -238,12 +238,12 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
       result.state == NeededGradeState.targetCategoryHasNoWeight ||
       result.state == NeededGradeState.invalidTotalWeight;
 
-  String _buildResultMessage(NeededGradeModel result) {
+  String _resultMessage(NeededGradeModel result) {
     if (result.gradeBand != null && !_isWeightError(result)) {
-      return _buildGpaResultMessage(result, result.gradeBand!);
+      return _gpaResultMessage(result, result.gradeBand!);
     }
     if (result.assignment != null && !_isWeightError(result)) {
-      return _buildAssignmentResultMessage(result, result.assignment!);
+      return _assignmentResultMessage(result, result.assignment!);
     }
 
     final desiredGrade = HeliumNumber.parse(_desiredGradeController.text) ?? 0;
@@ -258,34 +258,34 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         Sentry.captureMessage(
             'Grade calculator reached impossible no-weight state for category: $targetCategoryTitle',
             level: SentryLevel.error);
-        return "Selected category has no weight, so we can't help make accurate predictions";
+        return AppLocalizations.of(context).gradeCalculatorNoWeightMessage;
       case NeededGradeState.invalidTotalWeight:
-        return "Category weights do not add up to 100%, so we can't help make accurate predictions";
+        return AppLocalizations.of(context).gradeCalculatorInvalidWeightsMessage;
       case NeededGradeState.aboveTarget:
-        return 'You\'re already above your target based on current category performance.';
+        return AppLocalizations.of(context).gradeCalculatorCategoryAboveTargetMessage;
       case NeededGradeState.unachievable:
-        return 'You would need to score ${HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1)} to reach your target.';
+        return AppLocalizations.of(context).gradeCalculatorCategoryUnachievableMessage(HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1));
       case NeededGradeState.achievable:
-        return 'You need to score ${HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1)} on "$targetCategoryTitle" to achieve ${HeliumNumber.formatPercent(desiredGrade, fractionDigits: 1)} in this class.';
+        return AppLocalizations.of(context).gradeCalculatorCategoryAchievableMessage(HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1), targetCategoryTitle, HeliumNumber.formatPercent(desiredGrade, fractionDigits: 1));
       case NeededGradeState.gpaUnreachable:
         throw StateError('A grade result reached the GPA-only state ${result.state}');
     }
   }
 
-  String _buildAssignmentResultMessage(
+  String _assignmentResultMessage(
     NeededGradeModel result,
     NeededGradeAssignmentModel assignment,
   ) {
     final desiredGrade = HeliumNumber.parse(_desiredGradeController.text) ?? 0;
-    final points = _pointsText(assignment);
+    final points = _pointsLabel(assignment);
 
     switch (result.state) {
       case NeededGradeState.aboveTarget:
-        return 'You\'re already above your target based on your current points.';
+        return AppLocalizations.of(context).gradeCalculatorAssignmentAboveTargetMessage;
       case NeededGradeState.unachievable:
-        return 'You would need to score ${HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1)} ($points) to reach your target.';
+        return AppLocalizations.of(context).gradeCalculatorAssignmentUnachievableMessage(HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1), points);
       case NeededGradeState.achievable:
-        return 'You need to score ${HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1)} ($points) on "${assignment.title}" to achieve ${HeliumNumber.formatPercent(desiredGrade, fractionDigits: 1)} in this class.';
+        return AppLocalizations.of(context).gradeCalculatorAssignmentAchievableMessage(HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1), points, assignment.title, HeliumNumber.formatPercent(desiredGrade, fractionDigits: 1));
       case NeededGradeState.targetCategoryHasNoWeight:
       case NeededGradeState.invalidTotalWeight:
       case NeededGradeState.gpaUnreachable:
@@ -293,40 +293,39 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
     }
   }
 
-  String _buildGpaResultMessage(NeededGradeModel result, GradeScaleBandModel band) {
+  String _gpaResultMessage(NeededGradeModel result, GradeScaleBandModel band) {
     final gpa = GradeHelper.gradePointForDisplay(HeliumNumber.parse(_desiredGradeController.text) ?? 0);
     final from = GradeHelper.minGradeForDisplay(band.minGrade);
     final bandText = band.label.isEmpty
-        ? '$from (${GradeHelper.gradePointForDisplay(band.gradePoint)})'
-        : '${band.label} ($from)';
+        ? AppLocalizations.of(context).gradeCalculatorBandWithPoint(from, GradeHelper.gradePointForDisplay(band.gradePoint))
+        : AppLocalizations.of(context).gradeCalculatorBandWithLetter(band.label, from);
     final assignment = result.assignment;
     final score = HeliumNumber.formatPercent(result.neededGrade, fractionDigits: 1);
-    final scoreWithPoints = assignment == null ? score : '$score (${_pointsText(assignment)})';
+    final scoreWithPoints = assignment == null ? score : AppLocalizations.of(context).gradeCalculatorScoreWithPoints(score, _pointsLabel(assignment));
     final target = assignment?.title ?? _selectedCategoryTitle;
-    final termGpa = '${widget.gpa!.isHigherBetter ? 'at least' : 'at most'} $gpa';
+    final direction = widget.gpa!.isHigherBetter ? 'atLeast' : 'atMost';
 
     switch (result.state) {
       case NeededGradeState.achievable:
-        return 'You need to score $scoreWithPoints on "$target" to reach $bandText in this class, for a term GPA of $termGpa.';
+        return AppLocalizations.of(context).gradeCalculatorGpaAchievableMessage(scoreWithPoints, target, bandText, direction, gpa);
       case NeededGradeState.aboveTarget:
-        return "You're already above your target: this class stays at $bandText or better, for a term GPA of $termGpa.";
+        return AppLocalizations.of(context).gradeCalculatorGpaAboveTargetMessage(bandText, direction, gpa);
       case NeededGradeState.unachievable:
-        return 'You would need to score $scoreWithPoints to reach $bandText in this class, for a term GPA of $termGpa.';
+        return AppLocalizations.of(context).gradeCalculatorGpaUnachievableMessage(scoreWithPoints, bandText, direction, gpa);
       case NeededGradeState.gpaUnreachable:
-        return "Even $bandText in this class can't bring your term GPA to $gpa.";
+        return AppLocalizations.of(context).gradeCalculatorGpaUnreachableMessage(bandText, gpa);
       case NeededGradeState.targetCategoryHasNoWeight:
       case NeededGradeState.invalidTotalWeight:
         throw StateError('A GPA result reached weight error state ${result.state}');
     }
   }
 
-  String _pointsText(NeededGradeAssignmentModel assignment) =>
-      '${HeliumNumber.format(assignment.neededPoints, fractionDigits: 1, trimZeros: true)} / '
-      '${HeliumNumber.format(assignment.pointsPossible, fractionDigits: 1, trimZeros: true)} points';
+  String _pointsLabel(NeededGradeAssignmentModel assignment) =>
+      AppLocalizations.of(context).gradeCalculatorPointsOfLabel(HeliumNumber.format(assignment.neededPoints, fractionDigits: 1, trimZeros: true), HeliumNumber.format(assignment.pointsPossible, fractionDigits: 1, trimZeros: true));
 
   String get _selectedCategoryTitle =>
-      widget.categories.where((category) => category.id == _selectedTargetId).firstOrNull?.title ??
-      'this category';
+      widget.categories.where((category) => category.id == _selectedTargetId).firstOrNull?.displayTitle ??
+      AppLocalizations.of(context).gradeCalculatorThisCategoryFallback;
 
   List<DropdownMenuItem<int>> _buildTargetItems() {
     if (!_hasExplicitWeights) {
@@ -339,7 +338,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${item.title} (${HeliumNumber.format(item.pointsPossible!, fractionDigits: 1, trimZeros: true)} pts)',
+                  AppLocalizations.of(context).gradeCalculatorAssignmentOption(item.title, HeliumNumber.format(item.pointsPossible!, fractionDigits: 1, trimZeros: true)),
                   style: AppStyles.formText(context),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -359,7 +358,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${category.title} (${HeliumNumber.formatPercent(category.weight, fractionDigits: 0)})',
+                '${category.displayTitle} (${HeliumNumber.formatPercent(category.weight, fractionDigits: 0)})',
                 style: AppStyles.formText(context),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -385,14 +384,14 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         children: [
           EmptyCard(
             icon: Icons.hourglass_empty,
-            title: 'Come back later',
+            title: AppLocalizations.of(context).gradeCalculatorComeBackLaterTitle,
             message: _hasExplicitWeights
-                ? 'Check back when a category is down to its last ungraded assignment.'
-                : 'Check back when this class has an ungraded assignment.',
+                ? AppLocalizations.of(context).gradeCalculatorNeedsLastUngradedMessage
+                : AppLocalizations.of(context).gradeCalculatorNeedsUngradedMessage,
           ),
           const SizedBox(height: 12),
           HeliumElevatedButton(
-            buttonText: 'Calculate',
+            buttonText: AppLocalizations.of(context).gradeCalculatorCalculateButton,
             onPressed: _calculate,
             enabled: false,
           ),
@@ -408,7 +407,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(_hasExplicitWeights ? 'Category' : 'Assignment', style: AppStyles.formLabel(context)),
+                Text(_hasExplicitWeights ? AppLocalizations.of(context).gradeCalculatorCategoryLabel : AppLocalizations.of(context).gradeCalculatorAssignmentLabel, style: AppStyles.formLabel(context)),
                 const SizedBox(height: 9),
                 DropdownButtonFormField<int>(
                   initialValue: _selectedTargetId,
@@ -441,7 +440,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
                   alignment: Alignment.centerLeft,
                   child: SpinnerField(
                     key: ValueKey(widget.mode),
-                    label: _isGpaMode ? 'Desired term GPA' : 'Desired class grade (%)',
+                    label: _isGpaMode ? AppLocalizations.of(context).gradeCalculatorDesiredGpaLabel : AppLocalizations.of(context).gradeCalculatorDesiredGradeLabel,
                     controller: _desiredGradeController,
                     minValue: _isGpaMode ? _minGpa : 0,
                     maxValue: _isGpaMode ? _maxGpa : 100,
@@ -470,7 +469,7 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
         ),
         const SizedBox(height: 12),
         HeliumElevatedButton(
-          buttonText: 'Calculate',
+          buttonText: AppLocalizations.of(context).gradeCalculatorCalculateButton,
           onPressed: _calculate,
           isLoading: _isCalculating,
         ),
@@ -479,10 +478,10 @@ class _GradeCalculatorDialogState extends State<GradeCalculatorDialog> {
   }
 
   Widget _buildResultContainer(NeededGradeModel result) {
-    if (result.isAchievable) return SuccessContainer(text: _buildResultMessage(result));
+    if (result.isAchievable) return SuccessContainer(text: _resultMessage(result));
     return result.state == NeededGradeState.unachievable || result.state == NeededGradeState.gpaUnreachable
-        ? WarningContainer(text: _buildResultMessage(result))
-        : ErrorContainer(text: _buildResultMessage(result), icon: Icons.warning_amber);
+        ? WarningContainer(text: _resultMessage(result))
+        : ErrorContainer(text: _resultMessage(result), icon: Icons.warning_amber);
   }
 
   void _onTargetChanged(int? value) {

@@ -104,7 +104,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           background: event.background,
         ),
       );
@@ -166,7 +166,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CourseScreenDataFailed(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           courseGroupId: event.courseGroupId,
           courseId: event.courseId,
         ),
@@ -196,7 +196,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -221,7 +221,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -260,7 +260,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -283,7 +283,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -306,7 +306,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -329,7 +329,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -359,7 +359,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -380,7 +380,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -418,7 +418,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -474,7 +474,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -495,7 +495,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -533,7 +533,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -556,7 +556,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -580,7 +580,7 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
       emit(
         CoursesError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }

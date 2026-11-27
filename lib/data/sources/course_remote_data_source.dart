@@ -107,12 +107,12 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           return courses;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch classes.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -120,7 +120,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -138,7 +138,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... Course $courseId fetched');
         return CourseModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch class details.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -146,7 +146,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -169,7 +169,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         unawaited(AnalyticsService().logEvent(name: AnalyticsEvent.courseCreate, parameters: {'category': AnalyticsCategory.featureInteraction.value}));
         return course;
       } else {
-        throw unexpectedStatus(response, 'Failed to create class.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -177,7 +177,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -202,7 +202,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update class.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -210,7 +210,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -227,7 +227,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw unexpectedStatus(response, 'Failed to delete class.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -235,7 +235,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -268,12 +268,12 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
           return groups;
         } else {
           throw ServerException(
-            message: 'Invalid response format.',
+            message: HeliumException.unexpectedErrorMessage,
             code: '200',
           );
         }
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch groups.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -281,7 +281,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -298,7 +298,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         _log.info('... CourseGroup $id fetched');
         return CourseGroupModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to fetch group.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -306,7 +306,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -334,7 +334,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         ));
         return group;
       } else {
-        throw unexpectedStatus(response, 'Failed to create group.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -342,7 +342,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -365,7 +365,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseGroupModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update group.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -373,7 +373,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -390,7 +390,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return;
       } else {
-        throw unexpectedStatus(response, 'Failed to delete group.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -398,7 +398,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 
@@ -421,7 +421,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
         await dioClient.cacheService.invalidateAll();
         return CourseModel.fromJson(response.data);
       } else {
-        throw unexpectedStatus(response, 'Failed to update exceptions.');
+        throw unexpectedStatus(response);
       }
     } on DioException catch (e, s) {
       throw handleDioError(e, s);
@@ -429,7 +429,7 @@ class CourseRemoteDataSourceImpl extends CourseRemoteDataSource {
       rethrow;
     } catch (e, s) {
       _log.severe('An unexpected error occurred', e, s);
-      throw HeliumException(message: HeliumException.unexpectedError);
+      throw HeliumException(message: HeliumException.unexpectedErrorMessage);
     }
   }
 }

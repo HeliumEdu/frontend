@@ -4,12 +4,14 @@ import 'package:heliumapp/data/models/planner/category_model.dart';
 import 'package:heliumapp/data/models/planner/course_model.dart';
 import 'package:heliumapp/data/models/planner/external_calendar_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sort_helpers.dart';
 
 class PlannerFilterMenuContent extends StatelessWidget {
   final PlannerItemDataSource? plannerItemDataSource;
@@ -80,7 +82,9 @@ class PlannerFilterMenuContent extends StatelessWidget {
         uniqueCategories[category.title] = category;
       }
     }
-    return uniqueCategories.values.toList();
+    final deduplicated = uniqueCategories.values.toList();
+    Sort.byCategoryTitle(deduplicated);
+    return deduplicated;
   }
 
   @override
@@ -139,19 +143,19 @@ class PlannerFilterMenuContent extends StatelessWidget {
       setSheetState(() {});
     }
 
-    Widget buildStatusTile(String label) {
-      final isChecked = plannerItemDataSource!.filterStatuses.contains(label);
+    Widget buildStatusTile(PlannerFilterStatus status) {
+      final isChecked = plannerItemDataSource!.filterStatuses.contains(status.value);
       return HeliumCheckboxListTile(
-        title: Text(label, style: AppStyles.formText(context)),
+        title: Text(status.label, style: AppStyles.formText(context)),
         value: isChecked,
         onChanged: (value) {
           final currentStatuses = Set<String>.from(
             plannerItemDataSource!.filterStatuses,
           );
           if (value == true) {
-            currentStatuses.add(label);
+            currentStatuses.add(status.value);
           } else {
-            currentStatuses.remove(label);
+            currentStatuses.remove(status.value);
           }
           onFilterApplied('status');
           plannerItemDataSource!.setFilterStatuses(currentStatuses);
@@ -187,20 +191,20 @@ class PlannerFilterMenuContent extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Expanded(child: HeliumMenuTitle(title: 'Filters')),
+                Expanded(child: HeliumMenuTitle(title: AppLocalizations.of(context).plannerFiltersTitle)),
                 TextButton(
                   onPressed: () {
                     onFilterApplied('clear');
                     plannerItemDataSource!.clearFilters();
                     setSheetState(() {});
                   },
-                  child: const Text('Clear All'),
+                  child: Text(AppLocalizations.of(context).plannerFiltersClearAllButton),
                 ),
               ],
             ),
 
             if (currentView != PlannerView.todos) ...[
-              const HeliumMenuSectionHeader(title: 'TYPES'),
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersTypesSection),
               HeliumCheckboxListTile(
                 title: Row(
                   children: [
@@ -216,7 +220,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                           ),
                     const SizedBox(width: 8),
                     Text(
-                      PlannerFilterType.assignments.value,
+                      PlannerFilterType.assignments.label,
                       style: AppStyles.formText(context),
                     ),
                   ],
@@ -260,7 +264,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                           ),
                     const SizedBox(width: 8),
                     Text(
-                      PlannerFilterType.classSchedules.value,
+                      PlannerFilterType.classSchedules.label,
                       style: AppStyles.formText(context),
                     ),
                   ],
@@ -299,7 +303,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      PlannerFilterType.events.value,
+                      PlannerFilterType.events.label,
                       style: AppStyles.formText(context),
                     ),
                   ],
@@ -343,7 +347,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
                           ),
                     const SizedBox(width: 8),
                     Text(
-                      PlannerFilterType.externalCalendars.value,
+                      PlannerFilterType.externalCalendars.label,
                       style: AppStyles.formText(context),
                     ),
                   ],
@@ -379,7 +383,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
             ],
 
             if (_areCourseItemsVisible() && displayCourses.length > 1) ...[
-              const HeliumMenuSectionHeader(title: 'CLASSES'),
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersClassesSection),
               for (int i = 0; i < displayCourses.length; i++) ...[
                 if (i > 0 &&
                     displayCourses[i].courseGroup !=
@@ -439,7 +443,7 @@ class PlannerFilterMenuContent extends StatelessWidget {
             ],
 
             if (visibleExternalCalendars.isNotEmpty) ...[
-              const HeliumMenuSectionHeader(title: 'EXTERNAL CALENDARS'),
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersExternalCalendarsSection),
               ...visibleExternalCalendars.map((calendar) {
                 return HeliumCheckboxListTile(
                   title: Row(
@@ -485,13 +489,14 @@ class PlannerFilterMenuContent extends StatelessWidget {
             ],
 
             if (hasClasses && _areAssignmentsVisible()) ...[
-              const HeliumMenuSectionHeader(title: 'STATUS'),
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersStatusSection),
               _CheckboxToggle(
                 isChecked: isCompleteFilterEnabled,
                 isToggleOn: showCompletedOnly,
-                baseLabel: PlannerFilterStatus.complete.value,
-                toggleOnLabel: PlannerFilterStatus.complete.value,
-                toggleOffLabel: PlannerFilterStatus.incomplete.value,
+                baseLabel: PlannerFilterStatus.complete.label,
+                toggleOnLabel: PlannerFilterStatus.complete.label,
+                toggleOffLabel: PlannerFilterStatus.incomplete.label,
+                onlyLabel: AppLocalizations.of(context).plannerFilterOnlyCompleteLabel,
                 onCheckedChanged: (value) {
                   setCompleteFilterMode(
                     enabled: value ?? false,
@@ -513,9 +518,10 @@ class PlannerFilterMenuContent extends StatelessWidget {
               _CheckboxToggle(
                 isChecked: isGradedFilterEnabled,
                 isToggleOn: showGradedOnly,
-                baseLabel: PlannerFilterStatus.graded.value,
-                toggleOnLabel: PlannerFilterStatus.graded.value,
-                toggleOffLabel: PlannerFilterStatus.ungraded.value,
+                baseLabel: PlannerFilterStatus.graded.label,
+                toggleOnLabel: PlannerFilterStatus.graded.label,
+                toggleOffLabel: PlannerFilterStatus.ungraded.label,
+                onlyLabel: AppLocalizations.of(context).plannerFilterOnlyGradedLabel,
                 onCheckedChanged: (value) {
                   setGradedFilterMode(
                     enabled: value ?? false,
@@ -534,17 +540,18 @@ class PlannerFilterMenuContent extends StatelessWidget {
                   );
                 },
               ),
-              buildStatusTile(PlannerFilterStatus.overdue.value),
+              buildStatusTile(PlannerFilterStatus.overdue),
             ],
 
             if (hasClasses &&
                 visibleCategories.length > 1 &&
                 _areAssignmentsVisible()) ...[
-              const HeliumMenuSectionHeader(title: 'CATEGORIES'),
-              ...visibleCategories.map((category) {
-                return HeliumCheckboxListTile(
+              HeliumMenuSectionHeader(title: AppLocalizations.of(context).plannerFiltersCategoriesSection),
+              ...visibleCategories.expand((category) => [
+                if (category.isUncategorized && visibleCategories.indexOf(category) > 0) const Divider(height: 20),
+                HeliumCheckboxListTile(
                   title: Text(
-                    category.title,
+                    category.displayTitle,
                     style: AppStyles.formText(context),
                   ),
                   value: plannerItemDataSource!.filterCategories.contains(
@@ -570,8 +577,8 @@ class PlannerFilterMenuContent extends StatelessWidget {
                   controlAffinity: ListTileControlAffinity.leading,
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                );
-              }),
+                ),
+              ]),
             ],
           ],
         ),
@@ -634,6 +641,7 @@ class _CheckboxToggle extends StatelessWidget {
   final String baseLabel;
   final String toggleOnLabel;
   final String toggleOffLabel;
+  final String onlyLabel;
   final ValueChanged<bool?> onCheckedChanged;
   final ValueChanged<bool> onToggleChanged;
   final VoidCallback onToggleTapWhenDisabled;
@@ -644,6 +652,7 @@ class _CheckboxToggle extends StatelessWidget {
     required this.baseLabel,
     required this.toggleOnLabel,
     required this.toggleOffLabel,
+    required this.onlyLabel,
     required this.onCheckedChanged,
     required this.onToggleChanged,
     required this.onToggleTapWhenDisabled,
@@ -675,7 +684,7 @@ class _CheckboxToggle extends StatelessWidget {
           bottom: 0,
           child: Semantics(
             container: true,
-            label: 'Only ${baseLabel.toLowerCase()}',
+            label: onlyLabel,
             toggled: isToggleOn,
             onTap: _toggleSwitch,
             child: ExcludeSemantics(
@@ -700,7 +709,7 @@ class _CheckboxToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Only',
+            AppLocalizations.of(context).plannerFilterOnlyLabel,
             style: AppStyles.smallSecondaryTextLight(
               context,
             ).copyWith(color: Theme.of(context).colorScheme.onSurface),

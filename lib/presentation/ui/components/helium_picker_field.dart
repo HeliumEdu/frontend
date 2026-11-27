@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
@@ -51,13 +52,13 @@ class HeliumDateRangeFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fromField = HeliumDateField(
-      label: 'From',
+      label: AppLocalizations.of(context).pickerFromLabel,
       date: from,
       backgroundColor: backgroundColor,
       onTap: onFromTap,
     );
     final toField = HeliumDateField(
-      label: 'To',
+      label: AppLocalizations.of(context).pickerToLabel,
       date: to,
       backgroundColor: backgroundColor,
       onTap: onToTap,

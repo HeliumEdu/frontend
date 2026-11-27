@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:heliumapp/config/locale_notifier.dart';
 import 'package:heliumapp/data/models/planner/note_model.dart';
 import 'package:heliumapp/domain/linked_note_saver.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/notebook/views/note_add_screen.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/snack_bar_helpers.dart';
-
-const noteRecreatedMessage =
-    'This note was deleted on another device, so it was saved as a new note.';
 
 /// A form that saves an item of type [T] together with its linked note, where
 /// either save can lose to a newer version.
@@ -18,8 +17,8 @@ mixin LinkedNoteForm<W extends StatefulWidget, T> on ConflictResolvableForm<W> {
 
   LinkedNoteFormFields get linkedNoteFields;
 
-  /// What the item is called in messages, like "assignment".
-  String get itemNoun;
+  /// The item conflict messages name: assignment, event, class or resource.
+  String get conflictItem;
 
   /// The item a new note links to; one is set.
   ({int? homeworkId, int? eventId, int? resourceId, int? courseId}) get linkedItem;
@@ -83,8 +82,7 @@ void resolveLinkedNoteConflict<T>(
   if (linkedNoteSave?.failure case final failure? when savedEntity != null) {
     SnackBarHelper.show(
       context,
-      'Your other changes are saved, but the note failed to save: '
-      '${failure.message}',
+      AppLocalizations.of(context).linkedNoteSaveFailedMessage(failure.message),
       type: SnackType.error,
     );
   }
@@ -96,6 +94,7 @@ void resolveLinkedNoteConflict<T>(
     onOverwrite: form.overwriteNewer,
     canKeepEditing: isNoteConflict,
     message: _messageFor(
+      AppLocalizations.of(context),
       form,
       isItemConflict: savedEntity == null,
       latestVersion: latestVersion,
@@ -104,55 +103,66 @@ void resolveLinkedNoteConflict<T>(
   );
 }
 
+String get noteRecreatedMessage =>
+    LocaleNotifier().localizations.linkedNoteRecreatedMessage;
+
 ConflictMessage _messageFor(
+  AppLocalizations l10n,
   LinkedNoteForm<StatefulWidget, dynamic> form, {
   required bool isItemConflict,
   required String? latestVersion,
   required NoteModel? latestNote,
 }) {
-  final noun = form.itemNoun;
+  final item = form.conflictItem;
   if (latestNote == null) {
-    return ConflictMessage.changedAt(latestVersion, subject: 'This $noun');
+    return ConflictMessage.changedAt(l10n, latestVersion, item: item);
   }
 
   final deletesNote = form.linkedNoteFields.overwriteDeletesNote;
 
   if (!isItemConflict) {
-    final noteChanged = describeVersionSaved(latestNote.version);
-    final when = noteChanged == null ? '' : ' $noteChanged,';
-    final changed =
-        "Your other changes are saved, but this $noun's note changed on "
-        'another device$when after you opened it.';
+    final when = describeVersionSaved(latestNote.version);
     if (deletesNote) {
       return ConflictMessage(
-        title: 'Note Changed on Another Device',
-        body: '$changed Delete the note anyway, including those changes?',
-        discardLabel: 'Keep Note',
-        saveLabel: 'Delete Note',
+        title: l10n.linkedNoteChangedTitle,
+        body: when == null
+            ? l10n.linkedNoteChangedDeleteMessage(item)
+            : l10n.linkedNoteChangedAtDeleteMessage(item, when),
+        discardLabel: l10n.linkedNoteKeepButton,
+        saveLabel: l10n.linkedNoteDeleteButton,
         isSaveDestructive: true,
       );
     }
     return ConflictMessage(
-      title: 'Note Changed on Another Device',
-      body: '$changed Save your note changes over that version?',
+      title: l10n.linkedNoteChangedTitle,
+      body: when == null
+          ? l10n.linkedNoteChangedSaveMessage(item)
+          : l10n.linkedNoteChangedAtSaveMessage(item, when),
+      discardLabel: l10n.conflictDiscardChangesButton,
+      saveLabel: l10n.conflictSaveChangesButton,
     );
   }
 
   final mostRecently = describeVersionSaved(
     HeliumDateTime.laterTimestamp(latestVersion, latestNote.version),
   );
-  final when = mostRecently == null ? '' : ', most recently $mostRecently';
-  final changed =
-      'This $noun and its note changed on another device after you opened '
-      'it$when.';
   if (deletesNote) {
     return ConflictMessage(
-      body: '$changed Save your changes and delete the note?',
-      saveLabel: 'Delete Note',
+      title: l10n.conflictChangedTitle,
+      body: mostRecently == null
+          ? l10n.linkedNoteBothChangedDeleteMessage(item)
+          : l10n.linkedNoteBothChangedAtDeleteMessage(item, mostRecently),
+      discardLabel: l10n.conflictDiscardChangesButton,
+      saveLabel: l10n.linkedNoteDeleteButton,
       isSaveDestructive: true,
     );
   }
   return ConflictMessage(
-    body: '$changed Save your changes over those versions?',
+    title: l10n.conflictChangedTitle,
+    body: mostRecently == null
+        ? l10n.linkedNoteBothChangedSaveMessage(item)
+        : l10n.linkedNoteBothChangedAtSaveMessage(item, mostRecently),
+    discardLabel: l10n.conflictDiscardChangesButton,
+    saveLabel: l10n.conflictSaveChangesButton,
   );
 }

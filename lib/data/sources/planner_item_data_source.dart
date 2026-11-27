@@ -724,7 +724,7 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
           onLoadError?.call(
             error is HeliumException
                 ? error.displayMessage
-                : HeliumException.unexpectedError,
+                : HeliumException.unexpectedErrorMessage,
           );
         }
         return;
@@ -960,11 +960,15 @@ class PlannerItemDataSource extends CalendarDataSource<PlannerItemBaseModel> {
     _applyFiltersAndNotify();
   }
 
-  /// Shows only [statuses], with every other filter cleared, without changing the filters the user saved.
-  void showOnlyStatuses(Set<String> statuses) {
-    _log.info('Status filter set from a link: ${statuses.join(", ")}');
-    _selectedCourses = {};
-    _filterCategories = [];
+  /// Shows only [statuses], and [courseId] and [categories] when given, with every other filter cleared, without
+  /// changing the filters the user saved.
+  void showOnly(Set<String> statuses, {int? courseId, List<String> categories = const []}) {
+    _log.info(
+      'Status filter set from a link: ${statuses.join(", ")} (class: ${courseId != null}, '
+      'categories: ${categories.length})',
+    );
+    _selectedCourses = {?courseId: true};
+    _filterCategories = categories;
     _filterTypes = [];
     _filterStatuses = statuses;
     _selectedExternalCalendarIds = {};

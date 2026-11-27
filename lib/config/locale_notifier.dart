@@ -7,6 +7,8 @@ import 'package:heliumapp/core/analytics_service.dart';
 import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/locale_helpers.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 
 final _log = Logger('config');
@@ -71,8 +73,9 @@ class LocaleNotifier extends ChangeNotifier {
     _initCompleter = Completer<void>();
     _initCompleter!.future.ignore();
     try {
-      await _prefService.init();
+      await Future.wait([_prefService.init(), initializeDateFormatting()]);
       _loadFromPrefs();
+      _applyDateNamesLanguage();
       _isInitialized = true;
       _initCompleter!.complete();
       notifyListeners();
@@ -95,20 +98,8 @@ class LocaleNotifier extends ChangeNotifier {
     _numberFormat = RegionalFormatConstants.numberFormatPoint;
     _language = null;
     _timeZone = null;
+    _applyDateNamesLanguage();
     notifyListeners();
-  }
-
-  void _loadFromPrefs() {
-    _weekStartsOn = _prefService.getInt(SettingsPrefKey.weekStartsOn.key) ??
-        _weekStartsOn;
-    _dateFormat =
-        _prefService.getInt(SettingsPrefKey.dateFormat.key) ?? _dateFormat;
-    _timeFormat =
-        _prefService.getInt(SettingsPrefKey.timeFormat.key) ?? _timeFormat;
-    _numberFormat =
-        _prefService.getInt(SettingsPrefKey.numberFormat.key) ?? _numberFormat;
-    _language = _prefService.getString(SettingsPrefKey.language.key);
-    _timeZone = _prefService.getString(SettingsPrefKey.timeZone.key);
   }
 
   Future<void> update({
@@ -131,6 +122,7 @@ class LocaleNotifier extends ChangeNotifier {
     _numberFormat = numberFormat;
     _language = language;
     _timeZone = timeZone;
+    _applyDateNamesLanguage();
     await Future.wait([
       ?_prefService.setInt(SettingsPrefKey.weekStartsOn.key, weekStartsOn),
       ?_prefService.setInt(SettingsPrefKey.dateFormat.key, dateFormat),
@@ -141,5 +133,24 @@ class LocaleNotifier extends ChangeNotifier {
     ]);
     unawaited(AnalyticsService().setUserProperty(name: 'app_language', value: displayedLanguage));
     if (changed) notifyListeners();
+  }
+
+  AppLocalizations get localizations => lookupAppLocalizations(Locale(displayedLanguage));
+
+  void _loadFromPrefs() {
+    _weekStartsOn = _prefService.getInt(SettingsPrefKey.weekStartsOn.key) ??
+        _weekStartsOn;
+    _dateFormat =
+        _prefService.getInt(SettingsPrefKey.dateFormat.key) ?? _dateFormat;
+    _timeFormat =
+        _prefService.getInt(SettingsPrefKey.timeFormat.key) ?? _timeFormat;
+    _numberFormat =
+        _prefService.getInt(SettingsPrefKey.numberFormat.key) ?? _numberFormat;
+    _language = _prefService.getString(SettingsPrefKey.language.key);
+    _timeZone = _prefService.getString(SettingsPrefKey.timeZone.key);
+  }
+
+  void _applyDateNamesLanguage() {
+    Intl.defaultLocale = displayedLanguage;
   }
 }

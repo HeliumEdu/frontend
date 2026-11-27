@@ -8,6 +8,7 @@ import 'package:heliumapp/data/models/planner/external_calendar_event_model.dart
 import 'package:heliumapp/data/models/planner/homework_model.dart';
 import 'package:heliumapp/data/models/planner/planner_item_base_model.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -376,7 +377,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
             UrlHelpers.launchMailUrl(course!.teacherEmail);
           },
           icon: Icons.email_outlined,
-          label: 'Email teacher',
+          label: AppLocalizations.of(context).plannerEmailTeacherLabel,
           color: foregroundColor,
         ),
       );
@@ -389,7 +390,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
             UrlHelpers.launchWebUrl(course!.website.toString());
           },
           icon: Icons.launch_outlined,
-          label: 'Launch class website',
+          label: AppLocalizations.of(context).plannerLaunchClassWebsiteLabel,
           color: foregroundColor,
         ),
       );
@@ -406,7 +407,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
           ),
           icon: Icons.more_vert,
           showTooltip: false,
-          label: 'More',
+          label: AppLocalizations.of(context).plannerMoreActionsLabel,
           color: foregroundColor,
         ),
       );
@@ -421,7 +422,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
           onPressed: () => onOpenPlannerItem(plannerItem),
           icon: Icons.edit_outlined,
           showTooltip: false,
-          label: 'Edit',
+          label: AppLocalizations.of(context).commonEditLabel,
           color: foregroundColor,
         ),
       );
@@ -869,7 +870,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
       return Semantics(
         container: true,
         checked: isCompleted,
-        label: 'Complete ${homework.title}',
+        label: AppLocalizations.of(context).plannerCompleteItemLabel(homework.title),
         onTap: () => _toggleHomeworkCompleted(
           homework,
           completedOverride,
@@ -1083,7 +1084,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
     return _buildCalendarItemIconRow(
       context,
       Icons.language,
-      'Online',
+      AppLocalizations.of(context).plannerOnlineLabel,
       isInAgenda: isInAgenda,
       backgroundColor: backgroundColor,
     );
@@ -1183,7 +1184,7 @@ class PlannerMoreIndicator extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
-            '+${details.appointments.length - (displayCount - 1)} more',
+            AppLocalizations.of(context).plannerMoreItemsLabel(details.appointments.length - (displayCount - 1)),
             style: AppStyles.calendarItemTextLight(context).copyWith(
               color: context.colorScheme.onPrimaryContainer.withValues(
                 alpha: 0.9,

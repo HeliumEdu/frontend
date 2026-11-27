@@ -105,9 +105,11 @@ class DeepLinkParam {
   static const String date = 'date';
 
   // /planner: open a view (a `PlannerView` name) and show only the given statuses (comma-separated
-  // `PlannerFilterStatus` names) for that visit
+  // `PlannerFilterStatus` names), class (`course` ID) and categories (`category` titles, repeated) for that visit
   static const String view = 'view';
   static const String status = 'status';
+  static const String course = 'course';
+  static const String category = 'category';
 
   // /settings/preferences: scroll to a section (`grades`)
   static const String section = 'section';

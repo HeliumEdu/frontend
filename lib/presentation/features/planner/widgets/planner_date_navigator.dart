@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
-import 'package:heliumapp/utils/app_globals.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
@@ -40,10 +40,7 @@ class PlannerDateNavigator extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(left: 8),
             child: Text(
-              CalendarConstants
-                  .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                currentView,
-              )],
+              currentView.label,
               style: AppStyles.headingText(
                 context,
               ).copyWith(color: context.colorScheme.onSurface),
@@ -80,7 +77,7 @@ class PlannerDateNavigator extends StatelessWidget {
                 icon: Icon(
                   Icons.chevron_left,
                   color: context.colorScheme.primary,
-                  semanticLabel: 'Previous',
+                  semanticLabel: AppLocalizations.of(context).plannerPreviousLabel,
                 ),
                 onPressed: calendarController.backward,
                 padding: EdgeInsets.zero,
@@ -128,7 +125,7 @@ class PlannerDateNavigator extends StatelessWidget {
                 icon: Icon(
                   Icons.chevron_right,
                   color: context.colorScheme.primary,
-                  semanticLabel: 'Next',
+                  semanticLabel: AppLocalizations.of(context).plannerNextLabel,
                 ),
                 onPressed: calendarController.forward,
                 padding: EdgeInsets.zero,
@@ -246,7 +243,7 @@ class PlannerTodayButton extends StatelessWidget {
         tablet: 22,
         desktop: 24,
       ),
-      semanticLabel: showLabel ? null : 'Today',
+      semanticLabel: showLabel ? null : AppLocalizations.of(context).plannerTodayButton,
     );
     if (showLabel) {
       return OutlinedButton.icon(
@@ -275,7 +272,7 @@ class PlannerTodayButton extends StatelessWidget {
           ),
         ),
         label: Text(
-          'Today',
+          AppLocalizations.of(context).plannerTodayButton,
           style: AppStyles.buttonText(
             context,
           ).copyWith(color: context.colorScheme.primary),

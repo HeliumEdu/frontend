@@ -156,7 +156,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemScreenDataFailed(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
           homeworkId: event.homeworkId,
           eventId: event.eventId,
         ),
@@ -208,7 +208,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -241,7 +241,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -313,7 +313,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -338,7 +338,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     } finally {
@@ -360,7 +360,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -401,7 +401,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -436,7 +436,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -511,7 +511,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     }
@@ -541,7 +541,7 @@ class PlannerItemBloc extends Bloc<PlannerItemEvent, PlannerItemState> {
       emit(
         PlannerItemsError(
           origin: event.origin,
-          message: HeliumException.unexpectedError,
+          message: HeliumException.unexpectedErrorMessage,
         ),
       );
     } finally {

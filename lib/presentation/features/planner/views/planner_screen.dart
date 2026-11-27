@@ -52,6 +52,7 @@ import 'package:heliumapp/data/sources/external_calendar_remote_data_source.dart
 import 'package:heliumapp/data/sources/homework_remote_data_source.dart';
 import 'package:heliumapp/data/sources/planner_item_data_source.dart';
 import 'package:heliumapp/data/sources/resource_remote_data_source.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -393,9 +394,13 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
         .nonNulls
         .toSet();
     if (view == null && statuses.isEmpty) return;
+    final courseId = int.tryParse(uri.queryParameters[DeepLinkParam.course] ?? '');
+    final categories = uri.queryParametersAll[DeepLinkParam.category] ?? const <String>[];
     setState(() {
       if (view != null) _changeView(view);
-      if (statuses.isNotEmpty) _plannerItemDataSource!.showOnlyStatuses(statuses);
+      if (statuses.isNotEmpty) {
+        _plannerItemDataSource!.showOnly(statuses, courseId: courseId, categories: categories);
+      }
     });
   }
 
@@ -615,7 +620,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             setState(() {
               isLoading = false;
               if (state.origin == EventOrigin.screen) {
-                screenError = state.message ?? HeliumException.unexpectedError;
+                screenError = state.message ?? HeliumException.unexpectedErrorMessage;
               }
             });
             if (state.origin != EventOrigin.screen) {
@@ -640,7 +645,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             }
             _executeDeferredOpen(state.event);
           } else if (state is EventDeleted) {
-            showSnackBar(context, 'Event deleted.');
+            showSnackBar(context, AppLocalizations.of(context).plannerEventDeletedMessage);
             _updateOrRemove(PlannerItemType.event, state.id, series: state.series);
           } else if (state is AllEventsDeleted) {
             _log.info('All Events deleted, refreshing calendar sources');
@@ -748,7 +753,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
               );
             }
           } else if (state is HomeworkDeleted) {
-            showSnackBar(context, 'Assignment deleted.');
+            showSnackBar(context, AppLocalizations.of(context).plannerAssignmentDeletedMessage);
             _updateOrRemove(PlannerItemType.homework, state.id, series: state.series);
           }
         },
@@ -1577,7 +1582,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                               desktop: 24,
                             ),
                           ),
-                          tooltip: 'Collapse',
+                          tooltip: AppLocalizations.of(context).plannerCollapseTooltip,
                           padding: EdgeInsets.zero,
                           style: IconButton.styleFrom(
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1628,7 +1633,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             return IconButton.outlined(
               key: const Key(PlannerScreen.viewSwitcherButtonKey),
               onPressed: () => _openViewMenu(context),
-              tooltip: 'Change view',
+              tooltip: AppLocalizations.of(context).plannerChangeViewTooltip,
               icon: const Icon(Icons.calendar_month_outlined),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1654,7 +1659,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             return IconButton.outlined(
               key: const Key(PlannerScreen.filterButtonKey),
               onPressed: () => _openFilterMenu(context),
-              tooltip: 'Filters',
+              tooltip: AppLocalizations.of(context).plannerFiltersTitle,
               icon: const Icon(Icons.filter_alt_outlined),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1686,7 +1691,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     _isSearchExpanded = true;
                   });
                 },
-                icon: const Icon(Icons.search, semanticLabel: 'Search'),
+                icon: Icon(Icons.search, semanticLabel: AppLocalizations.of(context).plannerSearchLabel),
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   minimumSize: Size(
@@ -1724,7 +1729,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       initialDate: _calendarController.displayDate!,
       firstDate: HeliumDateTime.earliestPickableDate(),
       lastDate: HeliumDateTime.latestPickableDate(),
-      confirmText: 'Select',
+      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;
@@ -1875,7 +1880,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
           final error = snapShot.error;
           final message = error is HeliumException
               ? error.displayMessage
-              : HeliumException.unexpectedError;
+              : HeliumException.unexpectedErrorMessage;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) showSnackBar(context, message, type: SnackType.error);
           });
@@ -2130,7 +2135,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context: context,
       action: action,
       isEvent: plannerItem is EventModel,
-      thisDetail: 'It keeps its reminders.',
+      thisDetail: AppLocalizations.of(context).plannerKeepsRemindersDetail,
     );
     if (scope == null || !mounted) return;
 
@@ -2175,7 +2180,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       context: context,
       action: RecurrenceScopeAction.delete,
       isEvent: plannerItem is EventModel,
-      allDetail: 'Its attachments and note will also be deleted.',
+      allDetail: AppLocalizations.of(context).plannerDeletesAttachmentsNoteDetail,
     );
     if (scope == null || !mounted) return false;
 
@@ -2236,7 +2241,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       parentContext: context,
       item: plannerItem,
       label: plannerItem.title,
-      additionalWarning: 'Its attachments and note will also be deleted.',
+      additionalWarning: AppLocalizations.of(context).plannerDeletesAttachmentsNoteDetail,
       onDelete: onDelete,
     );
   }
@@ -2589,7 +2594,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
       HeliumDateTime.lastDayOf(newEnd, allDay: homework.allDay),
       _courseGroups,
     )) {
-      showSnackBar(context, 'Assignment moved. $outsideTodosWindowNote');
+      showSnackBar(context, AppLocalizations.of(context).plannerAssignmentMovedOutsideTodosMessage);
     }
   }
 
@@ -2598,7 +2603,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
     showDialog(
       context: context,
-      useRootNavigator: false,
       builder: (_) => PlannerDayPopOutDialog(
         date: date,
         dataSource: _plannerItemDataSource!,
@@ -2953,10 +2957,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     PlannerScreen.viewOptionKey(PlannerView.values[index]),
                   ),
                   title: Text(
-                    CalendarConstants
-                        .defaultViews[PlannerHelper.mapHeliumViewToApiView(
-                      PlannerView.values[index],
-                    )],
+                    PlannerView.values[index].label,
                     style: AppStyles.formText(menuContext),
                   ),
                   value: PlannerView.values[index],

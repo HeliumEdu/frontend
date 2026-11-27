@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_bloc.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_event.dart';
 import 'package:heliumapp/presentation/features/auth/bloc/auth_state.dart';
@@ -39,7 +40,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
   static const _resendSpinnerStrokeWidth = 2.0;
 
   @override
-  String get screenTitle => 'Verify Email';
+  String get screenTitle => AppLocalizations.of(context).verifyEmailTitle;
 
   @override
   bool get isAuthenticatedScreen => false;
@@ -100,7 +101,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           } else if (state is AuthVerificationResent) {
             showSnackBar(
               context,
-              'Verification email sent! Check your inbox.',
+              AppLocalizations.of(context).authVerificationEmailSentMessage,
               seconds: 4,
             );
             _startResendCountdown();
@@ -174,7 +175,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           const SizedBox(height: 25),
 
           Text(
-            'Enter the verification code sent to your email address to complete your registration.',
+            AppLocalizations.of(context).verifyEmailInstructions,
             style: AppStyles.headingText(context),
             textAlign: TextAlign.center,
           ),
@@ -183,7 +184,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
           LabelAndTextFormField(
             key: const Key(VerifyEmailScreen.emailField),
-            hintText: 'Email',
+            hintText: AppLocalizations.of(context).authEmailHint,
             autofocus: PlatformBehavior.autofocusesOnOpen && widget.email == null,
             prefixIcon: Icons.email_outlined,
             controller: _emailController,
@@ -195,7 +196,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
           LabelAndTextFormField(
             key: const Key(VerifyEmailScreen.codeField),
-            hintText: 'Verification code',
+            hintText: AppLocalizations.of(context).verifyEmailCodeHint,
             autofocus: widget.email != null && widget.code == null,
             prefixIcon: Icons.pin_outlined,
             controller: _codeController,
@@ -213,7 +214,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               return HeliumElevatedButton(
-                buttonText: 'Verify & Sign In',
+                buttonText: AppLocalizations.of(context).verifyEmailSubmitButton,
                 isLoading: isSubmitting,
                 onPressed: _onSubmit,
               );
@@ -253,7 +254,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Resend verification email',
+                          AppLocalizations.of(context).verifyEmailResendButton,
                           style: AppStyles.buttonText(context).copyWith(
                             color: _canResend
                                 ? context.colorScheme.primary
@@ -300,7 +301,7 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Back to login',
+                    AppLocalizations.of(context).authBackToSignInLink,
                     style: AppStyles.buttonText(
                       context,
                     ).copyWith(color: context.colorScheme.primary),
@@ -316,10 +317,10 @@ class _VerifyEmailScreenState extends BasePageScreenState<VerifyEmailScreen> {
 
   String? _validateCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'This field is required';
+      return AppLocalizations.of(context).formRequiredFieldError;
     }
     if (value.length != 6) {
-      return 'Enter the 6-digit code';
+      return AppLocalizations.of(context).verifyEmailCodeLengthError;
     }
     return null;
   }

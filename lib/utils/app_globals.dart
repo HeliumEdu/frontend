@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart' show seedColor;
 import 'package:heliumapp/data/models/drop_down_item.dart';
-import 'package:heliumapp/utils/dropdown_extensions.dart';
+import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/planner_helper.dart';
 
 class AppConstants {
@@ -139,19 +139,6 @@ class CalendarConstants {
     'Friday',
     'Saturday',
   ];
-  static final List<DropDownItem<String>> dayNamesItems = dayNames
-      .toDropDownItems();
-
-  static const List<String> dayNamesAbbrev = [
-    'Sun',
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-  ];
-
   static const List<String> defaultViews = [
     'Month',
     'Week',
@@ -160,10 +147,16 @@ class CalendarConstants {
     'Agenda',
     '3-Day',
   ];
-  static final List<DropDownItem<String>> defaultViewItems = PlannerView.values
+
+  static List<DropDownItem<String>> get dayNamesItems => [
+    for (final (index, dayName) in dayNames.indexed)
+      DropDownItem(id: index, value: dayName, label: HeliumDateTime.weekdayNames[index]),
+  ];
+
+  static List<DropDownItem<String>> get defaultViewItems => PlannerView.values
       .map((view) {
         final apiIndex = PlannerHelper.mapHeliumViewToApiView(view);
-        return DropDownItem(id: apiIndex, value: defaultViews[apiIndex]);
+        return DropDownItem(id: apiIndex, value: defaultViews[apiIndex], label: view.label);
       })
       .toList();
 }

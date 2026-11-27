@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -48,8 +49,7 @@ class UpdateRequiredCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              "Time for an update! You'll need the latest version of "
-              '${AppConstants.appName} to keep using it.',
+              AppLocalizations.of(context).updateRequiredMessage(AppConstants.appName),
               textAlign: TextAlign.center,
               style: AppStyles.headingText(context),
             ),
@@ -57,7 +57,9 @@ class UpdateRequiredCard extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200),
               child: HeliumElevatedButton(
-                buttonText: kIsWeb ? 'Reload' : 'Update',
+                buttonText: kIsWeb
+                    ? AppLocalizations.of(context).commonReloadButton
+                    : AppLocalizations.of(context).updateRequiredUpdateButton,
                 icon: kIsWeb ? Icons.refresh : Icons.system_update_outlined,
                 onPressed: _update,
               ),
@@ -66,7 +68,7 @@ class UpdateRequiredCard extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200),
               child: HeliumElevatedButton(
-                buttonText: 'Support Portal',
+                buttonText: AppLocalizations.of(context).commonSupportPortalButton,
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
                 onPressed: () =>

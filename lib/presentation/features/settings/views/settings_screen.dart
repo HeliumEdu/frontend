@@ -15,6 +15,7 @@ import 'package:heliumapp/core/oauth_sign_in_service.dart';
 import 'package:heliumapp/config/theme_notifier.dart';
 import 'package:heliumapp/data/models/auth/request/update_settings_request_model.dart';
 import 'package:heliumapp/data/models/auth/user_model.dart';
+import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/info/info_state.dart';
 import 'package:heliumapp/presentation/core/views/base_page_screen_state.dart';
@@ -109,7 +110,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         icon: Icon(
           Icons.logout_outlined,
           color: context.semanticColors.warning,
-          semanticLabel: 'Sign out',
+          semanticLabel: AppLocalizations.of(context).settingsSignOutLabel,
         ),
       ),
     ];
@@ -137,15 +138,18 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   UserModel get profile => _profile!;
 
   @override
-  String get screenTitle => switch (_activeSubScreen) {
-    SettingsSubScreen.preferences => 'Preferences',
-    SettingsSubScreen.externalCalendars => 'External Calendars',
-    SettingsSubScreen.feeds => 'Feeds',
-    SettingsSubScreen.changeEmail => 'Change Email',
-    SettingsSubScreen.security => 'Security & API',
-    SettingsSubScreen.importExport => 'Import/Export',
-    null => 'Settings',
-  };
+  String get screenTitle {
+    final l10n = AppLocalizations.of(context);
+    return switch (_activeSubScreen) {
+      SettingsSubScreen.preferences => l10n.settingsPreferencesTitle,
+      SettingsSubScreen.externalCalendars => l10n.settingsExternalCalendarsTitle,
+      SettingsSubScreen.feeds => l10n.settingsFeedsTitle,
+      SettingsSubScreen.changeEmail => l10n.settingsChangeEmailTitle,
+      SettingsSubScreen.security => l10n.settingsSecurityTitle,
+      SettingsSubScreen.importExport => l10n.settingsImportExportTitle,
+      null => l10n.settingsTitle,
+    };
+  }
 
   @override
   IconData get icon => switch (_activeSubScreen) {
@@ -253,7 +257,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             setState(() {
               isLoading = false;
             });
-            showSnackBar(context, 'All Events deleted.');
+            showSnackBar(context, AppLocalizations.of(context).settingsAllEventsDeletedMessage);
           } else if (state is PlannerItemsError) {
             setState(() {
               isLoading = false;
@@ -269,7 +273,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           if (state is AuthError && _profile == null) {
             setState(() {
               isLoading = false;
-              screenError = state.message ?? HeliumException.unexpectedError;
+              screenError = state.message ?? HeliumException.unexpectedErrorMessage;
             });
           } else if (state is AuthError) {
             // Only handle on the main settings page; sub-screens handle their own errors.
@@ -298,7 +302,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             });
             showSnackBar(
               context,
-              state.message ?? 'Example schedule cleared.',
+              state.message ?? AppLocalizations.of(context).settingsExampleClearedMessage,
               type: state.message == null ? SnackType.success : SnackType.info,
               useRootMessenger: true,
             );
@@ -318,7 +322,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             setState(() => _profile = state.user);
             showSnackBar(
               context,
-              '${state.provider.label} was removed from your account.',
+              AppLocalizations.of(context).settingsProviderRemovedMessage(state.provider.label),
             );
           } else if (state is AuthEmailChangeRequested ||
               state is AuthEmailChangeCancelled) {
@@ -332,7 +336,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           } else if (state is AuthAccountDeleted) {
             showSnackBar(
               context,
-              "Sorry to see you go! We've deleted all traces of your existence from Helium.",
+              AppLocalizations.of(context).settingsAccountDeletedMessage,
               type: SnackType.info,
               seconds: 6,
               useRootMessenger: true,
@@ -590,7 +594,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                 ),
                 githubUrl: Uri.parse(AppConstants.githubUrl),
-                onGithubUrlError: () => SnackBarHelper.show(context, 'Failed to open link.', type: SnackType.error),
+                onGithubUrlError: () => SnackBarHelper.show(context, AppLocalizations.of(context).urlOpenLinkFailedMessage, type: SnackType.error),
               ),
             )
           else
@@ -610,21 +614,21 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SegmentedButton<ThemeMode>(
-                segments: const [
+                segments: [
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.light,
-                    icon: Icon(Icons.light_mode_outlined),
-                    tooltip: 'Light',
+                    icon: const Icon(Icons.light_mode_outlined),
+                    tooltip: AppLocalizations.of(context).settingsThemeLightTooltip,
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.dark,
-                    icon: Icon(Icons.dark_mode_outlined),
-                    tooltip: 'Dark',
+                    icon: const Icon(Icons.dark_mode_outlined),
+                    tooltip: AppLocalizations.of(context).settingsThemeDarkTooltip,
                   ),
                   ButtonSegment<ThemeMode>(
                     value: ThemeMode.system,
-                    icon: Icon(Icons.settings_brightness_outlined),
-                    tooltip: 'System',
+                    icon: const Icon(Icons.settings_brightness_outlined),
+                    tooltip: AppLocalizations.of(context).settingsThemeSystemTooltip,
                   ),
                 ],
                 selected: {themeNotifier.themeMode},
@@ -652,7 +656,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     UrlHelpers.launchWebUrl(AppConstants.supportPortalUrl),
                 icon: Icons.menu_book_outlined,
                 backgroundColor: context.colorScheme.onSurfaceVariant,
-                label: 'Support Portal',
+                label: AppLocalizations.of(context).commonSupportPortalButton,
                 minimumSize: 40,
                 visualDensity: context.theme.visualDensity,
               ),
@@ -674,9 +678,9 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               if (profile.emailChanging?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 8),
                 WarningContainer(
-                  text:
-                      'Change pending — click the link sent to '
-                      '${profile.emailChanging} to verify.',
+                  text: AppLocalizations.of(context).settingsEmailChangePendingMessage(
+                    profile.emailChanging!,
+                  ),
                   icon: Icons.schedule,
                 ),
               ],
@@ -694,8 +698,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         children: [
           _buildSettingsItem(
             icon: Icons.tune,
-            label: 'Preferences',
-            hint: 'Tailor Helium to your tastes',
+            label: AppLocalizations.of(context).settingsPreferencesTitle,
+            hint: AppLocalizations.of(context).settingsPreferencesHint,
             onTap: () => _navigateToSubSettings(SettingsSubScreen.preferences),
             iconColor: context.semanticColors.info,
             isFirst: true,
@@ -703,8 +707,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: AppConstants.externalCalendarIcon,
-            label: 'External Calendars',
-            hint: 'Bring other calendars into Helium',
+            label: AppLocalizations.of(context).settingsExternalCalendarsTitle,
+            hint: AppLocalizations.of(context).settingsExternalCalendarsHint,
             onTap: () =>
                 _navigateToSubSettings(SettingsSubScreen.externalCalendars),
             iconColor: context.colorScheme.primary,
@@ -712,8 +716,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.rss_feed,
-            label: 'Feeds',
-            hint: "Take Helium's calendars elsewhere",
+            label: AppLocalizations.of(context).settingsFeedsTitle,
+            hint: AppLocalizations.of(context).settingsFeedsHint,
             onTap: () => _navigateToSubSettings(SettingsSubScreen.feeds),
             iconColor: context.colorScheme.primary,
           ),
@@ -722,8 +726,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           if (!profile.hasOAuthProviders)
             _buildSettingsItem(
               icon: Icons.email_outlined,
-              label: 'Change Email',
-              hint: 'Update your email address',
+              label: AppLocalizations.of(context).settingsChangeEmailTitle,
+              hint: AppLocalizations.of(context).settingsChangeEmailHint,
               onTap: () =>
                   _navigateToSubSettings(SettingsSubScreen.changeEmail),
               iconColor: context.colorScheme.primary,
@@ -731,24 +735,24 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.shield_outlined,
-            label: 'Security & API',
-            hint: 'Password, token, and apps',
+            label: AppLocalizations.of(context).settingsSecurityTitle,
+            hint: AppLocalizations.of(context).settingsSecurityHint,
             onTap: () => _navigateToSubSettings(SettingsSubScreen.security),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.swap_horiz,
-            label: 'Import/Export',
-            hint: 'Backup, restore, or import a schedule',
+            label: AppLocalizations.of(context).settingsImportExportTitle,
+            hint: AppLocalizations.of(context).settingsImportExportHint,
             onTap: () => _navigateToSubSettings(SettingsSubScreen.importExport),
             iconColor: context.colorScheme.primary,
           ),
           const Divider(height: 1, indent: 68),
           _buildSettingsItem(
             icon: Icons.logout_outlined,
-            label: 'Sign Out',
-            hint: 'Sign out of your account',
+            label: AppLocalizations.of(context).settingsSignOutTitle,
+            hint: AppLocalizations.of(context).settingsSignOutHint,
             onTap: _showLogoutDialog,
             iconColor: context.semanticColors.warning,
             iconBackgroundColor: context.colorScheme.error.withValues(
@@ -855,8 +859,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       ),
       child: _buildSettingsItem(
         icon: Icons.cleaning_services_outlined,
-        label: 'Clear Example Data',
-        hint: 'Remove the example schedule',
+        label: AppLocalizations.of(context).settingsClearExampleDataLabel,
+        hint: AppLocalizations.of(context).settingsClearExampleDataHint,
         onTap: _clearExampleData,
         iconColor: context.colorScheme.primary,
         isFirst: true,
@@ -891,10 +895,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Future<void> _confirmRemoveSignInMethod(OAuthProvider provider) async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Remove ${provider.label}?',
-      message:
-          "You won't be able to sign in with ${provider.label} anymore.",
-      actionText: 'Remove',
+      title: AppLocalizations.of(context).settingsRemoveProviderTitle(provider.label),
+      message: AppLocalizations.of(context).settingsRemoveProviderMessage(provider.label),
+      actionText: AppLocalizations.of(context).settingsRemoveProviderButton,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
     );
     if (!confirmed || !mounted) return;
 
@@ -957,7 +961,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
-                  'Danger Zone',
+                  AppLocalizations.of(context).settingsDangerZoneTitle,
                   style: AppStyles.menuItem(
                     context,
                   ).copyWith(color: context.colorScheme.error),
@@ -985,8 +989,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       children: [
         _buildDangerZoneItem(
           icon: Icons.delete_sweep_outlined,
-          label: 'Delete All Events',
-          hint: 'Permanently delete all Events',
+          label: AppLocalizations.of(context).settingsDeleteAllEventsTitle,
+          hint: AppLocalizations.of(context).settingsDeleteAllEventsHint,
           onTap: () {
             _dangerZoneTimer?.cancel();
             _dangerZoneTimer = Timer(SettingsScreen._dangerZoneTimeout, () {
@@ -1003,8 +1007,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
         const Divider(height: 1, indent: 68),
         _buildDangerZoneItem(
           icon: Icons.delete_outline,
-          label: 'Delete Account',
-          hint: 'Permanently delete your account',
+          label: AppLocalizations.of(context).settingsDeleteAccountTitle,
+          hint: AppLocalizations.of(context).settingsDeleteAccountHint,
           onTap: () {
             _dangerZoneTimer?.cancel();
             _dangerZoneTimer = Timer(SettingsScreen._dangerZoneTimeout, () {
@@ -1121,7 +1125,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Delete All Events',
+                      AppLocalizations.of(context).settingsDeleteAllEventsTitle,
                       style: AppStyles.featureText(
                         context,
                       ).copyWith(color: context.colorScheme.error),
@@ -1132,7 +1136,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
               content: SizedBox(
                 width: Responsive.getDialogWidth(context),
                 child: Text(
-                  'Are you sure you want to delete all Events? Anything associated with them, including attachments, notes, and other data, will also be deleted. This action cannot be undone.',
+                  AppLocalizations.of(context).settingsDeleteAllEventsMessage,
                   style: AppStyles.standardBodyText(context),
                 ),
               ),
@@ -1143,7 +1147,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: 'Cancel',
+                          buttonText: AppLocalizations.of(context).commonCancelButton,
                           backgroundColor: context.colorScheme.outline,
                           enabled: !isSubmitting,
                           onPressed: () {
@@ -1154,7 +1158,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: 'Delete',
+                          buttonText: AppLocalizations.of(context).commonDeleteButton,
                           backgroundColor: context.colorScheme.error,
                           isLoading: isSubmitting,
                           onPressed: () {
@@ -1188,9 +1192,10 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
   Future<void> _showLogoutDialog({bool force = false}) async {
     final confirmed = await showConfirmActionDialog(
       context: context,
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out?',
-      actionText: 'Sign Out',
+      title: AppLocalizations.of(context).settingsSignOutTitle,
+      message: AppLocalizations.of(context).settingsSignOutMessage,
+      actionText: AppLocalizations.of(context).settingsSignOutTitle,
+      cancelText: AppLocalizations.of(context).commonCancelButton,
       style: ConfirmActionStyle.warning,
       icon: Icons.logout_outlined,
     );
@@ -1249,7 +1254,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Delete Account',
+                      AppLocalizations.of(context).settingsDeleteAccountTitle,
                       style: AppStyles.featureText(
                         context,
                       ).copyWith(color: context.colorScheme.error),
@@ -1269,8 +1274,8 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       children: [
                         Text(
                           profile.hasUsablePassword
-                              ? 'To permanently delete your account — and all data you have stored in Helium—confirm your password below. This action cannot be undone.'
-                              : 'To permanently delete your account — and all data you have stored in Helium—confirm by clicking the Delete button below. This action cannot be undone.',
+                              ? AppLocalizations.of(context).settingsDeleteAccountPasswordMessage
+                              : AppLocalizations.of(context).settingsDeleteAccountPasswordlessMessage,
                           style: AppStyles.standardBodyText(context),
                         ),
                         if (profile.hasUsablePassword) ...[
@@ -1282,7 +1287,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                   key: const Key(
                                     SettingsScreen.deleteAccountPasswordField,
                                   ),
-                                  label: 'Password',
+                                  label: AppLocalizations.of(context).settingsPasswordLabel,
                                   autofocus: PlatformBehavior.autofocusesOnOpen,
                                   controller: _deleteAccountPasswordController,
                                   validator:
@@ -1308,7 +1313,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                                         tablet: 22,
                                         desktop: 24,
                                       ),
-                                      semanticLabel: obscurePassword ? 'Show password' : 'Hide password',
+                                      semanticLabel: obscurePassword ? AppLocalizations.of(context).passwordShowLabel : AppLocalizations.of(context).passwordHideLabel,
                                     ),
                                   ),
                                 ),
@@ -1328,7 +1333,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: 'Cancel',
+                          buttonText: AppLocalizations.of(context).commonCancelButton,
                           backgroundColor: context.colorScheme.outline,
                           enabled: !isSubmitting,
                           onPressed: () {
@@ -1339,7 +1344,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: 'Delete',
+                          buttonText: AppLocalizations.of(context).commonDeleteButton,
                           backgroundColor: context.colorScheme.error,
                           isLoading: isSubmitting,
                           onPressed: handleSubmit,
