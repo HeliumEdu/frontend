@@ -243,7 +243,7 @@
   "commonReloadButton": "Recargar",
   "commonRemoveLabel": "Eliminar",
   "commonSearchHint": "Buscar ...",
-  "commonSelectButton": "Seleccionar",
+  "commonSelectButton": "Aceptar",
   "commonSupportPortalButton": "Portal de soporte",
   "@commonSupportPortalButton": {
     "description": "Button that opens Helium's help website. \"Support Portal\" is the name of that website."
