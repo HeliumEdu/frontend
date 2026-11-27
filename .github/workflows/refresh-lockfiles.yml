@@ -89,10 +89,10 @@ jobs:
         run: |
           flutter pub get
           cd ios
-          bundle install
+          bundle update --conservative fastlane-plugin-bosun
           ${{ inputs.pod_update && 'bundle exec pod update' || 'bundle exec pod install' }}
           cd ../android
-          bundle install
+          bundle update --conservative fastlane-plugin-bosun
 
       - name: Get GitHub App bot user ID
         id: get-bot-user-id
