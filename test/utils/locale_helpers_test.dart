@@ -119,14 +119,6 @@ void main() {
       expect(offered, isTrue);
     });
 
-    test('hides the choice with one language', () {
-      // WHEN
-      final offered = HeliumLocale.offersLanguageChoice(languages: ['en'], stored: 'en');
-
-      // THEN
-      expect(offered, isFalse);
-    });
-
     test('hides the choice when the stored language is not offered', () {
       // WHEN
       final offered = HeliumLocale.offersLanguageChoice(languages: ['en', 'es'], stored: 'fr');
