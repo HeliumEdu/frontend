@@ -37,7 +37,7 @@ files:
     export_only_approved: true
   - source: /bin/screenshot-captions.csv
     translation: /bin/screenshot-captions.%two_letters_code%.csv
-    scheme: identifier,source_phrase
+    scheme: identifier,source_phrase,translation
     first_line_contains_header: false
     skip_untranslated_files: true
     export_only_approved: true

@@ -42,7 +42,7 @@ case "$device" in
 esac
 
 caption() {
-  python3 -c 'import csv, sys; print(next((row[1] for row in csv.reader(open(sys.argv[1], encoding="utf-8")) if row and row[0] == sys.argv[2]), ""))' "$captions" "$1"
+  python3 -c 'import csv, sys; print(next((row[-1] for row in csv.reader(open(sys.argv[1], encoding="utf-8")) if row and row[0] == sys.argv[2]), ""))' "$captions" "$1"
 }
 
 heading=$(caption "$shot.heading")
