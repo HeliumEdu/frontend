@@ -1,0 +1,1 @@
+temario,examen,académico,horario,calendario,universidad,educación en casa,clase,cuaderno,promedio
