@@ -742,7 +742,7 @@
   "@gettingStartedSyncDescription": {
     "description": "Body of the Getting Started card about calendar sync. \"External Calendars\" and \"Feeds\" are names of settings in the app; Google and Apple are the calendar providers."
   },
-  "gettingStartedSyncTitle": "Sincronizar con otros calendarios",
+  "gettingStartedSyncTitle": "Sincronización con otros calendarios",
   "gettingStartedWelcomeDescription": "Precargamos tu cuenta con un horario de ejemplo para que veas Helium en acción. Tómate tu tiempo para explorar: avanza por las tarjetas para ver lo que puedes hacer.",
   "@gettingStartedWelcomeDescription": {
     "description": "Body of the first Getting Started card, under \"Welcome to Helium!\". \"Click through\" means paging through the dialog's cards."
