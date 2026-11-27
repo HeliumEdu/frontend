@@ -143,7 +143,6 @@
   "categoryDialogTitle": "Category",
   "categoryEmptyMessage": "Click \"+\" to add a category",
   "categoryNotFoundMessage": "Category not found.",
-  "categoryRemoveWeightLabel": "Remove weight",
   "categorySavedMessage": "Category saved.",
   "categoryTitleLabel": "Title",
   "categoryUncategorizedTitle": "Uncategorized",
@@ -1415,6 +1414,7 @@
   "gradesProgressPaceTitle": "Progress vs. Pace",
   "gradesScaleDiffersHint": "This group's grade scale differs from your most recent one, so it isn't counted in your GPA across all terms.",
   "gradesShowGpaDetailsTooltip": "Show GPA details",
+  "gradesShowNotCountedTooltip": "Show these assignments",
   "gradesTermGpaSummary": "GPA {gpa}",
   "@gradesTermGpaSummary": {
     "description": "The selected term's GPA.",

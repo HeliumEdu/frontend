@@ -505,7 +505,12 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           initialValue: _categoryItems.firstWhereOrNull(
             (c) => c.id == formController.selectedCategory,
           ),
-          items: _selectedCourseCategoryItems(),
+          items: _categoryItems
+              .where(
+                (category) =>
+                    category.value?.course == formController.selectedCourse,
+              )
+              .toList(),
           onChanged: (value) {
             formController.markChanged();
             _selectCategory(value!.id);
@@ -1424,15 +1429,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
         }
       }
     });
-  }
-
-  List<DropDownItem<CategoryModel>> _selectedCourseCategoryItems() {
-    final items = _categoryItems
-        .where((category) => category.value?.course == formController.selectedCourse)
-        .toList();
-    final uncategorizedIndex = items.indexWhere((category) => category.value!.isUncategorized);
-    if (uncategorizedIndex > 0) items.insert(uncategorizedIndex, DropDownItem(id: -1, isDivider: true));
-    return items;
   }
 
   void _selectCategory(int categoryId) {

@@ -9,7 +9,6 @@ import 'package:heliumapp/presentation/features/courses/bloc/category_bloc.dart'
 import 'package:heliumapp/presentation/features/courses/bloc/category_event.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/category_state.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
-import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
 import 'package:heliumapp/presentation/ui/components/color_selector.dart';
@@ -151,7 +150,7 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (!_isUncategorized)
+            if (!_isUncategorized) ...[
               SizedBox(
                 width: 120,
                 child: SpinnerField(
@@ -162,24 +161,9 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
                   allowDecimal: true,
                   onChanged: (_) => _formController.markChanged(),
                 ),
-              )
-            else if (_formController.weightController.text.isNotEmpty)
-              SizedBox(
-                width: 120,
-                child: LabelAndTextFormField(
-                  label: AppLocalizations.of(context).categoryWeightLabel,
-                  controller: _formController.weightController,
-                  readOnly: true,
-                  suffixIcon: HeliumIconButton(
-                    onPressed: _clearWeight,
-                    icon: Icons.close,
-                    label: AppLocalizations.of(context).categoryRemoveWeightLabel,
-                    filled: false,
-                  ),
-                ),
               ),
-            if (!_isUncategorized || _formController.weightController.text.isNotEmpty)
               SizedBox(width: Responsive.isNarrowMobile(context) ? 24 : 50),
+            ],
             ColorSelector(
               label: AppLocalizations.of(context).commonColorLabel,
               selectedColor: _formController.selectedColor,
@@ -194,11 +178,6 @@ class _CategoryWidgetState extends BaseDialogState<_CategoryProvidedWidget>
         ),
       ],
     );
-  }
-
-  void _clearWeight() {
-    _formController.markChanged();
-    setState(() => _formController.weightController.clear());
   }
 
   @override

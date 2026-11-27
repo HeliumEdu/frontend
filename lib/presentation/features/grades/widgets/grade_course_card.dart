@@ -4,12 +4,14 @@ import 'package:heliumapp/config/app_route.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/core/motion_service.dart';
 import 'package:heliumapp/data/models/auth/user_settings_model.dart';
+import 'package:heliumapp/data/models/planner/grade_category_model.dart';
 import 'package:heliumapp/data/models/planner/grade_course_model.dart';
 import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/grades/widgets/grade_category_table.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_point_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/layout/collapsing_row.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -213,41 +215,104 @@ class GradeCourseCard extends StatelessWidget {
     final mutedColor = context.colorScheme.onSurface.withValues(
       alpha: AppStyles.increasedContrastAlpha(AppStyles.mutedTextAlpha),
     );
-    final iconSize = Responsive.getIconSize(
+    final hintColor = context.colorScheme.onSurface.withValues(
+      alpha: AppStyles.mutedIconAlpha,
+    );
+    final hintIconSize = Responsive.getIconSize(
       context,
       mobile: 14,
       tablet: 16,
       desktop: 18,
     );
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      visualDensity: VisualDensity.compact,
-      minLeadingWidth: 0,
-      horizontalTitleGap: 8,
-      leading: Icon(Icons.info_outline, size: iconSize, color: mutedColor),
-      title: Text(
-        AppLocalizations.of(context).gradesNotCountedMessage(count),
-        style: AppStyles.standardBodyText(context).copyWith(color: mutedColor),
-      ),
-      trailing: PrintHidden(
-        child: Icon(Icons.chevron_right, size: iconSize, color: mutedColor),
-      ),
-      onTap: () => context.go(
-        Uri(
-          path: AppRoute.plannerScreen,
-          queryParameters: {
-            DeepLinkParam.view: PlannerView.todos.name,
-            DeepLinkParam.status: PlannerFilterStatus.graded.name,
-            DeepLinkParam.course: '${course.id}',
-            DeepLinkParam.category: [for (final c in categories) c.title],
-          },
-        ).toString(),
+    return _buildToggleArea(
+      context,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context).gradesNotCountedMessage(count),
+                style: AppStyles.standardBodyText(context).copyWith(color: mutedColor),
+              ),
+            ),
+            PrintHidden(
+              child: HeliumIconButton(
+                onPressed: () => _showNotCountedOnPlanner(context, categories),
+                icon: Icons.info_outline,
+                label: AppLocalizations.of(context).gradesShowNotCountedTooltip,
+                color: hintColor,
+                size: hintIconSize,
+                filled: false,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  void _showNotCountedOnPlanner(
+    BuildContext context,
+    List<GradeCategoryModel> categories,
+  ) {
+    context.go(
+      Uri(
+        path: AppRoute.plannerScreen,
+        queryParameters: {
+          DeepLinkParam.view: PlannerView.todos.name,
+          DeepLinkParam.status: PlannerFilterStatus.graded.name,
+          DeepLinkParam.course: '${course.id}',
+          DeepLinkParam.category: [for (final c in categories) c.title],
+        },
+      ).toString(),
+    );
+  }
+
   Widget _buildCourseSummaryArea(BuildContext context) {
+    return _buildToggleArea(
+      context,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: CourseTitleLabel(
+                          title: course.title,
+                          color: course.color,
+                        ),
+                      ),
+                    ),
+                    if (isAtRisk) ...[
+                      const SizedBox(width: 8),
+                      const _AtRiskBadge(),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                _buildGradeSummaryRow(context),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          PrintHidden(
+            child: GradeExpandButton(
+              isExpanded: isExpanded,
+              onPressed: onToggle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleArea(BuildContext context, {required Widget child}) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -256,43 +321,7 @@ class GradeCourseCard extends StatelessWidget {
           Feedback.forTap(context);
           onToggle();
         },
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: CourseTitleLabel(
-                            title: course.title,
-                            color: course.color,
-                          ),
-                        ),
-                      ),
-                      if (isAtRisk) ...[
-                        const SizedBox(width: 8),
-                        const _AtRiskBadge(),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  _buildGradeSummaryRow(context),
-                ],
-              ),
-            ),
-            const SizedBox(width: 4),
-            PrintHidden(
-              child: GradeExpandButton(
-                isExpanded: isExpanded,
-                onPressed: onToggle,
-              ),
-            ),
-          ],
-        ),
+        child: child,
       ),
     );
   }
