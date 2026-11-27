@@ -377,6 +377,7 @@ CHECKSUMS
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
   bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
+  bundler (4.0.11) sha256=5bcec0fb78302e48d02ee46f10ee6e6942be647ba5b44a6d1ddfda9a240ce785
   cgi (0.5.2) sha256=61ca30298171190fd4fa0d8018e57ada456eae9b7a2b78526debf7f0a0e6f8bb
   claide (1.1.0) sha256=6d3c5c089dde904d96aa30e73306d0d4bd444b1accb9b3125ce14a3c0183f82e
   cocoapods (1.16.2) sha256=0ff1c860f32df3db8b16df09b58da1a6bb2a12fe55f6d5e8be994a74fadd1e5e
@@ -502,7 +503,7 @@ CHECKSUMS
   xcpretty-travis-formatter (1.0.1) sha256=aacc332f17cb7b2cba222994e2adc74223db88724fe76341483ad3098e232f93
 
 RUBY VERSION
-   ruby 3.3.11
+  ruby 3.3.11
 
 BUNDLED WITH
-   2.5.22
+  4.0.11

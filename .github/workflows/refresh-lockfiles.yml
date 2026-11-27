@@ -74,6 +74,7 @@ jobs:
           ruby-version: '3.3'
           bundler: 'Gemfile.lock'
           bundler-cache: false
+          working-directory: ios
 
       - name: Cache pub dependencies
         uses: actions/cache@v5
