@@ -1,34 +1,62 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "CFBundleDisplayName": {
-      "shouldTranslate": false
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
-    "CFBundleName": {
-      "shouldTranslate": false
+    "CFBundleName" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
-    "NSPhotoLibraryAddUsageDescription": {
-      "comment": "iOS permission prompt for saving to the photo library.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Helium can save an attachment you downloaded to your photo library."
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "iOS permission prompt for saving to the photo library.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium can save an attachment you downloaded to your photo library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium puede guardar en tu biblioteca de fotos un archivo adjunto que hayas descargado."
           }
         }
       }
     },
-    "NSPhotoLibraryUsageDescription": {
-      "comment": "iOS permission prompt for the photo library.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Helium can save an attachment you downloaded to your photo library."
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "iOS permission prompt for the photo library.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium can save an attachment you downloaded to your photo library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helium puede guardar en tu biblioteca de fotos un archivo adjunto que hayas descargado."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
