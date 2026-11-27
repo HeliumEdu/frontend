@@ -1,0 +1,28 @@
+Un planificador estudiantil gratuito y en línea, con códigos de color, para tus clases, tareas, calificaciones y notas.
+
+📅 CALENDARIOS INTELIGENTES
+Organiza por colores las clases, tareas y eventos personales en las vistas de mes, semana, 3 días, día y agenda, y alterna entre el modo claro y el oscuro. Importa tus calendarios de Google, Apple o cualquier iCal, o exporta Helium a ellos.
+
+📊 SEGUIMIENTO Y CALCULADORA DE CALIFICACIONES EN TIEMPO REAL
+Helium recalcula tus calificaciones en tiempo real: por clase, por categoría y en todo el periodo. Elige la escala de calificaciones de tu escuela para ver la calificación con letra de tus clases, y agrega créditos para seguir tu promedio. El panel muestra tu calificación general y tu promedio, Clases en riesgo, Progreso vs. ritmo e Impacto pendiente de un vistazo. Pregunta "¿Qué podría obtener?" para proyectar tu calificación final según cómo vaya el resto del periodo, o "¿Qué necesito?" para saber exactamente qué necesitas en el examen final. Cambia a "Promedio del periodo" para ver cómo una clase mueve tu promedio, o qué necesitas para alcanzar el promedio que quieres.
+
+📘 CUADERNO ENRIQUECIDO
+Escribe notas con formato, vinculadas directamente a los elementos de tu Planificador, para que el contexto que necesitas esté siempre justo donde lo necesitas. O bien, guarda notas independientes para cualquier otra cosa, desde resúmenes de clases hasta borradores de trabajos escritos. Da formato como en un documento, busca en todo e imprime cuando necesites una copia en papel.
+
+🗓️ HORARIOS DE UN VISTAZO
+Clases organizadas en bloques hora por hora, incluidos horarios rotativos como Día A/B y Semana A/B. Arrastra para reprogramar, marca las tareas completadas directamente desde el calendario y toca cualquier clase para obtener detalles: aula, correo electrónico del profesor, escala de calificaciones.
+
+✅ VISTA PENDIENTES
+Una lista de verificación enfocada en tus tareas. Ordena y filtra por clase, prioridad, fecha de entrega o recursos: organiza tu tiempo de estudio como quieras.
+
+📱 WIDGETS DE LA PANTALLA DE INICIO
+Consulta lo vencido, lo que vence hoy y lo que llega esta semana directamente desde la pantalla de inicio, y marca tareas como completadas sin abrir la app.
+
+📝 PLANIFICADOR DETALLADO DE TAREAS
+Clase, categoría, prioridad, recordatorios, archivos adjuntos como rúbricas, notas formateadas y recursos vinculados: todos los detalles en un solo lugar. Configura una lectura semanal para que se repita y estará en tu Planificador el resto del periodo, o duplica una tarea para empezar la siguiente a partir de ella.
+
+🔔 RECORDATORIOS
+Recordatorios antes de tareas, clases, exámenes o eventos: notificaciones push o correo electrónico, si lo prefieres.
+
+🎓 DISEÑADO PARA ESTUDIANTES
+Secundaria, bachillerato, universidad, posgrado, educación en casa: Helium ayuda a todo tipo de estudiantes a mantenerse organizados y a tener éxito académico. Conecta las aplicaciones y herramientas que ya utilizas, o crea las tuyas propias con la API abierta de Helium. Crea hoy tu cuenta gratuita en línea y toma el control de tu vida estudiantil.
