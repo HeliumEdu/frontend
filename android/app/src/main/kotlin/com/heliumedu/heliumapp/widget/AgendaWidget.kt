@@ -319,13 +319,13 @@ private fun ColumnScope.Agenda(snapshot: AgendaSnapshot, now: Instant) {
 private sealed interface AgendaLine {
     data class Header(val group: AgendaGroup) : AgendaLine
     data class Item(val item: AgendaItem) : AgendaLine
-    data class OlderOverdue(val count: Int) : AgendaLine
+    data class OlderOverdue(val count: Int, val followsItems: Boolean) : AgendaLine
     data object NothingUpcoming : AgendaLine
 }
 
 private fun agendaLines(groups: List<AgendaGroup>, olderOverdueCount: Int): List<AgendaLine> {
     val groupLines = groups.flatMap { group ->
-        val olderOverdue = AgendaLine.OlderOverdue(olderOverdueCount)
+        val olderOverdue = AgendaLine.OlderOverdue(olderOverdueCount, followsItems = group.items.isNotEmpty())
             .takeIf { group.kind == AgendaGroup.Kind.OVERDUE && olderOverdueCount > 0 }
         listOf(AgendaLine.Header(group)) + group.items.map(AgendaLine::Item) + listOfNotNull(olderOverdue)
     }
@@ -338,7 +338,7 @@ private fun AgendaLineRow(line: AgendaLine, today: LocalDate, days: Map<LocalDat
     when (line) {
         is AgendaLine.Header -> GroupHeader(line.group, today, days)
         is AgendaLine.Item -> ItemRow(line.item, today, days, showsClass)
-        is AgendaLine.OlderOverdue -> OlderOverdueRow(line.count)
+        is AgendaLine.OlderOverdue -> OlderOverdueRow(line.count, line.followsItems)
         AgendaLine.NothingUpcoming -> NothingUpcomingRow()
     }
 }
@@ -452,11 +452,12 @@ private fun Checkbox(item: AgendaItem) {
 }
 
 @Composable
-private fun OlderOverdueRow(count: Int) {
+private fun OlderOverdueRow(count: Int, followsItems: Boolean) {
     val strings = LocalStrings.current
     val context = LocalContext.current
+    val text = if (followsItems) R.plurals.agenda_widget_older_overdue else R.plurals.agenda_widget_older_overdue_description
     Text(
-        text = strings.resources.getQuantityString(R.plurals.agenda_widget_older_overdue, count, count),
+        text = strings.resources.getQuantityString(text, count, count),
         style = TextStyle(color = mutedColor, fontSize = 12.sp, fontWeight = FontWeight.Medium),
         modifier = GlanceModifier
             .fillMaxWidth()

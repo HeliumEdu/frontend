@@ -212,7 +212,9 @@ private struct AgendaList: View {
           if fitted.olderOverdueCount > 0 {
             let olderOverdue = String(localized: "\(fitted.olderOverdueCount) older overdue", bundle: layout.strings)
             AgendaNote(
-              text: String(localized: "+\(fitted.olderOverdueCount) older overdue", bundle: layout.strings),
+              text: fitted.items.isEmpty
+                ? olderOverdue
+                : String(localized: "+\(fitted.olderOverdueCount) older overdue", bundle: layout.strings),
               lineLimit: 1, palette: palette)
               .accessibilityLabel(olderOverdue)
               .accessibilityInputLabels([
@@ -456,7 +458,7 @@ private struct AgendaRectangularView: View {
         if let content = entry.content,
           let group = content.groups.first(where: { !$0.items.isEmpty }) ?? content.groups.first
         {
-          let olderOverdueCount = group.isOverdue ? content.olderOverdueCount : 0
+          let olderOverdueCount = group.isOverdue && !group.items.isEmpty ? content.olderOverdueCount : 0
           HStack(spacing: 3) {
             if group.isOverdue {
               Image(systemName: "exclamationmark.triangle.fill")
@@ -484,6 +486,10 @@ private struct AgendaRectangularView: View {
                 : item.secondaryLine(today: content.today, days: content.days))
               .font(.caption)
               .foregroundStyle(.secondary)
+              .lineLimit(1)
+          } else if group.isOverdue && content.olderOverdueCount > 0 {
+            Text(String(localized: "\(content.olderOverdueCount) older overdue", bundle: entry.strings))
+              .font(.body)
               .lineLimit(1)
           }
         } else {
