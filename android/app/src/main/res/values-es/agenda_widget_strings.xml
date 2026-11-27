@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agenda_widget_label">Agenda</string>
+    <string name="agenda_widget_description">Consulta lo que tienes pendiente esta semana y marca tareas como completadas desde la pantalla de inicio.</string>
+    <string name="agenda_widget_open_planner">Abrir Planificador</string>
+    <string name="agenda_widget_overdue">Vencidas</string>
+    <string name="agenda_widget_today">Hoy</string>
+    <string name="agenda_widget_tomorrow">Mañana</string>
+    <plurals name="agenda_widget_older_overdue">
+        <item quantity="one">+%d vencida anterior</item>
+        <item quantity="other">+%d vencidas anteriores</item>
+    </plurals>
+    <plurals name="agenda_widget_older_overdue_description">
+        <item quantity="one">%d vencida anterior</item>
+        <item quantity="other">%d vencidas anteriores</item>
+    </plurals>
+    <string name="agenda_widget_nothing_upcoming">Nada pendiente en los próximos 7 días</string>
+    <string name="agenda_widget_all_caught_up">Todo al día</string>
+    <string name="agenda_widget_signed_out">Inicia sesión en Helium</string>
+    <string name="agenda_widget_no_snapshot">Abre Helium para ver qué tienes pendiente</string>
+    <string name="agenda_widget_updated_days_ago">Actualizado hace %dd</string>
+    <plurals name="agenda_widget_updated_days_ago_description">
+        <item quantity="one">Actualizado hace %d día</item>
+        <item quantity="other">Actualizado hace %d días</item>
+    </plurals>
+    <string name="agenda_widget_complete">Completar %s</string>
+    <string name="agenda_widget_uncomplete">Marcar %s como pendiente</string>
+    <string name="agenda_widget_completed">Completada</string>
+</resources>
