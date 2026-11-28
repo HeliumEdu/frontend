@@ -35,6 +35,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/group_dropdown.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -810,9 +811,11 @@ class _GradesScreenState extends BasePageScreenState<_GradesProvidedScreen> {
                     color: statusColor,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    status.label,
-                    style: AppStyles.standardBodyTextEmphasis(context).copyWith(color: statusColor),
+                  Flexible(
+                    child: HeliumText(
+                      status.label,
+                      style: AppStyles.standardBodyTextEmphasis(context).copyWith(color: statusColor),
+                    ),
                   ),
                 ],
               ),

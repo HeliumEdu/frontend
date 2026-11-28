@@ -67,7 +67,7 @@ enum NotebookColumn {
 
   String get label => switch (this) {
     title => LocaleNotifier().localizations.todosTitleColumn,
-    due => LocaleNotifier().localizations.todosDueColumn,
+    due => LocaleNotifier().localizations.todosDueColumnHeader,
     linkedTo => LocaleNotifier().localizations.notebookLinkedToColumn,
     modified => LocaleNotifier().localizations.notebookModifiedColumn,
   };

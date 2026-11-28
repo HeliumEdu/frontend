@@ -89,11 +89,11 @@ enum TodosColumn {
   String get label => switch (this) {
     completed || meta => '',
     title => LocaleNotifier().localizations.todosTitleColumn,
-    due => LocaleNotifier().localizations.todosDueColumn,
+    due => LocaleNotifier().localizations.todosDueColumnHeader,
     className => LocaleNotifier().localizations.todosClassColumn,
     category => LocaleNotifier().localizations.todosCategoryColumn,
     priority => LocaleNotifier().localizations.todosPriorityColumn,
-    grade => LocaleNotifier().localizations.todosGradeColumn,
+    grade => LocaleNotifier().localizations.todosGradeColumnHeader,
   };
 }
 

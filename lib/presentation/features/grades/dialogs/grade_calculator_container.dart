@@ -14,6 +14,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_point_label.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/utils/app_globals.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/grade_helpers.dart';
@@ -139,9 +140,11 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(Icons.space_bar, color: Colors.transparent),
-                    Text(
-                      AppLocalizations.of(context).gradeCalculatorTitle,
-                      style: AppStyles.pageTitle(context),
+                    Flexible(
+                      child: HeliumText(
+                        AppLocalizations.of(context).gradeCalculatorTitle,
+                        style: AppStyles.pageTitle(context),
+                      ),
                     ),
                     IconButton(
                       style: IconButton.styleFrom(

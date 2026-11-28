@@ -304,6 +304,7 @@
   },
   "conflictChangedTitle": "Changed on Another Device",
   "conflictDiscardChangesButton": "Discard Changes",
+  "conflictKeepEditingButton": "Keep Editing",
   "conflictSaveChangesButton": "Save Changes",
   "connectAllowButton": "Allow",
   "connectDenyButton": "Deny",
@@ -1235,6 +1236,9 @@
     "description": "Grade-trend tooltip: the class grade at this point."
   },
   "gradeTrendOverallSeries": "Overall Grade",
+  "@gradeTrendOverallSeries": {
+    "description": "Legend name of the overall grade line. The legend is narrow on phones: keep it short."
+  },
   "gradeTrendTermGpaPoint": "Term GPA • {gpa}",
   "@gradeTrendTermGpaPoint": {
     "placeholders": {
@@ -1247,6 +1251,9 @@
     "description": "Grade-trend tooltip: the term GPA at this point."
   },
   "gradeTrendTermGpaSeries": "Term GPA",
+  "@gradeTrendTermGpaSeries": {
+    "description": "Legend name of the term GPA line. The legend is narrow on phones: keep it short."
+  },
   "gradesAllGpaSummary": "All {gpa}",
   "@gradesAllGpaSummary": {
     "description": "The GPA across all terms (All GPA).",
@@ -1305,7 +1312,7 @@
   "gradesGradeTrendTitle": "Grade Trend",
   "gradesGradedColumn": "Graded",
   "@gradesGradedColumn": {
-    "description": "Column for how many of the category's assignments are graded."
+    "description": "Column for how many of the category's assignments are graded. The column is narrow: an abbreviation ending in a period is fine."
   },
   "gradesGradedCount": "{count, plural, =1{1 graded} other{{count} graded}}",
   "@gradesGradedCount": {
@@ -1734,7 +1741,11 @@
   },
   "navGradesLabel": "Grades",
   "@navGradesLabel": {
-    "description": "Name of the grades tab, in the navigation bar and as that screen's title."
+    "description": "Title of the grades screen, also shown in the browser tab."
+  },
+  "navGradesTabLabel": "Grades",
+  "@navGradesTabLabel": {
+    "description": "Name of the grades tab in the navigation bar and side rail, where space is tight: an abbreviation ending in a period is fine. The screen's title uses the full name."
   },
   "navKeepHeliumFreeTooltip": "Keep Helium Free",
   "@navKeepHeliumFreeTooltip": {
@@ -3304,7 +3315,11 @@
   },
   "todosDueColumn": "Due",
   "@todosDueColumn": {
-    "description": "Todos column heading for the due date, also used in the CSV export."
+    "description": "Todos CSV export column heading for the due date."
+  },
+  "todosDueColumnHeader": "Due",
+  "@todosDueColumnHeader": {
+    "description": "Todos and Notebook table column heading for the due date. The column is narrow: keep it short."
   },
   "todosEmptyTitle": "You haven't added any assignments yet",
   "todosExportCsvButton": "Export CSV",
@@ -3319,6 +3334,13 @@
     }
   },
   "todosGradeColumn": "Grade",
+  "@todosGradeColumn": {
+    "description": "Todos CSV export column heading for the grade."
+  },
+  "todosGradeColumnHeader": "Grade",
+  "@todosGradeColumnHeader": {
+    "description": "Todos table column heading for the grade. The column is narrow: an abbreviation ending in a period is fine."
+  },
   "todosHasRemindersTooltip": "Has reminders",
   "todosNoMatchesMessage": "No assignments match the applied filters or search",
   "todosNothingExportedMessage": "Nothing exported",

@@ -1075,12 +1075,8 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             showWeekNumbers &&
             _currentView == PlannerView.month &&
             !Responsive.isMobile(context);
-        final shortensMobileWeekNumberLabel =
-            showWeekNumbers &&
-            _currentView == PlannerView.month &&
-            WeekColumn.usesMobileLayout(context);
 
-        final calendar = SfCalendar(
+        final sfCalendar = SfCalendar(
           backgroundColor: context.colorScheme.surface,
           cellBorderColor:
               (Responsive.isMobile(context) &&
@@ -1215,6 +1211,22 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
 
         final weekNumberTextStyle = AppStyles.smallSecondaryTextLight(context);
         final weekNumberLabel = SfLocalizations.of(context).weeknumberLabel;
+        final calendar = Localizations.override(
+          context: context,
+          delegates: [
+            WeekNumberLabelSfLocalizationsDelegate(
+              base: SfLocalizations.of(context),
+              label: WeekColumn.sfCalendarLabelFor(
+                context,
+                label: weekNumberLabel,
+                textStyle: weekNumberTextStyle,
+                isMonthView: _currentView == PlannerView.month,
+                calendarWidth: constraints.maxWidth,
+              ),
+            ),
+          ],
+          child: sfCalendar,
+        );
         final plannerCalendar = usesCustomWeekColumn
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1234,24 +1246,6 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                   ),
                   Expanded(child: calendar),
                 ],
-              )
-            : WeekColumn.drawsMobileStyle(context)
-            ? Localizations.override(
-                context: context,
-                delegates: [
-                  WeekNumberLabelSfLocalizationsDelegate(
-                    base: SfLocalizations.of(context),
-                    label: shortensMobileWeekNumberLabel
-                        ? WeekColumn.mobileLabelFor(
-                            context,
-                            label: weekNumberLabel,
-                            textStyle: weekNumberTextStyle,
-                            calendarWidth: constraints.maxWidth,
-                          )
-                        : weekNumberLabel,
-                  ),
-                ],
-                child: calendar,
               )
             : calendar;
 

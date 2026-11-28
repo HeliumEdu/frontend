@@ -39,31 +39,33 @@ class WeekColumn extends StatelessWidget {
 
   static const double _backgroundAlpha = 0.04;
 
-  /// Whether SfCalendar draws its own week number column in its mobile style.
-  static bool drawsMobileStyle(BuildContext context) =>
-      !kIsWeb &&
-      (Theme.of(context).platform == TargetPlatform.android ||
-          Theme.of(context).platform == TargetPlatform.iOS);
+  static const double _sfCalendarTimeRulerWidth = 50;
 
-  /// Whether this is a native phone, where SfCalendar draws its own week
-  /// number column in its mobile style.
-  static bool usesMobileLayout(BuildContext context) =>
-      drawsMobileStyle(context) && Responsive.isMobile(context);
-
-  /// The part of [label] that fits SfCalendar's mobile column beside a month
-  /// view [calendarWidth] wide, measured as SfCalendar paints it, with the
-  /// same fallback as this column's own label.
-  static String mobileLabelFor(
+  /// The part of [label] that fits where SfCalendar draws its own week number
+  /// label (its time ruler, or its month view column beside a calendar
+  /// [calendarWidth] wide), measured as SfCalendar paints it, with the same
+  /// fallback as this column's own label. Off Android and iOS, SfCalendar's
+  /// month view column is too narrow for any label and already falls back to
+  /// its first letters, so [label] passes through there.
+  static String sfCalendarLabelFor(
     BuildContext context, {
     required String label,
     required TextStyle textStyle,
+    required bool isMonthView,
     required double calendarWidth,
   }) {
+    final platform = Theme.of(context).platform;
+    final isMobilePlatform =
+        !kIsWeb &&
+        (platform == TargetPlatform.android || platform == TargetPlatform.iOS);
+    if (isMonthView && !isMobilePlatform) return label;
     return _fittedLabel(
       label,
       Theme.of(context).textTheme.bodyMedium!.merge(textStyle),
       TextScaler.linear(MediaQuery.textScalerOf(context).scale(1)),
-      calendarWidth / (DateTime.daysPerWeek + 1) / 1.3,
+      isMonthView
+          ? calendarWidth / (DateTime.daysPerWeek + 1) / 1.3
+          : _sfCalendarTimeRulerWidth,
     );
   }
 

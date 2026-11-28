@@ -207,7 +207,7 @@
     "description": "Spoken name of the button that downloads an attached file."
   },
   "commonEditLabel": "Editar",
-  "commonKeepEditingButton": "Seguir editando",
+  "commonKeepEditingButton": "Volver",
   "commonLearnMoreTooltip": "Más información",
   "commonListJoin": "{first}, {second}",
   "@commonListJoin": {
@@ -304,6 +304,7 @@
   },
   "conflictChangedTitle": "Modificado en otro dispositivo",
   "conflictDiscardChangesButton": "Descartar cambios",
+  "conflictKeepEditingButton": "Seguir editando",
   "conflictSaveChangesButton": "Guardar cambios",
   "connectAllowButton": "Permitir",
   "connectDenyButton": "Denegar",
@@ -632,23 +633,23 @@
     "description": "Action on an external calendar event that opens the External Calendars settings. External Calendars is a feature name."
   },
   "externalEventOpenLinkAction": "Abrir enlace del evento",
-  "feedsAssignmentsCopiedMessage": "Se copió la URL del feed de tareas.",
+  "feedsAssignmentsCopiedMessage": "Se copió el enlace del calendario de tareas.",
   "feedsAssignmentsLabel": "Tareas",
-  "feedsClassSchedulesCopiedMessage": "Se copió la URL del feed de horarios de clases.",
+  "feedsClassSchedulesCopiedMessage": "Se copió el enlace del calendario de horarios de clases.",
   "feedsClassSchedulesLabel": "Horarios de clases",
   "feedsDisableAllButton": "Desactivar todo",
   "feedsDisableButton": "Desactivar",
-  "feedsDisableMessage": "Desactivar Feeds interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevas URL y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
-  "feedsDisableTitle": "Desactivar todos los feeds",
-  "feedsDisabledMessage": "Los feeds están desactivados",
+  "feedsDisableMessage": "Desactivar los enlaces de calendario interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevos enlaces y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
+  "feedsDisableTitle": "Desactivar todos los enlaces",
+  "feedsDisabledMessage": "Los enlaces de calendario están desactivados",
   "feedsEnableButton": "Activar",
-  "feedsEventsCopiedMessage": "Se copió la URL del feed de eventos.",
+  "feedsEventsCopiedMessage": "Se copió el enlace del calendario de eventos.",
   "feedsEventsLabel": "Eventos",
-  "feedsInfo": "Feeds te permite llevar los calendarios de Helium a otros lugares.",
+  "feedsInfo": "Los enlaces de calendario te permiten llevar los calendarios de Helium a otros lugares.",
   "@feedsInfo": {
     "description": "Explains the Feeds settings screen. Feeds is a feature name."
   },
-  "feedsSecretWarning": "Mantén en secreto las URL de los feeds privados. Si desactivas y vuelves a activar un feed, se regenerará su URL.",
+  "feedsSecretWarning": "Mantén en secreto los enlaces privados. Si desactivas y vuelves a activar un enlace, se regenerará.",
   "feedsShareFailedMessage": "No se pudo compartir el enlace.",
   "forgotPasswordCheckEmailMessage": "Busca en tu correo electrónico un enlace para restablecer tu contraseña.",
   "forgotPasswordInstructions": "Escribe el correo electrónico asociado a tu cuenta y te enviaremos un enlace para restablecer la contraseña.",
@@ -660,7 +661,7 @@
   "formInvalidUrlError": "Escribe una URL válida",
   "formPasswordTooShortError": "La contraseña debe tener al menos 8 caracteres",
   "formPasswordsMismatchError": "Las contraseñas no coinciden",
-  "formRequiredFieldError": "Este campo es obligatorio",
+  "formRequiredFieldError": "Este campo es requerido.",
   "gettingStartedClassesDescription": "Consulta Clases para ver cómo se relacionan tus horarios, categorías y tareas. Controla fechas límite, horarios de clase, ubicaciones y Recursos — todo en un solo lugar.",
   "@gettingStartedClassesDescription": {
     "description": "Body of the Getting Started card about classes. \"Classes\" and \"Resources\" are names of tabs in the app (Resources holds textbooks and other materials)."
@@ -718,7 +719,7 @@
   },
   "gettingStartedReadyDescription": "Esta bienvenida aparece en cada dispositivo hasta que borres los datos de ejemplo. Mientras tanto, explóralos con calma y descubre todo lo que Helium tiene para ofrecer.",
   "gettingStartedReadyTitle": "Todo listo cuando quieras",
-  "gettingStartedSyncDescription": "Usa Calendarios externos para traer eventos de Google, Apple u otros calendarios. Activa Feeds para compartir tu horario de Helium con esas otras aplicaciones.",
+  "gettingStartedSyncDescription": "Usa Calendarios externos para traer eventos de Google, Apple u otros calendarios. Activa Enlaces de calendario para compartir tu horario de Helium con esas otras aplicaciones.",
   "@gettingStartedSyncDescription": {
     "description": "Body of the Getting Started card about calendar sync. \"External Calendars\" and \"Feeds\" are names of settings in the app; Google and Apple are the calendar providers."
   },
@@ -1022,11 +1023,11 @@
   "@gradeCalculatorThisCategoryFallback": {
     "description": "Stands in for a category's name when it can't be found, inside a sentence about the category."
   },
-  "gradeCalculatorTitle": "Grade Calculator",
+  "gradeCalculatorTitle": "Calculadora de calif.",
   "@gradeCalculatorTitle": {
     "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
   },
-  "gradeCalculatorWhatCouldIGetTab": "¿Qué podría obtener?",
+  "gradeCalculatorWhatCouldIGetTab": "¿Qué obtendría?",
   "@gradeCalculatorWhatCouldIGetTab": {
     "description": "Grade Calculator tab that projects the grade from hypothetical scores."
   },
@@ -1234,7 +1235,10 @@
     },
     "description": "Grade-trend tooltip: the class grade at this point."
   },
-  "gradeTrendOverallSeries": "Calificación general",
+  "gradeTrendOverallSeries": "General",
+  "@gradeTrendOverallSeries": {
+    "description": "Legend name of the overall grade line. The legend is narrow on phones: keep it short."
+  },
   "gradeTrendTermGpaPoint": "Promedio del periodo • {gpa}",
   "@gradeTrendTermGpaPoint": {
     "placeholders": {
@@ -1246,7 +1250,10 @@
     },
     "description": "Grade-trend tooltip: the term GPA at this point."
   },
-  "gradeTrendTermGpaSeries": "Promedio del periodo",
+  "gradeTrendTermGpaSeries": "Promedio",
+  "@gradeTrendTermGpaSeries": {
+    "description": "Legend name of the term GPA line. The legend is narrow on phones: keep it short."
+  },
   "gradesAllGpaSummary": "Total {gpa}",
   "@gradesAllGpaSummary": {
     "description": "The GPA across all terms (All GPA).",
@@ -1297,15 +1304,15 @@
   "gradesExpandLabel": "Expandir",
   "gradesGpaAcrossTermsTitle": "Promedio de todos los periodos",
   "gradesGpaMenuTitle": "Promedio",
-  "gradesGradeCalculatorTooltip": "Grade Calculator",
+  "gradesGradeCalculatorTooltip": "Calculadora de calificaciones",
   "@gradesGradeCalculatorTooltip": {
     "description": "Grade Calculator is a feature name."
   },
   "gradesGradePreferencesOption": "Preferencias de calificaciones",
   "gradesGradeTrendTitle": "Tendencia de calificaciones",
-  "gradesGradedColumn": "Calificadas",
+  "gradesGradedColumn": "Calif.",
   "@gradesGradedColumn": {
-    "description": "Column for how many of the category's assignments are graded."
+    "description": "Column for how many of the category's assignments are graded. The column is narrow: an abbreviation ending in a period is fine."
   },
   "gradesGradedCount": "{count, plural, =1{1 calificada} other{{count} calificadas}}",
   "@gradesGradedCount": {
@@ -1360,7 +1367,7 @@
   "@gradesPaceBehind": {
     "description": "Pace status: work done is behind the time passed in the term."
   },
-  "gradesPaceOnTrack": "En buen camino",
+  "gradesPaceOnTrack": "Al día",
   "@gradesPaceOnTrack": {
     "description": "Pace status: work done keeps up with the time passed in the term."
   },
@@ -1368,7 +1375,7 @@
   "@gradesPaceTimeLabel": {
     "description": "Label of the bar for how much of the term has passed."
   },
-  "gradesPaceWarmingUp": "Calentando motores",
+  "gradesPaceWarmingUp": "Iniciando",
   "@gradesPaceWarmingUp": {
     "description": "Pace status before there's enough work to compare against the term's progress."
   },
@@ -1734,7 +1741,11 @@
   },
   "navGradesLabel": "Calificaciones",
   "@navGradesLabel": {
-    "description": "Name of the grades tab, in the navigation bar and as that screen's title."
+    "description": "Title of the grades screen, also shown in the browser tab."
+  },
+  "navGradesTabLabel": "Calif.",
+  "@navGradesTabLabel": {
+    "description": "Name of the grades tab in the navigation bar and side rail, where space is tight: an abbreviation ending in a period is fine. The screen's title uses the full name."
   },
   "navKeepHeliumFreeTooltip": "Mantén Helium gratis",
   "@navKeepHeliumFreeTooltip": {
@@ -2059,7 +2070,7 @@
   "plannerEventClonedMessage": "Evento clonado.",
   "plannerEventCreatedMessage": "Evento creado.",
   "plannerEventDeletedMessage": "Evento eliminado.",
-  "plannerFilterOnlyCompleteLabel": "Solo completadas",
+  "plannerFilterOnlyCompleteLabel": "Solo hechas",
   "@plannerFilterOnlyCompleteLabel": {
     "description": "Spoken name of the switch that shows only completed assignments (off shows only incomplete)."
   },
@@ -2068,7 +2079,7 @@
   "@plannerFilterOnlyLabel": {
     "description": "Label beside the switch that narrows a status filter to one side, such as only complete."
   },
-  "plannerFilterStatusComplete": "Completadas",
+  "plannerFilterStatusComplete": "Hechas",
   "@plannerFilterStatusComplete": {
     "description": "Planner filter for completed assignments."
   },
@@ -2076,7 +2087,7 @@
   "@plannerFilterStatusGraded": {
     "description": "Planner filter for graded assignments."
   },
-  "plannerFilterStatusIncomplete": "Incompletas",
+  "plannerFilterStatusIncomplete": "Sin hacer",
   "@plannerFilterStatusIncomplete": {
     "description": "Planner filter for incomplete assignments."
   },
@@ -2123,7 +2134,7 @@
   "plannerItemCategoryLabel": "Categoría",
   "plannerItemClassLabel": "Clase",
   "plannerItemClassUnavailableMessage": "Esta clase ya no está disponible. Cierra y vuelve a abrir esta tarea.",
-  "plannerItemCompleteLabel": "Completada",
+  "plannerItemCompleteLabel": "Hecha",
   "@plannerItemCompleteLabel": {
     "description": "Checkbox that marks the assignment complete."
   },
@@ -3061,7 +3072,7 @@
     "description": "Title of the settings screen and item for showing other calendars in Helium. A feature name."
   },
   "settingsFeedsHint": "Lleva los calendarios de Helium a otras aplicaciones",
-  "settingsFeedsTitle": "Feeds",
+  "settingsFeedsTitle": "Enlaces de calendario",
   "@settingsFeedsTitle": {
     "description": "Title of the settings screen and item for publishing Helium's calendars to other apps. A feature name."
   },
@@ -3304,7 +3315,11 @@
   },
   "todosDueColumn": "Fecha de entrega",
   "@todosDueColumn": {
-    "description": "Todos column heading for the due date, also used in the CSV export."
+    "description": "Todos CSV export column heading for the due date."
+  },
+  "todosDueColumnHeader": "Entrega",
+  "@todosDueColumnHeader": {
+    "description": "Todos and Notebook table column heading for the due date. The column is narrow: keep it short."
   },
   "todosEmptyTitle": "Aún no has agregado ninguna tarea",
   "todosExportCsvButton": "Exportar CSV",
@@ -3319,6 +3334,13 @@
     }
   },
   "todosGradeColumn": "Calificación",
+  "@todosGradeColumn": {
+    "description": "Todos CSV export column heading for the grade."
+  },
+  "todosGradeColumnHeader": "Calif.",
+  "@todosGradeColumnHeader": {
+    "description": "Todos table column heading for the grade. The column is narrow: an abbreviation ending in a period is fine."
+  },
   "todosHasRemindersTooltip": "Tiene recordatorios",
   "todosNoMatchesMessage": "Ninguna tarea coincide con los filtros o la búsqueda aplicados",
   "todosNothingExportedMessage": "Nada exportado",

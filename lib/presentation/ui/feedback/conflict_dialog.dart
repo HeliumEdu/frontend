@@ -208,7 +208,7 @@ class _ConflictActions extends StatelessWidget {
                 style: HeliumElevatedButton.outlinedStyle(context.colorScheme),
                 onPressed: () =>
                     Navigator.of(context).pop(ConflictResolution.keepEditing),
-                child: Text(AppLocalizations.of(context).commonKeepEditingButton),
+                child: Text(AppLocalizations.of(context).conflictKeepEditingButton),
               ),
             ),
             Expanded(child: discard),

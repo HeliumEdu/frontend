@@ -183,6 +183,10 @@ class PreferencesScreenState extends State<PreferencesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionHeader(AppLocalizations.of(context).preferencesGeneralSection),
+            if (_offersLanguageChoice) ...[
+              _buildLanguageField(),
+              const SizedBox(height: 14),
+            ],
             SearchableDropdown(
               label: AppLocalizations.of(context).preferencesTimeZoneLabel,
               key: const Key(PreferencesScreen.timeZoneField),
@@ -203,10 +207,6 @@ class PreferencesScreenState extends State<PreferencesScreen> {
 
             ?_buildTimeZoneChangeNotice(),
             const SizedBox(height: 14),
-            if (_offersLanguageChoice) ...[
-              _buildLanguageField(),
-              const SizedBox(height: 14),
-            ],
             _buildRegionalFormatFields(),
 
             _buildSectionHeader(AppLocalizations.of(context).preferencesPlannerSection),

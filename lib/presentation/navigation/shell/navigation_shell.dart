@@ -179,6 +179,11 @@ enum NavigationPage {
     resources => LocaleNotifier().localizations.navResourcesLabel,
     grades => LocaleNotifier().localizations.navGradesLabel,
   };
+
+  String get tabLabel => switch (this) {
+    grades => LocaleNotifier().localizations.navGradesTabLabel,
+    _ => label,
+  };
 }
 
 /// Shell widget for main tab navigation using go_router's StatefulShellRoute.
@@ -278,7 +283,7 @@ class _NavigationShellState extends State<NavigationShell> {
                               color: context.colorScheme.primary,
                             ),
                             label: Text(
-                              page.label,
+                              page.tabLabel,
                               key: Key(page.navKeyName),
                               style: AppStyles.smallSecondaryText(context),
                             ),
@@ -348,7 +353,7 @@ class _NavigationShellState extends State<NavigationShell> {
                                   key: Key(page.navKeyName),
                                   color: context.colorScheme.primary,
                                 ),
-                                label: page.label,
+                                label: page.tabLabel,
                               ),
                             )
                             .toList(),
@@ -371,7 +376,7 @@ class _NavigationShellState extends State<NavigationShell> {
     final fontSize = NavigationPage.values
         .map(
           (page) => HeliumText.fit(
-            text: page.label,
+            text: page.tabLabel,
             style: style,
             textScaler: textScaler,
             maxWidth: destinationWidth,
