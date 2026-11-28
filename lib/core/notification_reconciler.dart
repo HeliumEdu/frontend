@@ -1,6 +1,3 @@
-import 'dart:io'
-    if (dart.library.html) 'package:heliumapp/core/platform_stub.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:heliumapp/core/dio_client.dart';
@@ -11,10 +8,11 @@ import 'package:logging/logging.dart';
 
 final _log = Logger('core.notification_reconciler');
 
-/// Clears stale iOS notifications on app resume — the fallback for when a
-/// cross-device dismiss push never reached this device (Apple throttles silent
-/// pushes, drops them offline, and won't wake a force-quit app). Android and web
-/// receive that push reliably, so they need no resume reconciliation.
+/// Clears stale reminder notifications from the iOS and Android trays on app
+/// resume — the fallback for when a cross-device dismiss push never cleared one:
+/// the platform failed to dispatch it, the push was dropped (Apple throttles
+/// silent pushes and won't wake a force-quit app; Android won't deliver to a
+/// force-stopped one), or the background handler couldn't reach the tray.
 ///
 /// A tray entry is stale when its reminder is no longer in the bell's active
 /// set. Asking that rather than "was it dismissed?" also catches a reminder
@@ -48,10 +46,10 @@ class NotificationReconciler {
   }) : _reminderRepository = reminderRepository,
        _channel = channel;
 
-  /// Removes any delivered iOS notification whose reminder is no longer active.
-  /// No-op on non-iOS platforms.
+  /// Removes any delivered reminder notification whose reminder is no longer
+  /// active. No-op on web.
   Future<void> reconcile() async {
-    if (kIsWeb || !Platform.isIOS) return;
+    if (kIsWeb) return;
     await _reconcile();
   }
 
@@ -75,8 +73,9 @@ class NotificationReconciler {
     }
   }
 
-  /// The reminder ids currently sitting in the iOS notification tray, parsed
-  /// from the `reminder_<id>` identifiers the backend assigns via apns-collapse-id.
+  /// The reminder ids currently sitting in the notification tray, parsed from the
+  /// `reminder_<id>` identifiers the backend assigns (iOS apns-collapse-id,
+  /// Android notification tag).
   Future<Set<int>> _deliveredReminderIds() async {
     final identifiers =
         await _channel.invokeListMethod<String>('getDeliveredReminderIdentifiers');

@@ -151,7 +151,7 @@ class _GradeCalculatorContainerState extends State<GradeCalculatorContainer>
                       icon: Icon(
                         Icons.close,
                         color: context.colorScheme.secondary,
-                        semanticLabel: AppLocalizations.of(context).commonCloseLabel,
+                        semanticLabel: MaterialLocalizations.of(context).closeButtonLabel,
                       ),
                     ),
                   ],

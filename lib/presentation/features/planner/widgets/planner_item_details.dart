@@ -31,6 +31,7 @@ import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/label_delete_action.dart';
 import 'package:heliumapp/presentation/ui/components/select_field.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/info_container.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
@@ -41,6 +42,7 @@ import 'package:heliumapp/presentation/ui/components/drop_down.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
@@ -623,7 +625,7 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
                 width: 140,
                 child: HeliumCheckboxListTile(
                   key: const Key(PlannerItemFormController.completeField),
-                  title: Text(AppLocalizations.of(context).plannerItemCompleteLabel, style: AppStyles.formLabel(context)),
+                  title: HeliumText(AppLocalizations.of(context).plannerItemCompleteLabel, style: AppStyles.formLabel(context)),
                   value: formController.isCompleted,
                   onChanged: (value) {
                     formController.markChanged();
@@ -1187,12 +1189,11 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
     final initialDate = rawInitial.isBefore(firstDate) ? firstDate
         : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial);
 
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showHeliumDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;
@@ -1270,7 +1271,6 @@ class PlannerItemDetailsState extends State<PlannerItemDetails>
           ? formController.startTime
           : formController.endTime,
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;

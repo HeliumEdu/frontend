@@ -10,6 +10,7 @@ import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart
 import 'package:heliumapp/presentation/features/shared/controllers/linked_note_form_fields.dart';
 import 'package:heliumapp/presentation/features/shared/widgets/core/linked_note_form.dart';
 import 'package:heliumapp/presentation/ui/components/notes_editor.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/utils/quill_helpers.dart';
 import 'package:heliumapp/presentation/ui/feedback/conflict_dialog.dart';
 import 'package:heliumapp/presentation/features/courses/bloc/course_bloc.dart';
@@ -568,12 +569,11 @@ class CourseDetailsState extends State<CourseDetails>
         : (rawInitial.isBefore(firstDate) ? firstDate
         : (rawInitial.isAfter(lastDate) ? lastDate : rawInitial));
 
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showHeliumDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;

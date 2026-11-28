@@ -11,6 +11,7 @@ Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
   String? additionalWarning,
 }) async {
   final l10n = AppLocalizations.of(parentContext);
+  final materialL10n = MaterialLocalizations.of(parentContext);
   final name = label.trim();
   final hasWarning = additionalWarning?.isNotEmpty ?? false;
   final confirmed = await showConfirmActionDialog(
@@ -21,8 +22,8 @@ Future<bool> showConfirmDeleteDialog<T extends BaseModel>({
         : (hasWarning
               ? l10n.confirmDeleteNamedWarningMessage(name, additionalWarning!)
               : l10n.confirmDeleteNamedMessage(name)),
-    actionText: l10n.commonDeleteButton,
-    cancelText: l10n.commonCancelButton,
+    actionText: materialL10n.deleteButtonTooltip,
+    cancelText: materialL10n.cancelButtonLabel,
   );
   if (confirmed) onDelete(item);
   return confirmed;

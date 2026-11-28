@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +32,7 @@ import 'package:heliumapp/presentation/features/resources/views/resources_screen
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_stub.dart'
     if (dart.library.js_interop) 'package:heliumapp/presentation/navigation/shell/navigation_shell_title_web.dart'
     as title_helper;
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/layout/page_header.dart';
 import 'package:heliumapp/utils/app_assets.dart';
@@ -43,6 +45,8 @@ import 'package:logging/logging.dart';
 import 'package:heliumapp/utils/url_helpers.dart';
 
 final _log = Logger('presentation.navigation');
+
+const _navigationBarLabelMaxTextScale = 1.3;
 
 /// Notifier for screens to share their inheritable providers with NavigationShell
 class InheritableProvidersNotifier extends ChangeNotifier {
@@ -323,29 +327,32 @@ class _NavigationShellState extends State<NavigationShell> {
                 ? null
                 : TooltipVisibility(
                     visible: false,
-                    child: NavigationBar(
-                      height: 60,
-                      selectedIndex: currentPage.index,
-                      onDestinationSelected: (index) =>
-                          _onDestinationSelected(context, index),
-                      labelBehavior: Responsive.isNarrowMobile(context)
-                          ? NavigationDestinationLabelBehavior.alwaysHide
-                          : NavigationDestinationLabelBehavior.alwaysShow,
-                      labelTextStyle: WidgetStateProperty.all(
-                        AppStyles.smallSecondaryText(context),
-                      ),
-                      destinations: NavigationPage.values
-                          .map(
-                            (page) => NavigationDestination(
-                              icon: Icon(
-                                page.icon,
-                                key: Key(page.navKeyName),
-                                color: context.colorScheme.primary,
+                    child: ListenableBuilder(
+                      listenable: PaintingBinding.instance.systemFonts,
+                      builder: (context, _) => NavigationBar(
+                        height: 60,
+                        selectedIndex: currentPage.index,
+                        onDestinationSelected: (index) =>
+                            _onDestinationSelected(context, index),
+                        labelBehavior: Responsive.isNarrowMobile(context)
+                            ? NavigationDestinationLabelBehavior.alwaysHide
+                            : NavigationDestinationLabelBehavior.alwaysShow,
+                        labelTextStyle: WidgetStateProperty.all(
+                          _navigationBarLabelStyle(context, constraints.maxWidth),
+                        ),
+                        destinations: NavigationPage.values
+                            .map(
+                              (page) => NavigationDestination(
+                                icon: Icon(
+                                  page.icon,
+                                  key: Key(page.navKeyName),
+                                  color: context.colorScheme.primary,
+                                ),
+                                label: page.label,
                               ),
-                              label: page.label,
-                            ),
-                          )
-                          .toList(),
+                            )
+                            .toList(),
+                      ),
                     ),
                   ),
             ),
@@ -355,6 +362,24 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 
+
+  TextStyle _navigationBarLabelStyle(BuildContext context, double barWidth) {
+    final style = AppStyles.smallSecondaryText(context);
+    final textScaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: _navigationBarLabelMaxTextScale);
+    final destinationWidth =
+        (barWidth - MediaQuery.paddingOf(context).horizontal) / NavigationPage.values.length;
+    final fontSize = NavigationPage.values
+        .map(
+          (page) => HeliumText.fit(
+            text: page.label,
+            style: style,
+            textScaler: textScaler,
+            maxWidth: destinationWidth,
+          ).fontSize,
+        )
+        .reduce(math.min);
+    return style.copyWith(fontSize: fontSize, overflow: TextOverflow.ellipsis);
+  }
 
   bool get _destinationIsTopLevelPage {
     final destination = router.activeLocation.path;

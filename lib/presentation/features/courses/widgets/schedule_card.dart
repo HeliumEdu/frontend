@@ -49,7 +49,7 @@ class ScheduleCard extends StatelessWidget {
                 onPressed: onDelete,
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: AppLocalizations.of(context).commonDeleteLabel,
+                label: MaterialLocalizations.of(context).deleteButtonTooltip,
                 color: context.colorScheme.error,
               ),
             ],

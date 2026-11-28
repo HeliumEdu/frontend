@@ -59,6 +59,9 @@ class AppConstants {
   /// columns' content also sits this far from the table's border.
   static const tableCellInset = 8.0;
 
+  static const textFitMinimumScale = 0.85;
+  static const textFitMinimumFontSize = 11.0;
+
   static const dialogContentPadding = EdgeInsets.fromLTRB(
     unboxedContentInset,
     contentTopInset,

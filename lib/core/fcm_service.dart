@@ -30,8 +30,9 @@ import 'package:logging/logging.dart';
 final _log = Logger('core');
 
 /// The tray slot the FCM SDK posts a reminder under on Android. Foreground
-/// posts and dismiss cancels address that same slot, so a redelivery replaces
-/// rather than stacks and a dismiss reaches a notification this app posted.
+/// posts, dismiss cancels and the resume reconciler (`MainActivity`) address
+/// that same slot, so a redelivery replaces rather than stacks and a dismiss
+/// reaches a notification this app posted.
 const int _reminderNotificationId = 0;
 
 String _reminderTag(Object reminderId) => 'reminder_$reminderId';

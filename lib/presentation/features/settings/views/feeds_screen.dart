@@ -182,7 +182,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                           );
                         },
                         icon: Icons.copy_outlined,
-                        buttonText: AppLocalizations.of(context).feedsCopyButton,
+                        buttonText: MaterialLocalizations.of(context).copyButtonLabel,
                         backgroundColor: color,
                         minHeight: 36,
                         // Standard density so the Copy and Share buttons stay a
@@ -223,7 +223,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
                         icon: Icon(
                           Icons.share_outlined,
                           color: color,
-                          semanticLabel: AppLocalizations.of(context).feedsShareLabel,
+                          semanticLabel: MaterialLocalizations.of(context).shareButtonLabel,
                         ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
@@ -294,7 +294,7 @@ class _FeedsScreenState extends State<FeedsScreen> {
       title: AppLocalizations.of(context).feedsDisableTitle,
       message: AppLocalizations.of(context).feedsDisableMessage,
       actionText: AppLocalizations.of(context).feedsDisableButton,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;

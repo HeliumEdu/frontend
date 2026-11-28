@@ -367,7 +367,7 @@ class _PlannerItemAddScreenState
         onPressed: () => _detailsKey.currentState?.onDelete(),
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: AppLocalizations.of(context).commonDeleteLabel,
+        label: MaterialLocalizations.of(context).deleteButtonTooltip,
         color: context.colorScheme.error,
       ),
       const SizedBox(width: 8),

@@ -51,7 +51,7 @@ class _GradeScaleDialog extends StatelessWidget {
       actions: [
         HeliumElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
-          buttonText: AppLocalizations.of(context).gradeScaleCloseButton,
+          buttonText: MaterialLocalizations.of(context).closeButtonLabel,
         ),
       ],
     );

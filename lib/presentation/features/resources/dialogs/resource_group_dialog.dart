@@ -149,7 +149,7 @@ class _ResourceGroupWidgetState
         },
         icon: Icons.delete_outlined,
         showTooltip: false,
-        label: AppLocalizations.of(context).commonDeleteLabel,
+        label: MaterialLocalizations.of(context).deleteButtonTooltip,
         color: context.colorScheme.error,
       ),
     ];

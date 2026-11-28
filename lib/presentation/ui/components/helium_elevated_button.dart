@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
@@ -149,7 +150,7 @@ class _HeliumElevatedButtonState extends State<HeliumElevatedButton> {
               expanded: false,
               color: context.colorScheme.onSurface.withValues(alpha: 0.38),
             )
-          : Text(
+          : HeliumText(
               widget.buttonText,
               style: widget.enabled
                   ? AppStyles.buttonText(context).copyWith(color: enabledLabelColor)

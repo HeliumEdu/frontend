@@ -36,7 +36,9 @@ class GradePointLabel extends StatelessWidget {
           [
             if (showsLetterGrade) letterGrade!,
             if (showsGradePoint)
-              '${GradeHelper.gradePointForDisplay(gradePoint!)} GP',
+              AppLocalizations.of(context).gradePointValueLabel(
+                GradeHelper.gradePointForDisplay(gradePoint!),
+              ),
           ].join(' • '),
           style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),

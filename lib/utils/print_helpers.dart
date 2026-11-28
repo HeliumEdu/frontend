@@ -191,7 +191,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            tooltip: AppLocalizations.of(context).commonCloseLabel,
+            tooltip: MaterialLocalizations.of(context).closeButtonLabel,
           ),
           title: Text(widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printPreviewTitle),
           actions: hasBytes
@@ -201,7 +201,7 @@ class _BuiltPdfPreviewDialogState extends State<_BuiltPdfPreviewDialog> {
                       Icons.share_outlined,
                       color: context.colorScheme.primary,
                     ),
-                    tooltip: AppLocalizations.of(context).printShareTooltip,
+                    tooltip: MaterialLocalizations.of(context).shareButtonLabel,
                     onPressed: () async {
                       await Printing.sharePdf(
                         bytes: _pdfBytes!,
@@ -340,13 +340,13 @@ class _PdfPreviewDialogState extends State<_PdfPreviewDialog> {
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            tooltip: AppLocalizations.of(context).commonCloseLabel,
+            tooltip: MaterialLocalizations.of(context).closeButtonLabel,
           ),
           title: Text(widget.title.isNotEmpty ? widget.title : AppLocalizations.of(context).printPreviewTitle),
           actions: [
             IconButton(
               icon: Icon(Icons.share_outlined, color: context.colorScheme.primary),
-              tooltip: AppLocalizations.of(context).printShareTooltip,
+              tooltip: MaterialLocalizations.of(context).shareButtonLabel,
               onPressed: () async {
                 final bytes = await _buildPdf(_pageFormat);
                 await Printing.sharePdf(

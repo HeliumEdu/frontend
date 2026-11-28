@@ -403,7 +403,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         onPressed: _onDelete,
         icon: Icons.delete_outline,
         showTooltip: false,
-        label: AppLocalizations.of(context).commonDeleteLabel,
+        label: MaterialLocalizations.of(context).deleteButtonTooltip,
         color: context.colorScheme.error,
       ),
     ];
@@ -1602,7 +1602,7 @@ class _NoteAddScreenState extends BasePageScreenState<NoteAddScreen>
         Icons.close,
         size: 20,
         color: context.colorScheme.onSurface.withValues(alpha: 0.4),
-        semanticLabel: AppLocalizations.of(context).commonCloseLabel,
+        semanticLabel: MaterialLocalizations.of(context).closeButtonLabel,
       ),
       onPressed: () => setState(() {
         _showLinkPicker = false;

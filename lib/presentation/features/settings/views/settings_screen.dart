@@ -594,6 +594,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                   color: context.colorScheme.onSurface.withValues(alpha: AppStyles.mutedTextAlpha),
                 ),
                 githubUrl: Uri.parse(AppConstants.githubUrl),
+                githubLabel: AppLocalizations.of(context).settingsGithubLabel,
                 onGithubUrlError: () => SnackBarHelper.show(context, AppLocalizations.of(context).urlOpenLinkFailedMessage, type: SnackType.error),
               ),
             )
@@ -898,7 +899,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       title: AppLocalizations.of(context).settingsRemoveProviderTitle(provider.label),
       message: AppLocalizations.of(context).settingsRemoveProviderMessage(provider.label),
       actionText: AppLocalizations.of(context).settingsRemoveProviderButton,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
     );
     if (!confirmed || !mounted) return;
 
@@ -1147,7 +1148,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: AppLocalizations.of(context).commonCancelButton,
+                          buttonText: MaterialLocalizations.of(context).cancelButtonLabel,
                           backgroundColor: context.colorScheme.outline,
                           enabled: !isSubmitting,
                           onPressed: () {
@@ -1158,7 +1159,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: AppLocalizations.of(context).commonDeleteButton,
+                          buttonText: MaterialLocalizations.of(context).deleteButtonTooltip,
                           backgroundColor: context.colorScheme.error,
                           isLoading: isSubmitting,
                           onPressed: () {
@@ -1195,7 +1196,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
       title: AppLocalizations.of(context).settingsSignOutTitle,
       message: AppLocalizations.of(context).settingsSignOutMessage,
       actionText: AppLocalizations.of(context).settingsSignOutTitle,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
       style: ConfirmActionStyle.warning,
       icon: Icons.logout_outlined,
     );
@@ -1333,7 +1334,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                     children: [
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: AppLocalizations.of(context).commonCancelButton,
+                          buttonText: MaterialLocalizations.of(context).cancelButtonLabel,
                           backgroundColor: context.colorScheme.outline,
                           enabled: !isSubmitting,
                           onPressed: () {
@@ -1344,7 +1345,7 @@ class _SettingsScreenState extends BasePageScreenState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: HeliumElevatedButton(
-                          buttonText: AppLocalizations.of(context).commonDeleteButton,
+                          buttonText: MaterialLocalizations.of(context).deleteButtonTooltip,
                           backgroundColor: context.colorScheme.error,
                           isLoading: isSubmitting,
                           onPressed: handleSubmit,

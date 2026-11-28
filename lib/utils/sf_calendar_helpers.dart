@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/utils/forwarding_localizations.dart';
@@ -34,4 +35,36 @@ class _HeliumSfLocalizations extends ForwardingSfLocalizations {
 
   @override
   String get noSelectedDateCalendarLabel => _app.calendarNoSelectedDateLabel;
+}
+
+/// Loads synchronously, so the subtree it overrides never builds without it.
+class WeekNumberLabelSfLocalizationsDelegate
+    extends LocalizationsDelegate<SfLocalizations> {
+  final SfLocalizations base;
+  final String label;
+
+  const WeekNumberLabelSfLocalizationsDelegate({
+    required this.base,
+    required this.label,
+  });
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<SfLocalizations> load(Locale locale) =>
+      SynchronousFuture(_WeekNumberLabelSfLocalizations(base, label));
+
+  @override
+  bool shouldReload(covariant WeekNumberLabelSfLocalizationsDelegate old) =>
+      old.base != base || old.label != label;
+}
+
+class _WeekNumberLabelSfLocalizations extends ForwardingSfLocalizations {
+  final String _label;
+
+  const _WeekNumberLabelSfLocalizations(super.base, this._label);
+
+  @override
+  String get weeknumberLabel => _label;
 }

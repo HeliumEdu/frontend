@@ -89,7 +89,7 @@ class HeliumPager extends StatelessWidget {
       children: [
         IconButton(
           onPressed: currentPage > 1 ? () => onPageChanged(1) : null,
-          icon: Icon(Icons.first_page, semanticLabel: AppLocalizations.of(context).pagerFirstPageLabel),
+          icon: Icon(Icons.first_page, semanticLabel: MaterialLocalizations.of(context).firstPageTooltip),
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -104,7 +104,7 @@ class HeliumPager extends StatelessWidget {
             onPressed: currentPage > 1
                 ? () => onPageChanged(currentPage - 1)
                 : null,
-            icon: Icon(Icons.chevron_left, semanticLabel: AppLocalizations.of(context).pagerPreviousPageLabel),
+            icon: Icon(Icons.chevron_left, semanticLabel: MaterialLocalizations.of(context).previousPageTooltip),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -122,7 +122,7 @@ class HeliumPager extends StatelessWidget {
             onPressed: currentPage < totalPages
                 ? () => onPageChanged(currentPage + 1)
                 : null,
-            icon: Icon(Icons.chevron_right, semanticLabel: AppLocalizations.of(context).pagerNextPageLabel),
+            icon: Icon(Icons.chevron_right, semanticLabel: MaterialLocalizations.of(context).nextPageTooltip),
             iconSize: 20,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -137,7 +137,7 @@ class HeliumPager extends StatelessWidget {
           onPressed: currentPage < totalPages
               ? () => onPageChanged(totalPages)
               : null,
-          icon: Icon(Icons.last_page, semanticLabel: AppLocalizations.of(context).pagerLastPageLabel),
+          icon: Icon(Icons.last_page, semanticLabel: MaterialLocalizations.of(context).lastPageTooltip),
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),

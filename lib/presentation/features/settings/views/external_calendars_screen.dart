@@ -303,7 +303,7 @@ class ExternalCalendarsScreenState extends State<ExternalCalendarsScreen> {
                 },
                 icon: Icons.delete_outline,
                 showTooltip: false,
-                label: AppLocalizations.of(context).commonDeleteLabel,
+                label: MaterialLocalizations.of(context).deleteButtonTooltip,
                 color: context.colorScheme.error,
               ),
             ],

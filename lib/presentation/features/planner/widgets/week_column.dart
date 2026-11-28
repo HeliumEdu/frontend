@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
@@ -38,6 +39,34 @@ class WeekColumn extends StatelessWidget {
 
   static const double _backgroundAlpha = 0.04;
 
+  /// Whether SfCalendar draws its own week number column in its mobile style.
+  static bool drawsMobileStyle(BuildContext context) =>
+      !kIsWeb &&
+      (Theme.of(context).platform == TargetPlatform.android ||
+          Theme.of(context).platform == TargetPlatform.iOS);
+
+  /// Whether this is a native phone, where SfCalendar draws its own week
+  /// number column in its mobile style.
+  static bool usesMobileLayout(BuildContext context) =>
+      drawsMobileStyle(context) && Responsive.isMobile(context);
+
+  /// The part of [label] that fits SfCalendar's mobile column beside a month
+  /// view [calendarWidth] wide, measured as SfCalendar paints it, with the
+  /// same fallback as this column's own label.
+  static String mobileLabelFor(
+    BuildContext context, {
+    required String label,
+    required TextStyle textStyle,
+    required double calendarWidth,
+  }) {
+    return _fittedLabel(
+      label,
+      Theme.of(context).textTheme.bodyMedium!.merge(textStyle),
+      TextScaler.linear(MediaQuery.textScalerOf(context).scale(1)),
+      calendarWidth / (DateTime.daysPerWeek + 1) / 1.3,
+    );
+  }
+
   static double widthFor(
     BuildContext context, {
     required String label,
@@ -60,6 +89,20 @@ class WeekColumn extends StatelessWidget {
     return painter.width;
   }
 
+  static String _fittedLabel(
+    String label,
+    TextStyle style,
+    TextScaler textScaler,
+    double maxWidth,
+  ) {
+    for (final candidate in [label, label.substring(0, 1)]) {
+      if (_measure(candidate, style, textScaler) <= maxWidth) {
+        return candidate;
+      }
+    }
+    return '';
+  }
+
   int get _rowCount => visibleDates.length ~/ DateTime.daysPerWeek;
 
   /// ISO weeks run Monday to Sunday, so a row belongs to the week holding its
@@ -78,18 +121,18 @@ class WeekColumn extends StatelessWidget {
   /// Falls back to the label's initial, then to nothing, as the column narrows.
   Widget _buildLabel(BuildContext context) {
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final textScaler = MediaQuery.textScalerOf(context);
-        for (final candidate in [label, label.substring(0, 1)]) {
-          if (_measure(candidate, textStyle, textScaler) <=
-              constraints.maxWidth) {
-            return Center(
-              child: Text(candidate, style: textStyle, maxLines: 1),
-            );
-          }
-        }
-        return const SizedBox.shrink();
-      },
+      builder: (context, constraints) => Center(
+        child: Text(
+          _fittedLabel(
+            label,
+            textStyle,
+            MediaQuery.textScalerOf(context),
+            constraints.maxWidth,
+          ),
+          style: textStyle,
+          maxLines: 1,
+        ),
+      ),
     );
   }
 

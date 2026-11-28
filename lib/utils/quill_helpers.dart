@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart' show MaterialLocalizations;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill/quill_delta.dart';
 // ignore: implementation_imports, invalid_use_of_internal_member
@@ -19,8 +21,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HeliumQuillLocalizations extends ForwardingQuillLocalizations {
   final AppLocalizations _app;
+  final MaterialLocalizations _material;
 
-  HeliumQuillLocalizations(super.base, this._app);
+  HeliumQuillLocalizations(super.base, this._app, this._material);
+
+  @override
+  String get ok => _material.okButtonLabel;
 
   @override
   String get pleaseEnterTheLinkURL => _app.noteLinkUrlLabel;
@@ -36,13 +42,16 @@ class HeliumQuillLocalizationsDelegate
   @override
   bool isSupported(Locale locale) =>
       AppLocalizations.delegate.isSupported(locale) &&
-      FlutterQuillLocalizations.delegate.isSupported(locale);
+      FlutterQuillLocalizations.delegate.isSupported(locale) &&
+      GlobalMaterialLocalizations.delegate.isSupported(locale);
 
   @override
-  Future<FlutterQuillLocalizations> load(Locale locale) => SynchronousFuture(
-        HeliumQuillLocalizations(
+  Future<FlutterQuillLocalizations> load(Locale locale) =>
+      GlobalMaterialLocalizations.delegate.load(locale).then(
+        (material) => HeliumQuillLocalizations(
           lookupFlutterQuillLocalizations(locale),
           lookupAppLocalizations(locale),
+          material,
         ),
       );
 

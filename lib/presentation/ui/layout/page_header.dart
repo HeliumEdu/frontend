@@ -7,6 +7,7 @@ import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_bloc.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/notification_count/notification_count_state.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/settings_button.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -89,8 +90,8 @@ class PageHeader extends StatelessWidget {
                         ? context.colorScheme.secondary.withValues(alpha: 0.3)
                         : context.colorScheme.secondary,
                     semanticLabel: cancelIcon == Icons.close
-                        ? AppLocalizations.of(context).commonCloseLabel
-                        : AppLocalizations.of(context).commonBackLabel,
+                        ? MaterialLocalizations.of(context).closeButtonLabel
+                        : MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                 ),
               ),
@@ -103,15 +104,17 @@ class PageHeader extends StatelessWidget {
         else
           const Icon(Icons.space_bar, color: Colors.transparent),
 
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, color: context.colorScheme.primary),
-              SizedBox(width: buttonGap),
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: context.colorScheme.primary),
+                SizedBox(width: buttonGap),
+              ],
+              Flexible(child: HeliumText(title, style: AppStyles.pageTitle(context))),
             ],
-            Text(title, style: AppStyles.pageTitle(context)),
-          ],
+          ),
         ),
 
         Row(
@@ -175,7 +178,7 @@ class PageHeader extends StatelessWidget {
                       },
                 icon: isLoading
                     ? Semantics(
-                        label: AppLocalizations.of(context).pageSaveLabel,
+                        label: MaterialLocalizations.of(context).saveButtonLabel,
                         child: const LoadingIndicator(
                           size: 20,
                           expanded: false,
@@ -185,7 +188,7 @@ class PageHeader extends StatelessWidget {
                     : Icon(
                         Icons.check,
                         color: context.colorScheme.primary,
-                        semanticLabel: AppLocalizations.of(context).pageSaveLabel,
+                        semanticLabel: MaterialLocalizations.of(context).saveButtonLabel,
                       ),
               ),
 

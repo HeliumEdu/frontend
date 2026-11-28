@@ -3,6 +3,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:heliumapp/config/app_theme.dart';
 import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart';
+import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/color_helpers.dart';
 
@@ -177,41 +178,39 @@ class _ColorPickerWidgetState extends State<_ColorPickerWidget> {
             labelTypes: const [],
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _isExpanded = false;
-                });
-              },
-              icon: Icon(
-                Icons.arrow_back,
-                size: 18.0,
-                color: context.colorScheme.primary,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: HeliumIconButton(
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = false;
+                    });
+                  },
+                  icon: Icons.arrow_back,
+                  label: AppLocalizations.of(context).colorPickerPresetsButton,
+                ),
               ),
-              label: Text(
-                AppLocalizations.of(context).colorPickerPresetsButton,
-                style: AppStyles.formText(context).copyWith(color: context.colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: HeliumElevatedButton(
+                  onPressed: widget.onCancel,
+                  backgroundColor: context.colorScheme.outline,
+                  buttonText: MaterialLocalizations.of(context).cancelButtonLabel,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: HeliumElevatedButton(
-                onPressed: widget.onCancel,
-                backgroundColor: context.colorScheme.outline,
-                buttonText: AppLocalizations.of(context).commonCancelButton,
+              const SizedBox(width: 8),
+              Expanded(
+                child: HeliumElevatedButton(
+                  onPressed: () => widget.onSelect(pickerColor),
+                  buttonText: MaterialLocalizations.of(context).okButtonLabel,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: HeliumElevatedButton(
-                onPressed: () => widget.onSelect(pickerColor),
-                buttonText: AppLocalizations.of(context).commonSelectButton,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

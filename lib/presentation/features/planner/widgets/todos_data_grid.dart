@@ -19,6 +19,7 @@ import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/grade_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/hover_tap_target.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -561,13 +562,11 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
-        child: Text(
+        child: HeliumText(
           column.label,
           style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onSurface,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -651,7 +650,7 @@ class TodosDataGridState extends BaseDataGridState<TodosDataGrid> {
         endSwipeActionsBuilder: (context, row, rowIndex) {
           final homework = _dataSource.getHomeworkFromRow(row);
           return Semantics(
-            label: AppLocalizations.of(context).commonDeleteLabel,
+            label: MaterialLocalizations.of(context).deleteButtonTooltip,
             button: true,
             child: GestureDetector(
               onTap: () => unawaited(

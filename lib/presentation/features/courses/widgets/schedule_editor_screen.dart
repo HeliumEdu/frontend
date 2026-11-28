@@ -20,6 +20,7 @@ import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/components/weekday_selector.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
 import 'package:heliumapp/presentation/ui/layout/helium_full_screen_scroll_view.dart';
 import 'package:heliumapp/utils/app_globals.dart';
@@ -682,7 +683,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           ? (_cycleStartTimes[day] ?? _defaultCycleStart)
           : (_cycleEndTimes[day] ?? _defaultCycleEnd),
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -815,12 +815,11 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     if (initial.isBefore(firstDate)) initial = firstDate;
     if (initial.isAfter(lastDate)) initial = lastDate;
 
-    final pickedDate = await showDatePicker(
+    final pickedDate = await showHeliumDatePicker(
       context: context,
       initialDate: initial,
       firstDate: firstDate,
       lastDate: lastDate,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedDate == null || !mounted) return;
 
@@ -960,7 +959,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
           ? (_startTimes[dayIndex] ?? _singleStartTime)
           : (_endTimes[dayIndex] ?? _singleEndTime),
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -987,7 +985,6 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
       context: context,
       initialTime: isStartTime ? _singleStartTime : _singleEndTime,
       initialEntryMode: PlatformBehavior.timePickerEntryMode,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedTime == null || !mounted) return;
 
@@ -1039,14 +1036,13 @@ class _ScheduleEditorScreenState extends BaseDialogState<ScheduleEditorScreen>
     final courseEnd = widget.courseEndDate;
     if (courseStart == null || courseEnd == null) return;
 
-    final pickedDate = await showDatePicker(
+    final pickedDate = await showHeliumDatePicker(
       context: context,
       initialDate: isStart
           ? (_startDate ?? courseStart)
           : (_endDate ?? courseEnd),
       firstDate: courseStart,
       lastDate: courseEnd,
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (pickedDate == null || !mounted) return;
 

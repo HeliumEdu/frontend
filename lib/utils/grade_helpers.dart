@@ -151,7 +151,7 @@ class GradeHelper {
     final gradeValue = parseGrade(grade);
 
     if (gradeValue == null) {
-      return showNaAsBlank ? '' : 'N/A';
+      return showNaAsBlank ? '' : LocaleNotifier().localizations.gradeNotAvailableLabel;
     }
 
     return HeliumNumber.formatPercent(gradeValue, fractionDigits: 2);
@@ -298,11 +298,11 @@ class GradeHelper {
     try {
       final percentage = double.parse(value);
       if (percentage == 0 && zeroAsNa != null && zeroAsNa) {
-        return 'N/A';
+        return LocaleNotifier().localizations.gradeNotAvailableLabel;
       }
       return HeliumNumber.formatPercent(percentage, fractionDigits: 2, trimZeros: true);
     } catch (e) {
-      return 'N/A';
+      return LocaleNotifier().localizations.gradeNotAvailableLabel;
     }
   }
 

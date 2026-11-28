@@ -4,6 +4,7 @@ import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
 import 'package:heliumapp/utils/app_style.dart';
@@ -174,12 +175,11 @@ class _CourseExceptionsDialogState
     final firstDate = range?.start ?? widget.firstDate;
     final lastDate = range?.end ?? widget.lastDate;
     final cancelled = _cancelledFor(scheduleId);
-    final picked = await showDatePicker(
+    final picked = await showHeliumDatePicker(
       context: context,
       initialDate: _selectableInitialDate(cancelled, firstDate, lastDate),
       firstDate: firstDate ?? HeliumDateTime.earliestPickableDate(),
       lastDate: lastDate ?? HeliumDateTime.latestPickableDate(),
-      confirmText: AppLocalizations.of(context).commonSelectButton,
       selectableDayPredicate: (date) => _isSelectable(cancelled, date),
     );
     if (picked == null || !mounted) return;

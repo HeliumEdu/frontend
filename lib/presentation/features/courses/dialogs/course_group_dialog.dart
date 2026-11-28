@@ -22,6 +22,7 @@ import 'package:heliumapp/presentation/ui/components/helium_elevated_button.dart
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/course_exception_helpers.dart';
 import 'package:heliumapp/config/app_theme.dart';
@@ -186,7 +187,7 @@ class _CourseGroupWidgetState
         },
         icon: Icons.delete_outlined,
         showTooltip: false,
-        label: AppLocalizations.of(context).commonDeleteLabel,
+        label: MaterialLocalizations.of(context).deleteButtonTooltip,
         color: context.colorScheme.error,
       ),
     ];
@@ -343,7 +344,7 @@ class _CourseGroupWidgetState
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showHeliumDatePicker(
       context: context,
       initialDate: isStartDate
           ? (_formController.startDate ?? DateTime.now())
@@ -351,7 +352,6 @@ class _CourseGroupWidgetState
                 DateTime.now().add(const Duration(days: 30))),
       firstDate: HeliumDateTime.earliestPickableDate(),
       lastDate: HeliumDateTime.latestPickableDate(),
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;

@@ -12,6 +12,7 @@ import 'package:heliumapp/l10n/app_localizations.dart';
 import 'package:heliumapp/presentation/ui/components/generic_label.dart';
 import 'package:heliumapp/presentation/ui/components/helium_icon_button.dart';
 import 'package:heliumapp/presentation/ui/components/helium_pager.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/course_title_label.dart';
 import 'package:heliumapp/presentation/ui/components/resource_title_label.dart';
 import 'package:heliumapp/presentation/ui/feedback/empty_card.dart';
@@ -310,7 +311,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
           endSwipeActionsBuilder: (context, row, rowIndex) {
             final note = _dataSource.getNoteFromRow(row);
             return Semantics(
-              label: AppLocalizations.of(context).commonDeleteLabel,
+              label: MaterialLocalizations.of(context).deleteButtonTooltip,
               button: true,
               child: GestureDetector(
                 onTap: () => unawaited(
@@ -498,7 +499,7 @@ class _NotebookDataGridState extends BaseDataGridState<NotebookDataGrid> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppConstants.tableCellInset),
         alignment: Alignment.centerLeft,
-        child: Text(
+        child: HeliumText(
           column.label,
           style: AppStyles.standardBodyText(context).copyWith(
             color: context.colorScheme.onSurface,

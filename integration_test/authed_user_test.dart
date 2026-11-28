@@ -950,7 +950,7 @@ void main() {
       await tester.tapAt(tapAt);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Select'));
+      await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
       final completeCheckbox = find.byKey(const Key(PlannerItemFormController.completeField));

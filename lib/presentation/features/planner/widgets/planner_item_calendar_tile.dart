@@ -407,7 +407,7 @@ class PlannerItemCalendarTile extends StatelessWidget {
           ),
           icon: Icons.more_vert,
           showTooltip: false,
-          label: AppLocalizations.of(context).plannerMoreActionsLabel,
+          label: MaterialLocalizations.of(context).moreButtonTooltip,
           color: foregroundColor,
         ),
       );

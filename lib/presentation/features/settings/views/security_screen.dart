@@ -360,7 +360,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
         const SizedBox(height: 12),
         HeliumElevatedButton(
           icon: Icons.copy_outlined,
-          buttonText: AppLocalizations.of(context).securityCopyButton,
+          buttonText: MaterialLocalizations.of(context).copyButtonLabel,
           minHeight: 36,
           visualDensity: VisualDensity.standard,
           onPressed: () => _copyApiToken(apiToken),
@@ -380,7 +380,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       title: AppLocalizations.of(context).securityRotateTokenTitle,
       message: AppLocalizations.of(context).securityRotateTokenMessage,
       actionText: AppLocalizations.of(context).securityRotateButton,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
@@ -398,7 +398,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       title: AppLocalizations.of(context).securityRevokeTokenTitle,
       message: AppLocalizations.of(context).securityRevokeTokenMessage,
       actionText: AppLocalizations.of(context).securityRevokeButton,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;
@@ -516,7 +516,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
       title: AppLocalizations.of(context).securityRevokeAccessTitle,
       message: AppLocalizations.of(context).securityRevokeAccessMessage(connectedApp.name),
       actionText: AppLocalizations.of(context).securityRevokeButton,
-      cancelText: AppLocalizations.of(context).commonCancelButton,
+      cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
       icon: Icons.warning_amber,
     );
     if (!confirmed || !mounted) return;

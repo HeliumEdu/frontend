@@ -1,5 +1,6 @@
 package com.heliumedu.heliumapp
 
+import android.app.NotificationManager
 import android.net.ConnectivityManager
 import android.net.Uri
 import io.flutter.embedding.android.FlutterActivity
@@ -10,6 +11,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val NATIVE_CHANNEL_NAME = "com.heliumedu.heliumapp/native"
+        private const val REMINDER_NOTIFICATION_ID = 0
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -19,6 +21,18 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "isTestFarmDevice" -> result.success(HeliumApplication.isTestFarmDevice)
                 "getSystemProxy" -> result.success(systemProxy())
+                "getDeliveredReminderIdentifiers" -> result.success(
+                    getSystemService(NotificationManager::class.java).activeNotifications
+                        .filter { it.id == REMINDER_NOTIFICATION_ID }
+                        .mapNotNull { it.tag }
+                )
+                "removeDeliveredNotifications" -> {
+                    val notificationManager = getSystemService(NotificationManager::class.java)
+                    call.argument<List<String>>("identifiers")!!.forEach {
+                        notificationManager.cancel(it, REMINDER_NOTIFICATION_ID)
+                    }
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

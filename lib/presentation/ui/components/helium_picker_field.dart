@@ -6,7 +6,7 @@ import 'package:heliumapp/utils/date_time_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
 
 /// A tappable field showing the selected date with a trailing calendar icon.
-/// [onTap] owns the `showDatePicker` call, so each caller keeps its own bounds.
+/// [onTap] owns the `showHeliumDatePicker` call, so each caller keeps its own bounds.
 class HeliumDateField extends StatelessWidget {
   final String? label;
   final DateTime? date;

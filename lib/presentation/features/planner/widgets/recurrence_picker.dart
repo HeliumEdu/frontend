@@ -8,6 +8,7 @@ import 'package:heliumapp/presentation/ui/components/helium_checkbox_list_tile.d
 import 'package:heliumapp/presentation/ui/components/helium_picker_field.dart';
 import 'package:heliumapp/presentation/ui/components/spinner_field.dart';
 import 'package:heliumapp/presentation/ui/components/weekday_selector.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/utils/app_style.dart';
 import 'package:heliumapp/utils/date_time_helpers.dart';
 
@@ -359,12 +360,11 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   Future<void> _selectUntilDate() async {
     final start = DateTime(widget.localStart.year, widget.localStart.month, widget.localStart.day);
     final current = _current.until ?? _defaultUntil;
-    final picked = await showDatePicker(
+    final picked = await showHeliumDatePicker(
       context: context,
       initialDate: current.isBefore(start) ? start : current,
       firstDate: start,
       lastDate: DateTime(start.year + 5, start.month, start.day),
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
     if (picked == null || !mounted) return;
     widget.onChanged(_current.copyWith(until: picked));

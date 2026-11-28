@@ -8,7 +8,7 @@ Future<bool> confirmClearExampleData(BuildContext context) {
     title: AppLocalizations.of(context).clearExampleDataTitle,
     message: AppLocalizations.of(context).clearExampleDataMessage,
     actionText: AppLocalizations.of(context).clearExampleDataButton,
-    cancelText: AppLocalizations.of(context).commonCancelButton,
+    cancelText: MaterialLocalizations.of(context).cancelButtonLabel,
     style: ConfirmActionStyle.neutral,
   );
 }

@@ -73,7 +73,7 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
             children: [
               Expanded(
                 child: HeliumElevatedButton(
-                  buttonText: AppLocalizations.of(context).commonCancelButton,
+                  buttonText: MaterialLocalizations.of(context).cancelButtonLabel,
                   backgroundColor: context.colorScheme.outline,
                   onPressed: _cancel,
                 ),
@@ -82,9 +82,9 @@ class _RecurrenceScopeDialogState extends State<_RecurrenceScopeDialog> {
               Expanded(
                 child: HeliumElevatedButton(
                   buttonText: switch (widget.action) {
-                    RecurrenceScopeAction.edit => AppLocalizations.of(context).recurrenceScopeSaveButton,
+                    RecurrenceScopeAction.edit => MaterialLocalizations.of(context).saveButtonLabel,
                     RecurrenceScopeAction.move => AppLocalizations.of(context).recurrenceScopeMoveButton,
-                    RecurrenceScopeAction.delete => AppLocalizations.of(context).commonDeleteButton,
+                    RecurrenceScopeAction.delete => MaterialLocalizations.of(context).deleteButtonTooltip,
                   },
                   backgroundColor: widget.action == RecurrenceScopeAction.delete
                       ? context.colorScheme.error

@@ -12,6 +12,7 @@ import 'package:heliumapp/presentation/features/planner/bloc/external_calendar_s
 import 'package:heliumapp/presentation/features/settings/controllers/external_calendar_form_controller.dart';
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/features/shared/controllers/basic_form_controller.dart';
+import 'package:heliumapp/presentation/ui/components/helium_text.dart';
 import 'package:heliumapp/presentation/ui/components/label_and_text_form_field.dart';
 import 'package:heliumapp/presentation/ui/dialogs/base_dialog_state.dart';
 import 'package:heliumapp/presentation/ui/dialogs/conflict_resolving_dialog.dart';
@@ -167,28 +168,34 @@ class _ExternalCalendarWidgetState
                 });
               },
             ),
-            MergeSemantics(
-              child: Row(
-                children: [
-                  Text(
-                    Responsive.isNarrowMobile(context)
-                        ? AppLocalizations.of(context).externalCalendarShowLabel
-                        : AppLocalizations.of(context).externalCalendarShowOnCalendarLabel,
-                    style: AppStyles.formLabel(context),
-                  ),
-                  const SizedBox(width: 4),
-                  Switch.adaptive(
-                    value: _formController.shownOnCalendar,
-                    activeTrackColor: context.colorScheme.primary,
-                    onChanged: (value) {
-                      _formController.markChanged();
-                      Feedback.forTap(context);
-                      setState(() {
-                        _formController.shownOnCalendar = value;
-                      });
-                    },
-                  ),
-                ],
+            const SizedBox(width: 8),
+            Flexible(
+              child: MergeSemantics(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: HeliumText(
+                        Responsive.isNarrowMobile(context)
+                            ? AppLocalizations.of(context).externalCalendarShowLabel
+                            : AppLocalizations.of(context).externalCalendarShowOnCalendarLabel,
+                        style: AppStyles.formLabel(context),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Switch.adaptive(
+                      value: _formController.shownOnCalendar,
+                      activeTrackColor: context.colorScheme.primary,
+                      onChanged: (value) {
+                        _formController.markChanged();
+                        Feedback.forTap(context);
+                        setState(() {
+                          _formController.shownOnCalendar = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -86,6 +86,7 @@ import 'package:heliumapp/presentation/features/planner/widgets/todos_data_grid.
 import 'package:heliumapp/presentation/features/shared/bloc/core/base_event.dart';
 import 'package:heliumapp/presentation/navigation/shell/navigation_shell.dart';
 import 'package:heliumapp/presentation/ui/components/helium_search_field.dart';
+import 'package:heliumapp/presentation/ui/dialogs/date_picker_dialog.dart';
 import 'package:heliumapp/presentation/ui/dialogs/helium_menu.dart';
 import 'package:heliumapp/presentation/ui/feedback/error_card.dart';
 import 'package:heliumapp/presentation/ui/feedback/loading_indicator.dart';
@@ -101,6 +102,7 @@ import 'package:heliumapp/utils/planner_month_layout.dart';
 import 'package:heliumapp/utils/platform_behavior.dart';
 import 'package:heliumapp/utils/print_helpers.dart';
 import 'package:heliumapp/utils/responsive_helpers.dart';
+import 'package:heliumapp/utils/sf_calendar_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:syncfusion_flutter_core/localizations.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -1073,6 +1075,10 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
             showWeekNumbers &&
             _currentView == PlannerView.month &&
             !Responsive.isMobile(context);
+        final shortensMobileWeekNumberLabel =
+            showWeekNumbers &&
+            _currentView == PlannerView.month &&
+            WeekColumn.usesMobileLayout(context);
 
         final calendar = SfCalendar(
           backgroundColor: context.colorScheme.surface,
@@ -1228,6 +1234,24 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                   ),
                   Expanded(child: calendar),
                 ],
+              )
+            : WeekColumn.drawsMobileStyle(context)
+            ? Localizations.override(
+                context: context,
+                delegates: [
+                  WeekNumberLabelSfLocalizationsDelegate(
+                    base: SfLocalizations.of(context),
+                    label: shortensMobileWeekNumberLabel
+                        ? WeekColumn.mobileLabelFor(
+                            context,
+                            label: weekNumberLabel,
+                            textStyle: weekNumberTextStyle,
+                            calendarWidth: constraints.maxWidth,
+                          )
+                        : weekNumberLabel,
+                  ),
+                ],
+                child: calendar,
               )
             : calendar;
 
@@ -1691,7 +1715,7 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
                     _isSearchExpanded = true;
                   });
                 },
-                icon: Icon(Icons.search, semanticLabel: AppLocalizations.of(context).plannerSearchLabel),
+                icon: Icon(Icons.search, semanticLabel: MaterialLocalizations.of(context).searchFieldLabel),
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   minimumSize: Size(
@@ -1724,12 +1748,11 @@ class _CalendarScreenState extends BasePageScreenState<_CalendarProvidedScreen> 
   }
 
   Future<void> _openDatePicker() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showHeliumDatePicker(
       context: context,
       initialDate: _calendarController.displayDate!,
       firstDate: HeliumDateTime.earliestPickableDate(),
       lastDate: HeliumDateTime.latestPickableDate(),
-      confirmText: AppLocalizations.of(context).commonSelectButton,
     );
 
     if (picked == null || !mounted) return;
