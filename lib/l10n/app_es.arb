@@ -207,7 +207,7 @@
     "description": "Spoken name of the button that downloads an attached file."
   },
   "commonEditLabel": "Editar",
-  "commonKeepEditingButton": "Seguir editando",
+  "commonKeepEditingButton": "Seguir",
   "commonLearnMoreTooltip": "Más información",
   "commonListJoin": "{first}, {second}",
   "@commonListJoin": {
@@ -1026,7 +1026,7 @@
   "@gradeCalculatorTitle": {
     "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
   },
-  "gradeCalculatorWhatCouldIGetTab": "¿Qué podría obtener?",
+  "gradeCalculatorWhatCouldIGetTab": "¿Qué obtendría?",
   "@gradeCalculatorWhatCouldIGetTab": {
     "description": "Grade Calculator tab that projects the grade from hypothetical scores."
   },
@@ -1234,7 +1234,7 @@
     },
     "description": "Grade-trend tooltip: the class grade at this point."
   },
-  "gradeTrendOverallSeries": "Calificación general",
+  "gradeTrendOverallSeries": "General",
   "gradeTrendTermGpaPoint": "Promedio del periodo • {gpa}",
   "@gradeTrendTermGpaPoint": {
     "placeholders": {
@@ -1246,7 +1246,7 @@
     },
     "description": "Grade-trend tooltip: the term GPA at this point."
   },
-  "gradeTrendTermGpaSeries": "Promedio del periodo",
+  "gradeTrendTermGpaSeries": "Promedio",
   "gradesAllGpaSummary": "Total {gpa}",
   "@gradesAllGpaSummary": {
     "description": "The GPA across all terms (All GPA).",
@@ -1303,7 +1303,7 @@
   },
   "gradesGradePreferencesOption": "Preferencias de calificaciones",
   "gradesGradeTrendTitle": "Tendencia de calificaciones",
-  "gradesGradedColumn": "Calificadas",
+  "gradesGradedColumn": "Calif.",
   "@gradesGradedColumn": {
     "description": "Column for how many of the category's assignments are graded."
   },
@@ -1360,7 +1360,7 @@
   "@gradesPaceBehind": {
     "description": "Pace status: work done is behind the time passed in the term."
   },
-  "gradesPaceOnTrack": "En buen camino",
+  "gradesPaceOnTrack": "Al día",
   "@gradesPaceOnTrack": {
     "description": "Pace status: work done keeps up with the time passed in the term."
   },
@@ -1368,7 +1368,7 @@
   "@gradesPaceTimeLabel": {
     "description": "Label of the bar for how much of the term has passed."
   },
-  "gradesPaceWarmingUp": "Calentando motores",
+  "gradesPaceWarmingUp": "Iniciando",
   "@gradesPaceWarmingUp": {
     "description": "Pace status before there's enough work to compare against the term's progress."
   },
@@ -2123,7 +2123,7 @@
   "plannerItemCategoryLabel": "Categoría",
   "plannerItemClassLabel": "Clase",
   "plannerItemClassUnavailableMessage": "Esta clase ya no está disponible. Cierra y vuelve a abrir esta tarea.",
-  "plannerItemCompleteLabel": "Completada",
+  "plannerItemCompleteLabel": "Hecha",
   "@plannerItemCompleteLabel": {
     "description": "Checkbox that marks the assignment complete."
   },
