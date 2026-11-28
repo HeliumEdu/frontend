@@ -632,23 +632,23 @@
     "description": "Action on an external calendar event that opens the External Calendars settings. External Calendars is a feature name."
   },
   "externalEventOpenLinkAction": "Abrir enlace del evento",
-  "feedsAssignmentsCopiedMessage": "Se copió la URL del feed de tareas.",
+  "feedsAssignmentsCopiedMessage": "Se copió el enlace del calendario de tareas.",
   "feedsAssignmentsLabel": "Tareas",
-  "feedsClassSchedulesCopiedMessage": "Se copió la URL del feed de horarios de clases.",
+  "feedsClassSchedulesCopiedMessage": "Se copió el enlace del calendario de horarios de clases.",
   "feedsClassSchedulesLabel": "Horarios de clases",
   "feedsDisableAllButton": "Desactivar todo",
   "feedsDisableButton": "Desactivar",
-  "feedsDisableMessage": "Desactivar Feeds interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevas URL y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
-  "feedsDisableTitle": "Desactivar todos los feeds",
-  "feedsDisabledMessage": "Los feeds están desactivados",
+  "feedsDisableMessage": "Desactivar los enlaces de calendario interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevos enlaces y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
+  "feedsDisableTitle": "Desactivar todos los enlaces",
+  "feedsDisabledMessage": "Los enlaces de calendario están desactivados",
   "feedsEnableButton": "Activar",
-  "feedsEventsCopiedMessage": "Se copió la URL del feed de eventos.",
+  "feedsEventsCopiedMessage": "Se copió el enlace del calendario de eventos.",
   "feedsEventsLabel": "Eventos",
-  "feedsInfo": "Feeds te permite llevar los calendarios de Helium a otros lugares.",
+  "feedsInfo": "Los enlaces de calendario te permiten llevar los calendarios de Helium a otros lugares.",
   "@feedsInfo": {
     "description": "Explains the Feeds settings screen. Feeds is a feature name."
   },
-  "feedsSecretWarning": "Mantén en secreto las URL de los feeds privados. Si desactivas y vuelves a activar un feed, se regenerará su URL.",
+  "feedsSecretWarning": "Mantén en secreto los enlaces privados. Si desactivas y vuelves a activar un enlace, se regenerará.",
   "feedsShareFailedMessage": "No se pudo compartir el enlace.",
   "forgotPasswordCheckEmailMessage": "Busca en tu correo electrónico un enlace para restablecer tu contraseña.",
   "forgotPasswordInstructions": "Escribe el correo electrónico asociado a tu cuenta y te enviaremos un enlace para restablecer la contraseña.",
@@ -718,7 +718,7 @@
   },
   "gettingStartedReadyDescription": "Esta bienvenida aparece en cada dispositivo hasta que borres los datos de ejemplo. Mientras tanto, explóralos con calma y descubre todo lo que Helium tiene para ofrecer.",
   "gettingStartedReadyTitle": "Todo listo cuando quieras",
-  "gettingStartedSyncDescription": "Usa Calendarios externos para traer eventos de Google, Apple u otros calendarios. Activa Feeds para compartir tu horario de Helium con esas otras aplicaciones.",
+  "gettingStartedSyncDescription": "Usa Calendarios externos para traer eventos de Google, Apple u otros calendarios. Activa Enlaces de calendario para compartir tu horario de Helium con esas otras aplicaciones.",
   "@gettingStartedSyncDescription": {
     "description": "Body of the Getting Started card about calendar sync. \"External Calendars\" and \"Feeds\" are names of settings in the app; Google and Apple are the calendar providers."
   },
@@ -1022,7 +1022,7 @@
   "@gradeCalculatorThisCategoryFallback": {
     "description": "Stands in for a category's name when it can't be found, inside a sentence about the category."
   },
-  "gradeCalculatorTitle": "Calculadora de calificaciones",
+  "gradeCalculatorTitle": "Calculadora de calif.",
   "@gradeCalculatorTitle": {
     "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
   },
@@ -2059,7 +2059,7 @@
   "plannerEventClonedMessage": "Evento clonado.",
   "plannerEventCreatedMessage": "Evento creado.",
   "plannerEventDeletedMessage": "Evento eliminado.",
-  "plannerFilterOnlyCompleteLabel": "Solo completadas",
+  "plannerFilterOnlyCompleteLabel": "Solo hechas",
   "@plannerFilterOnlyCompleteLabel": {
     "description": "Spoken name of the switch that shows only completed assignments (off shows only incomplete)."
   },
@@ -2068,7 +2068,7 @@
   "@plannerFilterOnlyLabel": {
     "description": "Label beside the switch that narrows a status filter to one side, such as only complete."
   },
-  "plannerFilterStatusComplete": "Completadas",
+  "plannerFilterStatusComplete": "Hechas",
   "@plannerFilterStatusComplete": {
     "description": "Planner filter for completed assignments."
   },
@@ -2076,7 +2076,7 @@
   "@plannerFilterStatusGraded": {
     "description": "Planner filter for graded assignments."
   },
-  "plannerFilterStatusIncomplete": "Incompletas",
+  "plannerFilterStatusIncomplete": "Sin hacer",
   "@plannerFilterStatusIncomplete": {
     "description": "Planner filter for incomplete assignments."
   },
@@ -3061,7 +3061,7 @@
     "description": "Title of the settings screen and item for showing other calendars in Helium. A feature name."
   },
   "settingsFeedsHint": "Lleva los calendarios de Helium a otras aplicaciones",
-  "settingsFeedsTitle": "Feeds",
+  "settingsFeedsTitle": "Enlaces de calendario",
   "@settingsFeedsTitle": {
     "description": "Title of the settings screen and item for publishing Helium's calendars to other apps. A feature name."
   },
