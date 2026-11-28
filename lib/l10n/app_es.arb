@@ -1,0 +1,3367 @@
+{
+  "accountManageSignInMethodsLabel": "Administrar métodos de inicio de sesión",
+  "agendaWidgetAllDay": "Todo el día",
+  "assignmentAddTitle": "Agregar tarea",
+  "assignmentEditTitle": "Editar tarea",
+  "attachmentDeletedElsewhereMessage": "\"{title}\" se eliminó.",
+  "@attachmentDeletedElsewhereMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "syllabus.pdf"
+      }
+    }
+  },
+  "attachmentDeletedMessage": "Archivo adjunto eliminado.",
+  "attachmentDownloadedMessage": "\"{title}\" se descargó.",
+  "@attachmentDownloadedMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "syllabus.pdf"
+      }
+    }
+  },
+  "attachmentsChooseFilesButton": "Elegir archivos",
+  "attachmentsClassGroupTitle": "Clase",
+  "@attachmentsClassGroupTitle": {
+    "description": "Heading over attachments that belong to the assignment's class."
+  },
+  "attachmentsEmptyMessage": "Haz clic en \"Elegir archivos\" para agregar archivos adjuntos",
+  "attachmentsMenuEmptyMessage": "Sin archivos adjuntos",
+  "attachmentsMenuTitle": "Archivos adjuntos",
+  "attachmentsNothingSelectedMessage": "No se ha seleccionado nada para subir.",
+  "attachmentsRemoveFromUploadLabel": "Quitar de la subida",
+  "attachmentsResourceGroupTitle": "Recurso",
+  "@attachmentsResourceGroupTitle": {
+    "description": "Heading over attachments that belong to the assignment's resources (books and materials)."
+  },
+  "attachmentsShowTooltip": "Mostrar archivos adjuntos",
+  "attachmentsTitle": "Archivos adjuntos",
+  "attachmentsTooManyFilesMessage": "No puedes subir más de {count} archivos a la vez.",
+  "@attachmentsTooManyFilesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "attachmentsUploadButton": "Subir",
+  "@attachmentsUploadButton": {
+    "description": "Button that uploads the chosen files as attachments."
+  },
+  "attachmentsUploadFailedCount": "{count, plural, =1{No se pudo subir 1 archivo adjunto} other{No se pudieron subir {count} archivos adjuntos}}",
+  "@attachmentsUploadFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "attachmentsUploadedCount": "{count, plural, =1{1 archivo adjunto subido.} other{{count} archivos adjuntos subidos.}}",
+  "@attachmentsUploadedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "authBackToSignInLink": "Volver al inicio de sesión",
+  "authEmailHint": "Correo electrónico",
+  "authEmailUsesOtherMethodLinkMessage": "Ese correo electrónico ya está registrado con otro método de inicio de sesión. Inicia sesión con ese método para vincular también {provider}.",
+  "@authEmailUsesOtherMethodLinkMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authEmailUsesOtherMethodMessage": "Ese correo electrónico ya está registrado con otro método de inicio de sesión. Inicia sesión con ese método.",
+  "authOAuthSignInFailedMessage": "No se pudo iniciar sesión con {provider}. Inténtalo de nuevo.",
+  "@authOAuthSignInFailedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authOrDivider": "O",
+  "@authOrDivider": {
+    "description": "Divider between the email and password form and the Google, Apple and Microsoft buttons."
+  },
+  "authPasswordHint": "Contraseña",
+  "authProviderSignInFailedMessage": "No se pudo iniciar sesión con {provider}.",
+  "@authProviderSignInFailedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authProviderUnavailableMessage": "El inicio de sesión con {provider} no está disponible temporalmente.",
+  "@authProviderUnavailableMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "authSignInFailedMessage": "No se pudo iniciar sesión.",
+  "authSignInToContinueMessage": "Inicia sesión para continuar.",
+  "authSignOutFailedMessage": "No se pudo cerrar la sesión.",
+  "authVerificationEmailSentMessage": "¡Correo electrónico de verificación enviado! Revisa tu bandeja de entrada.",
+  "calendarNoEventsLabel": "Aquí no hay nada que ver",
+  "calendarNoSelectedDateLabel": "Selecciona una fecha para comenzar",
+  "categoryAddLabel": "Agregar categoría",
+  "categoryAssignmentsTooltip": "Tareas",
+  "@categoryAssignmentsTooltip": {
+    "description": "Tooltip on how many assignments a category has."
+  },
+  "categoryDeleteWarning": "Las tareas asociadas a esta categoría se moverán a \"{category}\".",
+  "@categoryDeleteWarning": {
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Uncategorized",
+        "description": "The built-in category's name, categoryUncategorizedTitle."
+      }
+    }
+  },
+  "categoryDeletedMessage": "Categoría eliminada.",
+  "categoryDialogTitle": "Categoría",
+  "categoryEmptyMessage": "Haz clic en \"+\" para agregar una categoría",
+  "categoryNotFoundMessage": "Categoría no encontrada.",
+  "categorySavedMessage": "Categoría guardada.",
+  "categoryTitleLabel": "Título",
+  "categoryUncategorizedTitle": "Sin categoría",
+  "@categoryUncategorizedTitle": {
+    "description": "Name of the built-in category that holds a class's assignments without one. The platform's django.po names it in its error messages; translate them the same way."
+  },
+  "categoryWeightLabel": "Peso (%)",
+  "@categoryWeightLabel": {
+    "description": "Label of the category's share of the class grade, in percent."
+  },
+  "categoryWeightTooltip": "Peso",
+  "@categoryWeightTooltip": {
+    "description": "Tooltip on a category's share of the class grade."
+  },
+  "changeEmailCancelledMessage": "Se canceló el cambio de correo electrónico pendiente.",
+  "changeEmailMustDifferError": "El nuevo correo electrónico debe ser diferente del actual",
+  "changeEmailNewEmailLabel": "Nuevo correo electrónico",
+  "changeEmailSentMessage": "Correo electrónico de verificación enviado a {email}.",
+  "@changeEmailSentMessage": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "alex@example.com",
+        "description": "The new email address."
+      }
+    }
+  },
+  "changePasswordChangeTitle": "Cambiar contraseña",
+  "changePasswordConfirmLabel": "Confirmar contraseña",
+  "changePasswordNewLabel": "Nueva contraseña",
+  "changePasswordRevokesTokenWarning": "Cambiar tu contraseña también revoca tu token de API, por lo que cualquier programa que lo utilice dejará de funcionar.",
+  "changePasswordSetTitle": "Establecer contraseña",
+  "clearExampleDataButton": "Borrar",
+  "@clearExampleDataButton": {
+    "description": "Button that removes the example schedule."
+  },
+  "clearExampleDataMessage": "Esto elimina el horario de ejemplo. Todo lo que hayas agregado o cambiado se conserva.",
+  "clearExampleDataTitle": "¿Borrar datos de ejemplo?",
+  "colorPickerCustomButton": "Color personalizado",
+  "colorPickerPresetsButton": "Predefinidos",
+  "colorPickerSwatchLabel": "Color {index} de {count}",
+  "@colorPickerSwatchLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "3"
+      },
+      "count": {
+        "type": "int",
+        "example": "16"
+      }
+    }
+  },
+  "commonAddToGetStartedMessage": "Haz clic en \"+\" para comenzar",
+  "commonClearTooltip": "Borrar",
+  "@commonClearTooltip": {
+    "description": "Tooltip and spoken name of the X button that empties a search field."
+  },
+  "commonColorLabel": "Color",
+  "commonDismissLabel": "Descartar",
+  "commonDownloadLabel": "Descargar",
+  "@commonDownloadLabel": {
+    "description": "Spoken name of the button that downloads an attached file."
+  },
+  "commonEditLabel": "Editar",
+  "commonKeepEditingButton": "Seguir editando",
+  "commonLearnMoreTooltip": "Más información",
+  "commonListJoin": "{first}, {second}",
+  "@commonListJoin": {
+    "description": "Joins two items of a list, or a list so far and one more item.",
+    "placeholders": {
+      "first": {
+        "type": "String",
+        "example": "Mon",
+        "description": "The first item, or the list so far."
+      },
+      "second": {
+        "type": "String",
+        "example": "Wed",
+        "description": "The item added to the list."
+      }
+    }
+  },
+  "commonPrintTooltip": "Imprimir",
+  "@commonPrintTooltip": {
+    "description": "Button that prints the page."
+  },
+  "commonReloadButton": "Recargar",
+  "commonRemoveLabel": "Eliminar",
+  "commonSearchHint": "Buscar ...",
+  "commonSupportPortalButton": "Portal de soporte",
+  "@commonSupportPortalButton": {
+    "description": "Button that opens Helium's help website. \"Support Portal\" is the name of that website."
+  },
+  "commonUnexpectedErrorMessage": "Ocurrió un error inesperado.",
+  "confirmDeleteNamedMessage": "¿Estás seguro de que quieres eliminar \"{name}\"? Esta acción no se puede deshacer.",
+  "@confirmDeleteNamedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The item's title."
+      }
+    }
+  },
+  "confirmDeleteNamedWarningMessage": "¿Estás seguro de que quieres eliminar \"{name}\"? {warning} Esta acción no se puede deshacer.",
+  "@confirmDeleteNamedWarningMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The item's title."
+      },
+      "warning": {
+        "type": "String",
+        "example": "Its attachments and note will also be deleted.",
+        "description": "A sentence saying what else is deleted."
+      }
+    }
+  },
+  "confirmDeleteTitle": "Confirmar eliminación",
+  "confirmDeleteUnnamedMessage": "¿Estás seguro de que quieres eliminar este elemento? Esta acción no se puede deshacer.",
+  "confirmDeleteUnnamedWarningMessage": "¿Estás seguro de que quieres eliminar este elemento? {warning} Esta acción no se puede deshacer.",
+  "@confirmDeleteUnnamedWarningMessage": {
+    "placeholders": {
+      "warning": {
+        "type": "String",
+        "example": "Its attachments and note will also be deleted.",
+        "description": "A sentence saying what else is deleted."
+      }
+    }
+  },
+  "conflictChangedAtMessage": "{item, select, assignment{Esta tarea se modificó en otro dispositivo {when}, después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} event{Este evento se modificó en otro dispositivo {when}, después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?} class{Esta clase se modificó en otro dispositivo {when}, después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} resource{Este recurso se modificó en otro dispositivo {when}, después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?} note{Esta nota se modificó en otro dispositivo {when}, después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} other{Esto se modificó en otro dispositivo {when}, después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?}}",
+  "@conflictChangedAtMessage": {
+    "description": "Message of the dialog shown when what the user is editing was saved on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class, resource or note."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "conflictChangedElsewhereMessage": "Esto se modificó en otro dispositivo.",
+  "conflictChangedMessage": "{item, select, assignment{Esta tarea se modificó en otro dispositivo después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} event{Este evento se modificó en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?} class{Esta clase se modificó en otro dispositivo después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} resource{Este recurso se modificó en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?} note{Esta nota se modificó en otro dispositivo después de que la abrieras. ¿Guardar tus cambios sobre esa versión?} other{Esto se modificó en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esa versión?}}",
+  "@conflictChangedMessage": {
+    "description": "Message of the dialog shown when what the user is editing was saved on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class, resource or note."
+      }
+    }
+  },
+  "conflictChangedTitle": "Modificado en otro dispositivo",
+  "conflictDiscardChangesButton": "Descartar cambios",
+  "conflictSaveChangesButton": "Guardar cambios",
+  "connectAllowButton": "Permitir",
+  "connectDenyButton": "Denegar",
+  "connectInvalidRequestMessage": "Esta solicitud de conexión no es válida. Vuelve a conectarte desde la aplicación que te envió aquí.",
+  "connectRequestMessage": "{clientName} quiere acceder a tu cuenta de Helium.",
+  "@connectRequestMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturnMessage": "Regresa a {clientName} para finalizar.",
+  "@connectReturnMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturnUnknownAppMessage": "Regresa a la aplicación desde la que viniste para finalizar.",
+  "connectReturningMessage": "Regresando a {clientName} ...",
+  "@connectReturningMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "connectReturningUnknownAppMessage": "Regresando a la aplicación desde la que viniste ...",
+  "connectScopesIntro": "Podrá:",
+  "@connectScopesIntro": {
+    "description": "Introduces the list of what the other app will be able to do in the user's account."
+  },
+  "connectSwitchAccountButton": "¿No eres tú?",
+  "@connectSwitchAccountButton": {
+    "description": "Link under the signed-in account's email to sign in with a different account."
+  },
+  "connectTitle": "Conectar con Helium",
+  "connectWarningMessage": "Permite esto solo si eres tú quien está conectando {clientName} a Helium.",
+  "@connectWarningMessage": {
+    "placeholders": {
+      "clientName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The name of the app asking for access."
+      }
+    }
+  },
+  "courseAddTitle": "Agregar clase",
+  "courseCancellationsTitle": "Cancelaciones",
+  "@courseCancellationsTitle": {
+    "description": "Title of the dialog listing dates a class doesn't meet, and the button that opens it."
+  },
+  "courseCategoriesTitle": "Categorías",
+  "courseCreatedMessage": "Clase creada.",
+  "courseCreditsLabel": "Créditos",
+  "courseCustomScaleNoAlternativesHint": "Esta escala personalizada no tiene otras escalas compatibles.",
+  "courseDeleteWarning": "Sus tareas, archivos adjuntos y nota, junto con otros datos, también se eliminarán.",
+  "courseDeletedMessage": "Clase eliminada.",
+  "courseDetailsStep": "Detalles",
+  "courseEditTitle": "Editar clase",
+  "courseExceptionsAddLabel": "Agregar fecha",
+  "courseExceptionsAllMeetings": "Todas las sesiones",
+  "courseExceptionsDatesTitle": "Fechas",
+  "courseExceptionsEmptyMessage": "Haz clic en \"+\" para agregar una fecha",
+  "courseExceptionsGroupCancelledLabel": "También canceladas por Días festivos y vacaciones",
+  "@courseExceptionsGroupCancelledLabel": {
+    "description": "Heading of dates the class also skips because its group's Holidays & Breaks cancel them. Holidays & Breaks is a feature name."
+  },
+  "courseExceptionsScopeTitle": "¿Qué sesiones cancelar?",
+  "courseGradeScaleSameAsGroupOption": "Igual que el grupo ({scale})",
+  "@courseGradeScaleSameAsGroupOption": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Standard",
+        "description": "The group's grade scale name."
+      }
+    }
+  },
+  "courseGroupCreatedMessage": "Grupo creado.",
+  "courseGroupDeleteWarning": "Todo lo que haya en este grupo, incluidas las clases y sus tareas, archivos adjuntos, notas y otros datos, también se eliminará.",
+  "courseGroupDeletedMessage": "Grupo eliminado.",
+  "courseGroupDialogTitle": "Grupo",
+  "@courseGroupDialogTitle": {
+    "description": "Title of the dialog for adding or editing a group of classes (such as a term)."
+  },
+  "courseGroupHideLabel": "Ocultar las clases y tareas de este grupo en el Planificador y en Recursos",
+  "courseGroupHolidaysTitle": "Días festivos y vacaciones",
+  "@courseGroupHolidaysTitle": {
+    "description": "Title of the dialog listing a group's days off, and the button that opens it. A feature name."
+  },
+  "courseGroupNotFoundMessage": "Grupo no encontrado.",
+  "courseGroupTitleLabel": "Título",
+  "courseLocationLabel": "Ubicación",
+  "courseOnlineLabel": "En línea",
+  "courseScaleNoAlternativesHint": "{scale} no tiene otras escalas compatibles.",
+  "@courseScaleNoAlternativesHint": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Pass/Fail",
+        "description": "The grade scale's name."
+      }
+    }
+  },
+  "courseScheduleEditAction": "Editar horario de clases",
+  "courseScheduleFromDateLabel": "Desde {date}",
+  "@courseScheduleFromDateLabel": {
+    "description": "When a schedule has a start date but no end date.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4"
+      }
+    }
+  },
+  "courseScheduleNotFoundMessage": "No se encontró ningún horario para la clase.",
+  "courseScheduleOpenWebsiteAction": "Abrir sitio web de la clase",
+  "courseScheduleRemindersStep": "Recordatorios del horario",
+  "courseScheduleRemindersTitle": "Recordatorios del horario",
+  "courseScheduleSkipClassAction": "Omitir esta clase",
+  "courseScheduleSkipDayAction": "Omitir todas las sesiones del {date}",
+  "@courseScheduleSkipDayAction": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4",
+        "description": "The date, without the year."
+      }
+    }
+  },
+  "courseScheduleSkipMeetingAction": "Omitir esta sesión",
+  "courseScheduleUntilDateLabel": "Hasta {date}",
+  "@courseScheduleUntilDateLabel": {
+    "description": "When a schedule has an end date but no start date.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Dec 12"
+      }
+    }
+  },
+  "courseSchedulesTitle": "Horarios",
+  "courseTeacherEmailLabel": "Correo electrónico",
+  "courseTeacherLabel": "Profesor",
+  "courseTitleLabel": "Título",
+  "courseWebsiteLabel": "Sitio web",
+  "coursesCategoryCount": "{count, plural, =1{1 categoría} other{{count} categorías}}",
+  "@coursesCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "coursesCreateGroupFirstMessage": "Primero crea un grupo.",
+  "coursesCreditCount": "{credits, plural, =1{{formatted} crédito} other{{formatted} créditos}}",
+  "@coursesCreditCount": {
+    "description": "How many credits a class is worth, on its card.",
+    "placeholders": {
+      "credits": {
+        "type": "num",
+        "example": "3",
+        "description": "The credits, to pick the plural form."
+      },
+      "formatted": {
+        "type": "String",
+        "example": "3",
+        "description": "The credits, written in the user's number format."
+      }
+    }
+  },
+  "coursesGradeScaleTooltip": "Escala de calificaciones",
+  "coursesNoClassesInGroupTitle": "Aún no hay clases en este grupo",
+  "coursesNoClassesTitle": "Aún no has agregado ninguna clase",
+  "coursesNoGroupsMessage": "Haz clic en \"+ Agregar grupo\" para comenzar",
+  "coursesNoGroupsTitle": "Aún no has agregado ningún grupo",
+  "coursesWeightedGradingTooltip": "Calificación ponderada",
+  "coursesWhereToStartButton": "Por dónde empezar",
+  "@coursesWhereToStartButton": {
+    "description": "Button that opens the Where to Start support article."
+  },
+  "dateTimeAboutDays": "{days, plural, =1{aproximadamente un día} other{aproximadamente {days} días}}",
+  "@dateTimeAboutDays": {
+    "description": "A length of time, rounded to the nearest day.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeAboutHours": "{hours, plural, =1{aproximadamente una hora} other{aproximadamente {hours} horas}}",
+  "@dateTimeAboutHours": {
+    "description": "A length of time, rounded to the nearest hour.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeAtTime": "a las {time}",
+  "@dateTimeAtTime": {
+    "description": "When something happened earlier today. Completes a sentence like \"…changed on another device at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "dateTimeDateRange": "{startDate} a {endDate}",
+  "@dateTimeDateRange": {
+    "placeholders": {
+      "startDate": {
+        "type": "String",
+        "example": "Sep 4"
+      },
+      "endDate": {
+        "type": "String",
+        "example": "Dec 12"
+      }
+    }
+  },
+  "dateTimeMinutes": "{minutes, plural, =1{un minuto} other{{minutes} minutos}}",
+  "@dateTimeMinutes": {
+    "description": "A length of time, rounded up to the minute.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTimeMultiDayRange": "{startDate} • {startTime} a {endDate} • {endTime}",
+  "@dateTimeMultiDayRange": {
+    "description": "When something starts and ends on different days.",
+    "placeholders": {
+      "startDate": {
+        "type": "String",
+        "example": "Sep 4"
+      },
+      "startTime": {
+        "type": "String",
+        "example": "9:00 AM"
+      },
+      "endDate": {
+        "type": "String",
+        "example": "Sep 5"
+      },
+      "endTime": {
+        "type": "String",
+        "example": "5:00 PM"
+      }
+    }
+  },
+  "dateTimeOnDateAtTime": "el {date} a las {time}",
+  "@dateTimeOnDateAtTime": {
+    "description": "When something happened more than a week ago. Completes a sentence like \"…changed on another device on Oct 21 at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Oct 21",
+        "description": "The date, with the year when it isn't this year."
+      },
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "dateTimeOnWeekdayAtTime": "el {weekday} a las {time}",
+  "@dateTimeOnWeekdayAtTime": {
+    "description": "When something happened within the past week. Completes a sentence like \"…changed on another device on Tue at 5:42 PM, after you opened it.\"",
+    "placeholders": {
+      "weekday": {
+        "type": "String",
+        "example": "Tue",
+        "description": "The short weekday name."
+      },
+      "time": {
+        "type": "String",
+        "example": "5:42 PM",
+        "description": "The time, in the user's time format."
+      }
+    }
+  },
+  "discardChangesButton": "Descartar",
+  "discardChangesMessage": "Tienes cambios sin guardar. ¿Estás seguro de que quieres descartarlos?",
+  "discardChangesTitle": "Cambios no guardados",
+  "dropdownShowOptionsLabel": "Mostrar opciones",
+  "emptyCardTitle": "Aquí no hay nada que ver",
+  "eventAddTitle": "Agregar evento",
+  "eventEditTitle": "Editar evento",
+  "externalCalendarCreatedMessage": "Calendario externo creado.",
+  "externalCalendarDeletedMessage": "Calendario externo eliminado.",
+  "externalCalendarDialogTitle": "Calendario externo",
+  "externalCalendarNameLabel": "Nombre",
+  "externalCalendarNotFoundMessage": "No se encontró el calendario externo.",
+  "externalCalendarShowLabel": "Mostrar",
+  "@externalCalendarShowLabel": {
+    "description": "Short label of the switch that shows the external calendar in the Planner, used on narrow phones."
+  },
+  "externalCalendarShowOnCalendarLabel": "Mostrar en el calendario",
+  "externalCalendarUrlLabel": "URL (iCal)",
+  "@externalCalendarUrlLabel": {
+    "description": "Label of the external calendar's web address field. iCal is a calendar file format."
+  },
+  "externalCalendarsAddLabel": "Agregar calendario externo",
+  "externalCalendarsEmptyMessage": "Haz clic en \"+\" para agregar un calendario externo",
+  "externalCalendarsInfo": "Los calendarios externos te permiten importar otros calendarios a Helium.",
+  "@externalCalendarsInfo": {
+    "description": "Explains the External Calendars settings screen. External Calendars is a feature name."
+  },
+  "externalEventManageAction": "Administrar calendarios externos",
+  "@externalEventManageAction": {
+    "description": "Action on an external calendar event that opens the External Calendars settings. External Calendars is a feature name."
+  },
+  "externalEventOpenLinkAction": "Abrir enlace del evento",
+  "feedsAssignmentsCopiedMessage": "Se copió la URL del feed de tareas.",
+  "feedsAssignmentsLabel": "Tareas",
+  "feedsClassSchedulesCopiedMessage": "Se copió la URL del feed de horarios de clases.",
+  "feedsClassSchedulesLabel": "Horarios de clases",
+  "feedsDisableAllButton": "Desactivar todo",
+  "feedsDisableButton": "Desactivar",
+  "feedsDisableMessage": "Desactivar Feeds interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevas URL y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
+  "feedsDisableTitle": "Desactivar todos los feeds",
+  "feedsDisabledMessage": "Los feeds están desactivados",
+  "feedsEnableButton": "Activar",
+  "feedsEventsCopiedMessage": "Se copió la URL del feed de eventos.",
+  "feedsEventsLabel": "Eventos",
+  "feedsInfo": "Feeds te permite llevar los calendarios de Helium a otros lugares.",
+  "@feedsInfo": {
+    "description": "Explains the Feeds settings screen. Feeds is a feature name."
+  },
+  "feedsSecretWarning": "Mantén en secreto las URL de los feeds privados. Si desactivas y vuelves a activar un feed, se regenerará su URL.",
+  "feedsShareFailedMessage": "No se pudo compartir el enlace.",
+  "forgotPasswordCheckEmailMessage": "Busca en tu correo electrónico un enlace para restablecer tu contraseña.",
+  "forgotPasswordInstructions": "Escribe el correo electrónico asociado a tu cuenta y te enviaremos un enlace para restablecer la contraseña.",
+  "forgotPasswordSendButton": "Enviar enlace de restablecimiento",
+  "forgotPasswordSentDetail": "Si existe una cuenta con contraseña para esa dirección, recibirás en breve un enlace para restablecerla.",
+  "forgotPasswordTitle": "¿Olvidaste tu contraseña?",
+  "formConfirmPasswordRequiredError": "Vuelve a escribir la contraseña",
+  "formInvalidEmailError": "Escribe una dirección de correo electrónico válida",
+  "formInvalidUrlError": "Escribe una URL válida",
+  "formPasswordTooShortError": "La contraseña debe tener al menos 8 caracteres",
+  "formPasswordsMismatchError": "Las contraseñas no coinciden",
+  "formRequiredFieldError": "Este campo es obligatorio",
+  "gettingStartedClassesDescription": "Consulta Clases para ver cómo se relacionan tus horarios, categorías y tareas. Controla fechas límite, horarios de clase, ubicaciones y Recursos — todo en un solo lugar.",
+  "@gettingStartedClassesDescription": {
+    "description": "Body of the Getting Started card about classes. \"Classes\" and \"Resources\" are names of tabs in the app (Resources holds textbooks and other materials)."
+  },
+  "gettingStartedClassesTitle": "Organizado por clase",
+  "gettingStartedClearExampleDataButton": "Borrar datos de ejemplo",
+  "gettingStartedClearExampleDataFailedMessage": "No se pudo eliminar el horario de ejemplo: {error}",
+  "@gettingStartedClearExampleDataFailedMessage": {
+    "description": "Error shown when clearing the example schedule from the Getting Started dialog fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Server error. Please try again later.",
+        "description": "Helium's explanation of what went wrong."
+      }
+    }
+  },
+  "gettingStartedDevicesDescription": "Aplicaciones nativas para iOS y Android, además de la versión web en cualquier navegador moderno. Tu horario y tus notas se mantienen sincronizados sin importar el dispositivo que uses — siempre a tu alcance.",
+  "gettingStartedDevicesTitle": "Disponible en todas partes",
+  "gettingStartedExploreButton": "Prefiero explorar primero",
+  "gettingStartedGoToPageLabel": "Ir a la página {page}",
+  "@gettingStartedGoToPageLabel": {
+    "placeholders": {
+      "page": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "gettingStartedGradesDescription": "Visita Calificaciones para ver tus puntuaciones por clase, categoría y periodo en tiempo real. Descubre en qué enfocarte, qué se está acumulando y calcula lo que necesitas sacar en el examen final.",
+  "@gettingStartedGradesDescription": {
+    "description": "Body of the Getting Started card about grades. \"Grades\" is the name of a tab; \"the final\" is a class's final exam."
+  },
+  "gettingStartedGradesTitle": "Conoce tus calificaciones",
+  "gettingStartedNextLabel": "Siguiente",
+  "@gettingStartedNextLabel": {
+    "description": "Button that shows the next Getting Started card."
+  },
+  "gettingStartedNotesDescription": "Escribe notas vinculadas a cualquier cosa de tu Planificador — resúmenes de clases, borradores de trabajos, lo que sea. Dales formato como a un documento, busca en todo e imprime cuando necesites una copia en papel.",
+  "@gettingStartedNotesDescription": {
+    "description": "Body of the Getting Started card about notes. \"Planner\" is the name of the app's calendar tab."
+  },
+  "gettingStartedNotesTitle": "Notas para cualquier cosa",
+  "gettingStartedPlannerDescription": "Cambia entre las vistas Mes, Semana, Día, Agenda y Pendientes. Abre para ver detalles, arrastra para reprogramar, filtra, busca, ordena — todo lo que necesitas para estar al día con tu horario.",
+  "@gettingStartedPlannerDescription": {
+    "description": "Body of the Getting Started card about the Planner. Month, Week, Day, Agenda and Todos are the names of the Planner's views."
+  },
+  "gettingStartedPlannerTitle": "Un Planificador, todas las vistas",
+  "@gettingStartedPlannerTitle": {
+    "description": "Title of the Getting Started card about the Planner tab. \"Planner\" is the name of the app's calendar tab."
+  },
+  "gettingStartedPreviousLabel": "Anterior",
+  "@gettingStartedPreviousLabel": {
+    "description": "Button that shows the previous Getting Started card."
+  },
+  "gettingStartedReadyDescription": "Esta bienvenida aparece en cada dispositivo hasta que borres los datos de ejemplo. Mientras tanto, explóralos con calma y descubre todo lo que Helium tiene para ofrecer.",
+  "gettingStartedReadyTitle": "Todo listo cuando quieras",
+  "gettingStartedSyncDescription": "Usa Calendarios externos para traer eventos de Google, Apple u otros calendarios. Activa Feeds para compartir tu horario de Helium con esas otras aplicaciones.",
+  "@gettingStartedSyncDescription": {
+    "description": "Body of the Getting Started card about calendar sync. \"External Calendars\" and \"Feeds\" are names of settings in the app; Google and Apple are the calendar providers."
+  },
+  "gettingStartedSyncTitle": "Sincronización con otros calendarios",
+  "gettingStartedWelcomeDescription": "Precargamos tu cuenta con un horario de ejemplo para que veas Helium en acción. Tómate tu tiempo para explorar: avanza por las tarjetas para ver lo que puedes hacer.",
+  "@gettingStartedWelcomeDescription": {
+    "description": "Body of the first Getting Started card, under \"Welcome to Helium!\". \"Click through\" means paging through the dialog's cards."
+  },
+  "gettingStartedWelcomeTitle": "¡Te damos la bienvenida a Helium!",
+  "googleAccountContinueButton": "Continuar como {name}",
+  "@googleAccountContinueButton": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alex Smith",
+        "description": "The Google account's name, or its email address when it has no name."
+      }
+    }
+  },
+  "googleAccountUseDifferentButton": "¿No eres tú? Usa otra cuenta",
+  "gradeCalculatorAssignmentAboveTargetMessage": "Ya estás por encima de tu objetivo según tus puntos actuales.",
+  "gradeCalculatorAssignmentAchievableMessage": "Necesitas obtener {score} ({points}) en \"{assignment}\" para alcanzar {target} en esta clase.",
+  "@gradeCalculatorAssignmentAchievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      },
+      "assignment": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's title."
+      },
+      "target": {
+        "type": "String",
+        "example": "90%",
+        "description": "The class grade the student wants."
+      }
+    }
+  },
+  "gradeCalculatorAssignmentLabel": "Tarea",
+  "gradeCalculatorAssignmentOption": "{title} ({points} pts)",
+  "@gradeCalculatorAssignmentOption": {
+    "description": "An assignment in the dropdown, with its points possible (pts is short for points).",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's title."
+      },
+      "points": {
+        "type": "String",
+        "example": "20",
+        "description": "The assignment's points possible."
+      }
+    }
+  },
+  "gradeCalculatorAssignmentUnachievableMessage": "Necesitarías obtener {score} ({points}) para alcanzar tu objetivo.",
+  "@gradeCalculatorAssignmentUnachievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      }
+    }
+  },
+  "gradeCalculatorBandWithLetter": "{letter} ({minGrade})",
+  "@gradeCalculatorBandWithLetter": {
+    "description": "A grade band: its letter and lowest percent, such as A (90%+).",
+    "placeholders": {
+      "letter": {
+        "type": "String",
+        "example": "A",
+        "description": "The band's letter grade."
+      },
+      "minGrade": {
+        "type": "String",
+        "example": "90%+",
+        "description": "The band's lowest percent."
+      }
+    }
+  },
+  "gradeCalculatorBandWithPoint": "{minGrade} ({points})",
+  "@gradeCalculatorBandWithPoint": {
+    "description": "A grade band without a letter: its lowest percent and grade point, such as 90%+ (4.0).",
+    "placeholders": {
+      "minGrade": {
+        "type": "String",
+        "example": "90%+",
+        "description": "The band's lowest percent."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade point."
+      }
+    }
+  },
+  "gradeCalculatorCalculateButton": "Calcular",
+  "gradeCalculatorCalculateForLabel": "Calcular para",
+  "@gradeCalculatorCalculateForLabel": {
+    "description": "Label before the choice of calculating for a class grade or a term GPA."
+  },
+  "gradeCalculatorCategoryAboveTargetMessage": "Ya estás por encima de tu objetivo según el rendimiento actual de la categoría.",
+  "gradeCalculatorCategoryAchievableMessage": "Necesitas obtener {score} en \"{category}\" para alcanzar {target} en esta clase.",
+  "@gradeCalculatorCategoryAchievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "category": {
+        "type": "String",
+        "example": "Exams",
+        "description": "The category's title."
+      },
+      "target": {
+        "type": "String",
+        "example": "90%",
+        "description": "The class grade the student wants."
+      }
+    }
+  },
+  "gradeCalculatorCategoryLabel": "Categoría",
+  "gradeCalculatorCategoryUnachievableMessage": "Necesitarías obtener {score} para alcanzar tu objetivo.",
+  "@gradeCalculatorCategoryUnachievableMessage": {
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      }
+    }
+  },
+  "gradeCalculatorClassGradeOption": "Calificación de la clase",
+  "gradeCalculatorComeBackLaterTitle": "Vuelve más tarde",
+  "gradeCalculatorDesiredGpaLabel": "Promedio deseado del periodo",
+  "gradeCalculatorDesiredGradeLabel": "Calificación deseada en la clase (%)",
+  "gradeCalculatorGpaAboveTargetMessage": "Ya estás por encima de tu objetivo: esta clase se mantiene en {band} o más, para un promedio del periodo de {direction, select, atLeast{al menos} other{como máximo}} {gpa}.",
+  "@gradeCalculatorGpaAboveTargetMessage": {
+    "description": "Grade Calculator result when the class is already above the band the target GPA needs.",
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaAchievableMessage": "Necesitas obtener {score} en \"{item}\" para alcanzar {band} en esta clase, para un promedio del periodo de {direction, select, atLeast{al menos} other{como máximo}} {gpa}.",
+  "@gradeCalculatorGpaAchievableMessage": {
+    "description": "Grade Calculator result when a score on the assignment or category reaches the target GPA.",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85% (17 / 20 points)",
+        "description": "The needed score, with its points when the item has them."
+      },
+      "item": {
+        "type": "String",
+        "example": "Essay 7",
+        "description": "The assignment's or category's title."
+      },
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaNeedsCreditsHint": "Agrega créditos a esta clase para usar el promedio.",
+  "gradeCalculatorGpaUnachievableMessage": "Necesitarías obtener {score} para alcanzar {band} en esta clase, para un promedio del periodo de {direction, select, atLeast{al menos} other{como máximo}} {gpa}.",
+  "@gradeCalculatorGpaUnachievableMessage": {
+    "description": "Grade Calculator result when the score needed for the target GPA isn't possible.",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85% (17 / 20 points)",
+        "description": "The needed score, with its points when the item has them."
+      },
+      "band": {
+        "type": "String",
+        "example": "B+ (87%+)",
+        "description": "The grade band to reach: its letter and lowest percent."
+      },
+      "direction": {
+        "type": "String",
+        "example": "atLeast",
+        "description": "atLeast when a higher GPA is better, otherwise atMost."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The term GPA."
+      }
+    }
+  },
+  "gradeCalculatorGpaUnreachableMessage": "Ni siquiera {band} en esta clase puede llevar tu promedio del periodo a {gpa}.",
+  "@gradeCalculatorGpaUnreachableMessage": {
+    "placeholders": {
+      "band": {
+        "type": "String",
+        "example": "A (93%+)",
+        "description": "The highest grade band: its letter and lowest percent."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.8",
+        "description": "The target term GPA."
+      }
+    }
+  },
+  "gradeCalculatorInvalidGpaError": "Escribe un promedio válido entre {min} y {max}",
+  "@gradeCalculatorInvalidGpaError": {
+    "placeholders": {
+      "min": {
+        "type": "String",
+        "example": "0.0",
+        "description": "The scale's lowest grade point."
+      },
+      "max": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The scale's highest grade point."
+      }
+    }
+  },
+  "gradeCalculatorInvalidGradeError": "Escribe una calificación válida entre 0 y 100",
+  "gradeCalculatorInvalidWeightsMessage": "Los pesos de las categorías no suman 100%, así que no podemos ayudarte a hacer predicciones precisas.",
+  "gradeCalculatorNeedsLastUngradedMessage": "Vuelve a consultar cuando a una categoría solo le quede una tarea sin calificar.",
+  "gradeCalculatorNeedsUngradedMessage": "Vuelve a consultar cuando esta clase tenga una tarea sin calificar.",
+  "gradeCalculatorNoWeightMessage": "La categoría seleccionada no tiene peso, así que no podemos ayudarte a hacer predicciones precisas.",
+  "gradeCalculatorPointsOfLabel": "{needed} / {possible} puntos",
+  "@gradeCalculatorPointsOfLabel": {
+    "placeholders": {
+      "needed": {
+        "type": "String",
+        "example": "17",
+        "description": "The points needed."
+      },
+      "possible": {
+        "type": "String",
+        "example": "20",
+        "description": "The points possible."
+      }
+    }
+  },
+  "gradeCalculatorScoreWithPoints": "{score} ({points})",
+  "@gradeCalculatorScoreWithPoints": {
+    "description": "A needed score and the points it means, such as 85% (17 / 20 points).",
+    "placeholders": {
+      "score": {
+        "type": "String",
+        "example": "85%",
+        "description": "The grade needed."
+      },
+      "points": {
+        "type": "String",
+        "example": "17 / 20 points",
+        "description": "The points that grade means."
+      }
+    }
+  },
+  "gradeCalculatorSelectAssignmentError": "Selecciona una tarea",
+  "gradeCalculatorSelectCategoryError": "Selecciona una categoría",
+  "gradeCalculatorTermGpaOption": "Promedio del periodo",
+  "gradeCalculatorThisCategoryFallback": "esta categoría",
+  "@gradeCalculatorThisCategoryFallback": {
+    "description": "Stands in for a category's name when it can't be found, inside a sentence about the category."
+  },
+  "gradeCalculatorTitle": "Grade Calculator",
+  "@gradeCalculatorTitle": {
+    "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
+  },
+  "gradeCalculatorWhatCouldIGetTab": "¿Qué podría obtener?",
+  "@gradeCalculatorWhatCouldIGetTab": {
+    "description": "Grade Calculator tab that projects the grade from hypothetical scores."
+  },
+  "gradeCalculatorWhatDoINeedTab": "¿Qué necesito?",
+  "@gradeCalculatorWhatDoINeedTab": {
+    "description": "Grade Calculator tab that works out the score needed for a target."
+  },
+  "gradeNotAvailableLabel": "N/D",
+  "@gradeNotAvailableLabel": {
+    "description": "Shown in place of a grade or weight that doesn't exist yet. A short abbreviation for \"not available\"."
+  },
+  "gradePointLetterAndPointTooltip": "Letra y puntos de calificación",
+  "gradePointLetterTooltip": "Calificación con letra",
+  "gradePointPointTooltip": "Puntos de calificación",
+  "gradePointValueLabel": "{gradePoint} pts",
+  "@gradePointValueLabel": {
+    "description": "A grade point, as shown beside a class's grade. GP abbreviates grade point.",
+    "placeholders": {
+      "gradePoint": {
+        "type": "String",
+        "example": "3.30"
+      }
+    }
+  },
+  "gradeProjectionAllCaughtUpMessage": "Vuelve a consultar cuando tengas trabajos sin calificar para usar esta función.",
+  "gradeProjectionAllCaughtUpTitle": "Todo al día",
+  "gradeProjectionGpaStatus": "{changes, select, changed{Promedio proyectado: {gpa} ({change})} other{Promedio proyectado: {gpa}}}",
+  "@gradeProjectionGpaStatus": {
+    "description": "The projected term GPA, with how much it changes when it changes.",
+    "placeholders": {
+      "changes": {
+        "type": "String",
+        "example": "changed",
+        "description": "changed when the GPA changes, otherwise none."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The projected term GPA."
+      },
+      "change": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the term GPA."
+      }
+    }
+  },
+  "gradeProjectionGpaWithAllStatus": "{changes, select, both{Promedio proyectado: {gpa} ({change}) • Total {allGpa} ({allChange})} term{Promedio proyectado: {gpa} ({change}) • Total {allGpa}} all{Promedio proyectado: {gpa} • Total {allGpa} ({allChange})} other{Promedio proyectado: {gpa} • Total {allGpa}}}",
+  "@gradeProjectionGpaWithAllStatus": {
+    "description": "The projected term GPA and the GPA across all terms (All), each with how much it changes when it changes.",
+    "placeholders": {
+      "changes": {
+        "type": "String",
+        "example": "both",
+        "description": "Which GPAs change: both, term, all, or none."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The projected term GPA."
+      },
+      "change": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the term GPA."
+      },
+      "allGpa": {
+        "type": "String",
+        "example": "3.5",
+        "description": "The projected GPA across all terms."
+      },
+      "allChange": {
+        "type": "String",
+        "example": "+0.1",
+        "description": "The signed change in the GPA across all terms."
+      }
+    }
+  },
+  "gradeProjectionGradeStatus": "Calificación proyectada: {grade}",
+  "@gradeProjectionGradeStatus": {
+    "placeholders": {
+      "grade": {
+        "type": "String",
+        "example": "91.5%",
+        "description": "The projected class grade."
+      }
+    }
+  },
+  "gradeProjectionNeedsAssignmentsMessage": "Vuelve a consultar cuando esta clase tenga tareas.",
+  "gradeProjectionResetButton": "Restablecer",
+  "gradeScale15Pass50": "1.0-5.0 (aprueba con 50%)",
+  "@gradeScale15Pass50": {
+    "description": "Grade scale name: the 1.0 to 5.0 scale where 50% is a passing grade. Keep the numbers as written."
+  },
+  "gradeScale15Pass75": "1.0-5.0 (aprueba con 75%)",
+  "@gradeScale15Pass75": {
+    "description": "Grade scale name: the 1.0 to 5.0 scale where 75% is a passing grade. Keep the numbers as written."
+  },
+  "gradeScale40PlusMinus": "4.0 con +/-",
+  "@gradeScale40PlusMinus": {
+    "description": "Grade scale name: the 4.0 grade point scale with plus and minus letter grades. Keep the numbers as written."
+  },
+  "gradeScale433PlusMinus": "4.33 con +/-",
+  "@gradeScale433PlusMinus": {
+    "description": "Grade scale name: the 4.33 grade point scale with plus and minus letter grades. Keep the numbers as written."
+  },
+  "gradeScaleCustom": "Personalizada",
+  "@gradeScaleCustom": {
+    "description": "Grade scale choice for a scale the student defines."
+  },
+  "gradeScaleDialogTitle": "Escala de calificaciones {scale}",
+  "@gradeScaleDialogTitle": {
+    "placeholders": {
+      "scale": {
+        "type": "String",
+        "example": "Standard",
+        "description": "The grade scale's name."
+      }
+    }
+  },
+  "gradeScaleFieldLabel": "Escala de calificaciones",
+  "gradeScaleGradeColumn": "Calificación",
+  "@gradeScaleGradeColumn": {
+    "description": "Grade scale column: the lowest percent for each band."
+  },
+  "gradeScaleLetterColumn": "Letra",
+  "@gradeScaleLetterColumn": {
+    "description": "Grade scale column: the letter grade for each band."
+  },
+  "gradeScaleLetterRange": "{highest} a {lowest}",
+  "@gradeScaleLetterRange": {
+    "description": "The range of a grade scale's letters, such as A+ to F.",
+    "placeholders": {
+      "highest": {
+        "type": "String",
+        "example": "A+",
+        "description": "The scale's highest letter."
+      },
+      "lowest": {
+        "type": "String",
+        "example": "F",
+        "description": "The scale's lowest letter."
+      }
+    }
+  },
+  "gradeScaleNone": "Solo porcentajes",
+  "@gradeScaleNone": {
+    "description": "Grade scale choice that shows grades as percentages only, with no letter grades or grade points."
+  },
+  "gradeScalePointsColumn": "Puntos",
+  "@gradeScalePointsColumn": {
+    "description": "Grade scale column: the grade points for each band."
+  },
+  "gradeScaleTopBand": "Calificación máxima: {minGrade} = {points}",
+  "@gradeScaleTopBand": {
+    "description": "Summary of a grade scale's top band: its lowest percent and grade points.",
+    "placeholders": {
+      "minGrade": {
+        "type": "String",
+        "example": "93%",
+        "description": "The band's lowest grade."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade points."
+      }
+    }
+  },
+  "gradeScaleTopBandWithLetter": "Calificación máxima: {letter} desde {minGrade} = {points}",
+  "@gradeScaleTopBandWithLetter": {
+    "description": "Summary of a grade scale's top band: its letter, lowest percent and grade points.",
+    "placeholders": {
+      "letter": {
+        "type": "String",
+        "example": "A",
+        "description": "The band's letter grade."
+      },
+      "minGrade": {
+        "type": "String",
+        "example": "93%",
+        "description": "The band's lowest grade."
+      },
+      "points": {
+        "type": "String",
+        "example": "4.0",
+        "description": "The band's grade points."
+      }
+    }
+  },
+  "gradeScaleViewLabel": "Ver escala de calificaciones",
+  "gradeTrendAllSeries": "Total",
+  "@gradeTrendAllSeries": {
+    "description": "Legend name of the line for the GPA across all terms (All GPA)."
+  },
+  "gradeTrendNoTitleFallback": "Tarea sin título",
+  "gradeTrendOverallPoint": "General • {grade}",
+  "@gradeTrendOverallPoint": {
+    "placeholders": {
+      "grade": {
+        "type": "String",
+        "example": "91.5%",
+        "description": "The class grade at this point."
+      }
+    },
+    "description": "Grade-trend tooltip: the class grade at this point."
+  },
+  "gradeTrendOverallSeries": "Calificación general",
+  "gradeTrendTermGpaPoint": "Promedio del periodo • {gpa}",
+  "@gradeTrendTermGpaPoint": {
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The term GPA at this point."
+      }
+    },
+    "description": "Grade-trend tooltip: the term GPA at this point."
+  },
+  "gradeTrendTermGpaSeries": "Promedio del periodo",
+  "gradesAllGpaSummary": "Total {gpa}",
+  "@gradesAllGpaSummary": {
+    "description": "The GPA across all terms (All GPA).",
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The GPA across all terms."
+      }
+    }
+  },
+  "gradesAllPassingMessage": "¡Todas las clases aprobadas!",
+  "gradesAtRiskBadge": "En riesgo",
+  "@gradesAtRiskBadge": {
+    "description": "Badge on a class whose grade is below the at-risk threshold."
+  },
+  "gradesAtRiskTitle": "Clases en riesgo",
+  "gradesAtRiskZoneLabel": "Zona de riesgo",
+  "@gradesAtRiskZoneLabel": {
+    "description": "Label of the shaded band on the grade graph below the at-risk threshold."
+  },
+  "gradesAutoAdjustOption": "Ajustar automáticamente al rango calificado",
+  "gradesAverageColumn": "Media",
+  "gradesBelowThresholdLabel": "por debajo de {threshold}%",
+  "@gradesBelowThresholdLabel": {
+    "description": "Under the count of at-risk classes: their grade is below the at-risk threshold.",
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesCategoryColumn": "Categoría",
+  "gradesClassesWithoutCreditsHint": "{count, plural, =1{1 clase sin créditos no se cuenta.} other{{count} clases sin créditos no se cuentan.}}",
+  "@gradesClassesWithoutCreditsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesCollapseLabel": "Contraer",
+  "gradesContributionColumn": "Contribución",
+  "@gradesContributionColumn": {
+    "description": "Column for how much the category adds to the class grade."
+  },
+  "gradesEntireTermTitle": "Periodo completo",
+  "gradesExpandLabel": "Expandir",
+  "gradesGpaAcrossTermsTitle": "Promedio de todos los periodos",
+  "gradesGpaMenuTitle": "Promedio",
+  "gradesGradeCalculatorTooltip": "Grade Calculator",
+  "@gradesGradeCalculatorTooltip": {
+    "description": "Grade Calculator is a feature name."
+  },
+  "gradesGradePreferencesOption": "Preferencias de calificaciones",
+  "gradesGradeTrendTitle": "Tendencia de calificaciones",
+  "gradesGradedColumn": "Calificadas",
+  "@gradesGradedColumn": {
+    "description": "Column for how many of the category's assignments are graded."
+  },
+  "gradesGradedCount": "{count, plural, =1{1 calificada} other{{count} calificadas}}",
+  "@gradesGradedCount": {
+    "description": "How many of the class's assignments are graded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesGradedOfTotal": "{graded} de {total}",
+  "@gradesGradedOfTotal": {
+    "placeholders": {
+      "graded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    },
+    "description": "How many of the category's assignments are graded, in the Graded column."
+  },
+  "gradesGraphErrorMessage": "Se produjo un error desconocido al cargar el gráfico",
+  "gradesGraphSettingsLabel": "Configuración del gráfico",
+  "gradesHideLegendOption": "Ocultar leyenda",
+  "gradesNoClassesInTermTitle": "Aún no hay clases en este periodo",
+  "gradesNoClassesMessage": "Ve a \"Clases\" para comenzar",
+  "@gradesNoClassesMessage": {
+    "description": "\"Classes\" is the name of the Classes tab."
+  },
+  "gradesNoGradesMessage": "Califica una tarea en el Planificador y tu tendencia aparecerá aquí.",
+  "gradesNoGradesTitle": "Aún no hay calificaciones",
+  "gradesNotCountedMessage": "{count, plural, =1{1 tarea calificada no cuenta en esta calificación} other{{count} tareas calificadas no cuentan en esta calificación}}",
+  "@gradesNotCountedMessage": {
+    "description": "Under a class's grade, when graded assignments are in a category with no weight in a class with weighted grading. Tapping it shows them on the Planner.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesOverallGradeTitle": "Calificación general",
+  "gradesPaceAhead": "Adelantado",
+  "@gradesPaceAhead": {
+    "description": "Pace status: work done is ahead of the time passed in the term."
+  },
+  "gradesPaceAllDone": "Todo listo",
+  "@gradesPaceAllDone": {
+    "description": "Pace status when all work and the term are complete."
+  },
+  "gradesPaceBehind": "Atrasado",
+  "@gradesPaceBehind": {
+    "description": "Pace status: work done is behind the time passed in the term."
+  },
+  "gradesPaceOnTrack": "En buen camino",
+  "@gradesPaceOnTrack": {
+    "description": "Pace status: work done keeps up with the time passed in the term."
+  },
+  "gradesPaceTimeLabel": "Tiempo",
+  "@gradesPaceTimeLabel": {
+    "description": "Label of the bar for how much of the term has passed."
+  },
+  "gradesPaceWarmingUp": "Calentando motores",
+  "@gradesPaceWarmingUp": {
+    "description": "Pace status before there's enough work to compare against the term's progress."
+  },
+  "gradesPaceWorkLabel": "Trabajo",
+  "@gradesPaceWorkLabel": {
+    "description": "Label of the bar for how much of the term's work is done."
+  },
+  "gradesPendingImpactTitle": "Impacto pendiente",
+  "gradesPriorCreditsHint": "{credits, plural, =1{Total incluye {formatted} crédito previo con un promedio de {gpa}.} other{Total incluye {formatted} créditos previos con un promedio de {gpa}.}}",
+  "@gradesPriorCreditsHint": {
+    "description": "All is the GPA across all terms.",
+    "placeholders": {
+      "credits": {
+        "type": "num"
+      },
+      "formatted": {
+        "type": "String",
+        "example": "12.5",
+        "description": "{credits}, written in the user's number format."
+      },
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The prior credits' GPA."
+      }
+    }
+  },
+  "gradesPriorCreditsPoint": "Previo",
+  "@gradesPriorCreditsPoint": {
+    "description": "Point on the GPA Across Terms graph for credits from before using Helium."
+  },
+  "gradesProgressPaceTitle": "Progreso vs. ritmo",
+  "gradesScaleDiffersHint": "La escala de calificaciones de este grupo es distinta de la más reciente, así que no se cuenta en tu promedio de todos los periodos.",
+  "gradesShowGpaDetailsTooltip": "Mostrar detalles del promedio",
+  "gradesShowNotCountedTooltip": "Mostrar estas tareas",
+  "gradesTermGpaSummary": "Promedio {gpa}",
+  "@gradesTermGpaSummary": {
+    "description": "The selected term's GPA.",
+    "placeholders": {
+      "gpa": {
+        "type": "String",
+        "example": "3.6",
+        "description": "The selected term's GPA."
+      }
+    }
+  },
+  "gradesUngradedAssignmentsLabel": "{count, plural, =1{tarea sin calificar} other{tareas sin calificar}}",
+  "@gradesUngradedAssignmentsLabel": {
+    "description": "Under the count of ungraded assignments, which is shown separately above it; only the words.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gradesUngradedInClassLabel": "{count} en {className}",
+  "@gradesUngradedInClassLabel": {
+    "description": "How many of the ungraded assignments are in the class they affect most.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "className": {
+        "type": "String",
+        "example": "Intro to Psychology",
+        "description": "The class's title."
+      }
+    }
+  },
+  "gradesUngradedShortLabel": "sin calificar",
+  "@gradesUngradedShortLabel": {
+    "description": "Under the count of ungraded assignments, on narrow phones."
+  },
+  "groupAddButton": "Agregar grupo",
+  "@groupAddButton": {
+    "description": "Button in a group dropdown that creates a new group (a term grouping classes, or a group of resources)."
+  },
+  "importExportChooseButton": "Elegir",
+  "importExportCreateClassOption": "Crear una nueva clase",
+  "importExportCreateGroupsOption": "Crear nuevos grupos",
+  "importExportDestinationHint": "Selecciona un destino",
+  "importExportDestinationLabel": "Importar en",
+  "importExportDownloadedMessage": "\"{filename}\" se descargó.",
+  "@importExportDownloadedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "Helium_backup.json",
+        "description": "The exported file's name."
+      }
+    }
+  },
+  "importExportExampleDescription": "Restaura los datos de ejemplo para explorar Helium",
+  "importExportExampleFailedMessage": "No se pudo importar el horario de ejemplo.",
+  "importExportExampleImportedMessage": "Horario de ejemplo reimportado.",
+  "importExportExampleTitle": "Horario de ejemplo",
+  "importExportExportButton": "Exportar",
+  "importExportExportDescription": "Exporta tus datos a un archivo de Helium (sin archivos adjuntos)",
+  "importExportExportFailedMessage": "No se pudo exportar.",
+  "importExportExportTitle": "Exportar",
+  "importExportFailedMessage": "No se pudo importar.",
+  "importExportFileFailedMessage": "No se pudo importar el archivo.",
+  "importExportImportAsEventsOption": "Importar como eventos",
+  "importExportImportButton": "Importar",
+  "importExportImportCompleteMessage": "Importación completada.",
+  "importExportImportDescription": "Importar un archivo",
+  "importExportImportTitle": "Importar",
+  "importExportImportedAssignments": "{count, plural, =1{1 tarea} other{{count} tareas}}",
+  "@importExportImportedAssignments": {
+    "description": "How many assignments an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedCategories": "{count, plural, =1{1 categoría} other{{count} categorías}}",
+  "@importExportImportedCategories": {
+    "description": "How many assignment categories an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedClasses": "{count, plural, =1{1 clase} other{{count} clases}}",
+  "@importExportImportedClasses": {
+    "description": "How many classes an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedEvents": "{count, plural, =1{1 evento} other{{count} eventos}}",
+  "@importExportImportedEvents": {
+    "description": "How many events an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedExternalCalendars": "{count, plural, =1{1 calendario externo} other{{count} calendarios externos}}",
+  "@importExportImportedExternalCalendars": {
+    "description": "How many external calendars an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedMessage": "Elementos importados: {items}.",
+  "@importExportImportedMessage": {
+    "description": "Confirmation after an import. {items} lists what was imported, such as \"3 classes, 12 assignments\".",
+    "placeholders": {
+      "items": {
+        "type": "String",
+        "example": "3 classes, 12 assignments",
+        "description": "What was imported, as a list."
+      }
+    }
+  },
+  "importExportImportedNotes": "{count, plural, =1{1 nota} other{{count} notas}}",
+  "@importExportImportedNotes": {
+    "description": "How many notes an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedReminders": "{count, plural, =1{1 recordatorio} other{{count} recordatorios}}",
+  "@importExportImportedReminders": {
+    "description": "How many reminders an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportImportedResources": "{count, plural, =1{1 recurso} other{{count} recursos}}",
+  "@importExportImportedResources": {
+    "description": "How many resources an import added. Joined with the others into the import summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "importExportInfo": "Haz copias de seguridad, restaura o importa datos desde una herramienta automatizada o un horario compartido.",
+  "importExportInvalidCalendarError": "Esto no parece un archivo de calendario válido.",
+  "importExportInvalidHeliumFileError": "Esto no parece un archivo de exportación de Helium.",
+  "importExportInvalidJsonError": "Este archivo no es un JSON válido.",
+  "importExportLoadClassesFailedMessage": "No se pudieron cargar tus clases.",
+  "importExportNoFileSelectedLabel": "No se seleccionó ningún archivo",
+  "importExportNothingExportedMessage": "No se exportó nada.",
+  "importExportNothingToImportMessage": "No hay nada que importar de este archivo.",
+  "importExportReimportExampleButton": "Reimportar horario de ejemplo",
+  "linkedNoteBothChangedAtDeleteMessage": "{item, select, assignment{Esta tarea y su nota cambiaron en otro dispositivo después de que la abrieras, la última vez {when}. ¿Guardar tus cambios y eliminar la nota?} event{Este evento y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios y eliminar la nota?} class{Esta clase y su nota cambiaron en otro dispositivo después de que la abrieras, la última vez {when}. ¿Guardar tus cambios y eliminar la nota?} resource{Este recurso y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios y eliminar la nota?} other{Este elemento y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios y eliminar la nota?}}",
+  "@linkedNoteBothChangedAtDeleteMessage": {
+    "description": "Shown when both the item and its note changed on another device and the user cleared the note to delete it, with when that device last saved.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteBothChangedAtSaveMessage": "{item, select, assignment{Esta tarea y su nota cambiaron en otro dispositivo después de que la abrieras, la última vez {when}. ¿Guardar tus cambios sobre esas versiones?} event{Este evento y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios sobre esas versiones?} class{Esta clase y su nota cambiaron en otro dispositivo después de que la abrieras, la última vez {when}. ¿Guardar tus cambios sobre esas versiones?} resource{Este recurso y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios sobre esas versiones?} other{Este elemento y su nota cambiaron en otro dispositivo después de que lo abrieras, la última vez {when}. ¿Guardar tus cambios sobre esas versiones?}}",
+  "@linkedNoteBothChangedAtSaveMessage": {
+    "description": "Shown when both the item and its note were changed on another device first, with when that device last saved.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteBothChangedDeleteMessage": "{item, select, assignment{Esta tarea y su nota cambiaron en otro dispositivo después de que la abrieras. ¿Guardar tus cambios y eliminar la nota?} event{Este evento y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios y eliminar la nota?} class{Esta clase y su nota cambiaron en otro dispositivo después de que la abrieras. ¿Guardar tus cambios y eliminar la nota?} resource{Este recurso y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios y eliminar la nota?} other{Este elemento y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios y eliminar la nota?}}",
+  "@linkedNoteBothChangedDeleteMessage": {
+    "description": "Shown when both changed on another device and the user cleared the note to delete it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteBothChangedSaveMessage": "{item, select, assignment{Esta tarea y su nota cambiaron en otro dispositivo después de que la abrieras. ¿Guardar tus cambios sobre esas versiones?} event{Este evento y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esas versiones?} class{Esta clase y su nota cambiaron en otro dispositivo después de que la abrieras. ¿Guardar tus cambios sobre esas versiones?} resource{Este recurso y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esas versiones?} other{Este elemento y su nota cambiaron en otro dispositivo después de que lo abrieras. ¿Guardar tus cambios sobre esas versiones?}}",
+  "@linkedNoteBothChangedSaveMessage": {
+    "description": "Shown when both the item and its note were changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedAtDeleteMessage": "{item, select, assignment{Tus otros cambios se guardaron, pero la nota de esta tarea cambió en otro dispositivo {when}, después de que la abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} event{Tus otros cambios se guardaron, pero la nota de este evento cambió en otro dispositivo {when}, después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} class{Tus otros cambios se guardaron, pero la nota de esta clase cambió en otro dispositivo {when}, después de que la abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} resource{Tus otros cambios se guardaron, pero la nota de este recurso cambió en otro dispositivo {when}, después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} other{Tus otros cambios se guardaron, pero la nota de este elemento cambió en otro dispositivo {when}, después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?}}",
+  "@linkedNoteChangedAtDeleteMessage": {
+    "description": "Shown when the user cleared the note to delete it, but it was changed on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteChangedAtSaveMessage": "{item, select, assignment{Tus otros cambios se guardaron, pero la nota de esta tarea cambió en otro dispositivo {when}, después de que la abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} event{Tus otros cambios se guardaron, pero la nota de este evento cambió en otro dispositivo {when}, después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} class{Tus otros cambios se guardaron, pero la nota de esta clase cambió en otro dispositivo {when}, después de que la abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} resource{Tus otros cambios se guardaron, pero la nota de este recurso cambió en otro dispositivo {when}, después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} other{Tus otros cambios se guardaron, pero la nota de este elemento cambió en otro dispositivo {when}, después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?}}",
+  "@linkedNoteChangedAtSaveMessage": {
+    "description": "Shown when the item saved but its note was changed on another device first, with when that device saved it.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      },
+      "when": {
+        "type": "String",
+        "example": "on Tue at 5:42 PM",
+        "description": "When the other device saved it, from a dateTime* message."
+      }
+    }
+  },
+  "linkedNoteChangedDeleteMessage": "{item, select, assignment{Tus otros cambios se guardaron, pero la nota de esta tarea cambió en otro dispositivo después de que la abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} event{Tus otros cambios se guardaron, pero la nota de este evento cambió en otro dispositivo después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} class{Tus otros cambios se guardaron, pero la nota de esta clase cambió en otro dispositivo después de que la abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} resource{Tus otros cambios se guardaron, pero la nota de este recurso cambió en otro dispositivo después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?} other{Tus otros cambios se guardaron, pero la nota de este elemento cambió en otro dispositivo después de que lo abrieras. ¿Eliminar la nota de todos modos, incluidos esos cambios?}}",
+  "@linkedNoteChangedDeleteMessage": {
+    "description": "Shown when the user cleared the note to delete it, but it was changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedSaveMessage": "{item, select, assignment{Tus otros cambios se guardaron, pero la nota de esta tarea cambió en otro dispositivo después de que la abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} event{Tus otros cambios se guardaron, pero la nota de este evento cambió en otro dispositivo después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} class{Tus otros cambios se guardaron, pero la nota de esta clase cambió en otro dispositivo después de que la abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} resource{Tus otros cambios se guardaron, pero la nota de este recurso cambió en otro dispositivo después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?} other{Tus otros cambios se guardaron, pero la nota de este elemento cambió en otro dispositivo después de que lo abrieras. ¿Guardar los cambios de tu nota sobre esa versión?}}",
+  "@linkedNoteChangedSaveMessage": {
+    "description": "Shown when the item saved but its note was changed on another device first.",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "assignment",
+        "description": "What changed: assignment, event, class or resource."
+      }
+    }
+  },
+  "linkedNoteChangedTitle": "Nota modificada en otro dispositivo",
+  "linkedNoteDeleteButton": "Eliminar nota",
+  "linkedNoteKeepButton": "Conservar nota",
+  "linkedNoteRecreatedMessage": "Esta nota se eliminó en otro dispositivo, por lo que se guardó como una nota nueva.",
+  "linkedNoteSaveFailedMessage": "Tus otros cambios se guardaron, pero no se pudo guardar la nota: {reason}",
+  "@linkedNoteSaveFailedMessage": {
+    "description": "Error when the item saved but its note didn't. The reason comes from the server.",
+    "placeholders": {
+      "reason": {
+        "type": "String",
+        "example": "Server error. Please try again later.",
+        "description": "Why the note didn't save."
+      }
+    }
+  },
+  "mobileWebAppStoreButton": "Descargar en el App Store",
+  "@mobileWebAppStoreButton": {
+    "description": "Text of the Apple App Store button on the get-the-app screen. Use Apple's official wording for the App Store badge in your language."
+  },
+  "mobileWebContinueOnWebButton": "Continuar en la web",
+  "mobileWebGooglePlayButton": "Disponible en Google Play",
+  "@mobileWebGooglePlayButton": {
+    "description": "Text of the Google Play button on the get-the-app screen. Use Google's official wording for the Google Play badge in your language."
+  },
+  "mobileWebNativeAppPitch": "La aplicación nativa es más rápida, más fluida y está diseñada para tu teléfono.",
+  "mobileWebNotificationsDescription": "Mantente al tanto de todo con recordatorios.",
+  "mobileWebNotificationsTitle": "Notificaciones push",
+  "mobileWebStoreLinkFailedMessage": "No se pudo abrir el enlace de la tienda de aplicaciones.",
+  "mobileWebSyncDescription": "Pasa sin interrupciones entre la web, iOS y Android.",
+  "mobileWebSyncTitle": "Todo permanece sincronizado",
+  "mobileWebTitle": "Descarga la aplicación de Helium",
+  "mobileWebTouchDescription": "Diseñada para pantallas táctiles, gestos y pantallas pequeñas.",
+  "mobileWebTouchTitle": "Mejor experiencia móvil",
+  "@mobileWebTouchTitle": {
+    "description": "Name of a benefit of the native app, on the get-the-app screen. \"UX\" means user experience."
+  },
+  "navAppStoreTooltip": "Descargar en el App Store",
+  "@navAppStoreTooltip": {
+    "description": "Tooltip of the Apple button in the web app's side navigation that opens the iOS app's App Store page. Use Apple's official wording for your language."
+  },
+  "navClassesLabel": "Clases",
+  "@navClassesLabel": {
+    "description": "Name of the tab where students manage their classes (courses), in the navigation bar and as that screen's title."
+  },
+  "navGooglePlayTooltip": "Disponible en Google Play",
+  "@navGooglePlayTooltip": {
+    "description": "Tooltip of the Android button in the web app's side navigation that opens the Google Play page. Use Google's official wording for your language."
+  },
+  "navGradesLabel": "Calificaciones",
+  "@navGradesLabel": {
+    "description": "Name of the grades tab, in the navigation bar and as that screen's title."
+  },
+  "navKeepHeliumFreeTooltip": "Mantén Helium gratis",
+  "@navKeepHeliumFreeTooltip": {
+    "description": "Tooltip of the heart button in the side navigation that opens Helium's Patreon page to support the app."
+  },
+  "navNotebookLabel": "Cuaderno",
+  "@navNotebookLabel": {
+    "description": "Name of the tab where students write notes, in the navigation bar and as that screen's title."
+  },
+  "navPlannerLabel": "Planificador",
+  "@navPlannerLabel": {
+    "description": "Name of the app's calendar tab, in the navigation bar and as that screen's title."
+  },
+  "navResourcesLabel": "Recursos",
+  "@navResourcesLabel": {
+    "description": "Name of the tab for textbooks and other class materials, in the navigation bar and as that screen's title."
+  },
+  "networkServerErrorMessage": "Error del servidor. Inténtalo de nuevo más tarde.",
+  "networkTimedOutMessage": "Helium tardó demasiado en responder. Revisa tu conexión e inténtalo de nuevo.",
+  "networkUnreachableMessage": "No se pudo conectar con Helium. Revisa tu conexión e inténtalo de nuevo.",
+  "noteAddTitle": "Agregar nota",
+  "noteAutoSaveActiveTooltip": "Guardado automático activo",
+  "noteAutoSaveInactiveTooltip": "Guardado automático aún no activo",
+  "noteAutoSavePausedLabel": "Guardado automático pausado",
+  "noteAutoSavePausedRetryingLabel": "Guardado automático pausado, se reintentará",
+  "noteChangesRecoveredMessage": "Se recuperaron tus cambios sin guardar.",
+  "noteCreatedMessage": "Nota creada.",
+  "noteDeletedMessage": "Nota eliminada.",
+  "noteEditTitle": "Editar nota",
+  "noteEmptyNotSavedMessage": "La nota estaba vacía, así que no había nada que guardar.",
+  "noteLinkAssignmentTitle": "Vincular tarea",
+  "noteLinkAssignmentTooltip": "Tarea",
+  "noteLinkClassTitle": "Vincular clase",
+  "noteLinkClassTooltip": "Clase",
+  "@noteLinkClassTooltip": {
+    "description": "Tooltip on the choice that lists classes to link the note to."
+  },
+  "noteLinkEventTitle": "Vincular evento",
+  "noteLinkEventTooltip": "Evento",
+  "noteLinkNoAssignmentsMatchMessage": "No hay tareas que coincidan",
+  "noteLinkNoAssignmentsMessage": "No hay tareas disponibles",
+  "noteLinkNoClassesMatchMessage": "No hay clases que coincidan",
+  "noteLinkNoClassesMessage": "No hay clases disponibles",
+  "noteLinkNoEventsMatchMessage": "No hay eventos que coincidan",
+  "noteLinkNoEventsMessage": "No hay eventos disponibles",
+  "noteLinkNoResourcesMatchMessage": "No hay recursos que coincidan",
+  "noteLinkNoResourcesMessage": "No hay recursos disponibles",
+  "noteLinkRepeatsFromDate": "Desde {date}",
+  "@noteLinkRepeatsFromDate": {
+    "description": "Date shown beside a repeating item: when it starts repeating.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4"
+      }
+    }
+  },
+  "noteLinkRepeatsLabel": "Se repite",
+  "@noteLinkRepeatsLabel": {
+    "description": "Name of the icon beside an item that repeats."
+  },
+  "noteLinkResourceTitle": "Vincular recurso",
+  "noteLinkResourceTooltip": "Recurso",
+  "@noteLinkResourceTooltip": {
+    "description": "Tooltip on the choice that lists resources (books and materials) to link the note to."
+  },
+  "noteLinkTextLabel": "Texto del enlace",
+  "noteLinkUrlLabel": "URL del enlace",
+  "noteLinkableItemsFailedMessage": "No se pudieron cargar los elementos.",
+  "noteOpenInClassesTooltip": "Abrir en Clases",
+  "@noteOpenInClassesTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Classes tab. Classes is the name of a Helium tab."
+  },
+  "noteOpenInPlannerTooltip": "Abrir en Planificador",
+  "@noteOpenInPlannerTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Planner tab. Planner is the name of a Helium tab."
+  },
+  "noteOpenInResourcesTooltip": "Abrir en Recursos",
+  "@noteOpenInResourcesTooltip": {
+    "description": "Tooltip on a note's linked item, which opens it in the Resources tab. Resources is the name of a Helium tab."
+  },
+  "notePdfFilename": "nota.pdf",
+  "@notePdfFilename": {
+    "description": "File name of the PDF of a note with no title. Keep the .pdf extension and use no spaces."
+  },
+  "notePdfPreviewTitle": "Vista previa de la nota",
+  "noteRecoverButton": "Recuperar",
+  "noteRecoverChangedAtMessage": "Esta nota se modificó en otro dispositivo {when}. ¿Recuperar tus cambios de todos modos, reemplazando esa versión?",
+  "@noteRecoverChangedAtMessage": {
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "at 5:42 PM",
+        "description": "When the other device saved, like \"at 5:42 PM\" or \"on Tue at 5:42 PM\"."
+      }
+    }
+  },
+  "noteRecoverChangedMessage": "Esta nota se modificó en otro dispositivo. ¿Recuperar tus cambios de todos modos, reemplazando esa versión?",
+  "noteRecoverChangedRelativeMessage": "{direction, select, before{Esta nota se modificó en otro dispositivo {gap} antes de tus cambios recuperados. ¿Recuperar tus cambios de todos modos, reemplazando esa versión?} after{Esta nota se modificó en otro dispositivo {gap} después de tus cambios recuperados. ¿Recuperar tus cambios de todos modos, reemplazando esa versión?} other{Esta nota se modificó en otro dispositivo aproximadamente al mismo tiempo que tus cambios recuperados. ¿Recuperar tus cambios de todos modos, reemplazando esa versión?}}",
+  "@noteRecoverChangedRelativeMessage": {
+    "description": "The other choice is when both changes happened within a minute.",
+    "placeholders": {
+      "direction": {
+        "type": "String",
+        "example": "before",
+        "description": "before or after the recovered changes, otherwise sameTime."
+      },
+      "gap": {
+        "type": "String",
+        "example": "about 2 days",
+        "description": "A length of time, like \"about 2 days\"."
+      }
+    }
+  },
+  "noteRecoverChangesTitle": "¿Recuperar tus cambios?",
+  "noteSemanticsLabel": "Nota",
+  "@noteSemanticsLabel": {
+    "description": "Spoken name of a note's text area."
+  },
+  "noteStandaloneLabel": "Independiente",
+  "@noteStandaloneLabel": {
+    "description": "Label for a note that isn't linked to an assignment, class, event or resource."
+  },
+  "noteTitleHint": "Título",
+  "noteUnlinkLabel": "Desvincular",
+  "notebookAlsoSearchContentTooltip": "También buscar en el contenido de las notas",
+  "notebookEmptyTitle": "Aún no has agregado ninguna nota",
+  "notebookFilterTypeClasses": "Clases",
+  "notebookFilterTypeResources": "Recursos",
+  "@notebookFilterTypeResources": {
+    "description": "Filter for notes linked to resources (books and materials)."
+  },
+  "notebookHideHiddenGroupsLabel": "Ocultar notas vinculadas a grupos ocultos",
+  "notebookLinkedToColumn": "Vinculada a",
+  "notebookModifiedColumn": "Modificada",
+  "@notebookModifiedColumn": {
+    "description": "Notebook column heading for when a note last changed."
+  },
+  "notebookNoMatchesMessage": "Ninguna nota coincide con los filtros o la búsqueda aplicados",
+  "notebookNoteRecoveredMessage": "Se recuperó tu nota sin guardar.",
+  "notebookRecoveredDraftNamedTitle": "[Borrador recuperado] {title}",
+  "@notebookRecoveredDraftNamedTitle": {
+    "description": "Title saved on a note recovered from unsaved changes, before its own title. Saved as the note's title.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Lecture 4"
+      }
+    }
+  },
+  "notebookRecoveredDraftTitle": "[Borrador recuperado]",
+  "@notebookRecoveredDraftTitle": {
+    "description": "Title saved on a note recovered from unsaved changes when its own title can't be kept."
+  },
+  "notebookSearchContentButton": "Buscar en el contenido de las notas",
+  "notebookStopSearchingContentTooltip": "Dejar de buscar en el contenido de las notas",
+  "notesEditorLabel": "Notas",
+  "notesInvalidFormatMessage": "Esta nota no tiene un formato válido y no se puede cargar.",
+  "notesOpenInNotebookButton": "Abrir en Cuaderno",
+  "@notesOpenInNotebookButton": {
+    "description": "Button beside the notes field that opens the note in the Notebook tab."
+  },
+  "notificationChannelDescription": "Notificaciones de Helium",
+  "notificationChannelName": "Aplicación Helium",
+  "@notificationChannelName": {
+    "description": "Name of the app's notification channel in Android's notification settings. Helium is the app's name."
+  },
+  "notificationsAllRemindersDismissedMessage": "Se han descartado todos los recordatorios.",
+  "notificationsDismissAllTooltip": "Descartar todo",
+  "notificationsDismissReminderLabel": "Descartar recordatorio",
+  "notificationsEmptyMessage": "Los recordatorios aparecerán aquí cuando venzan",
+  "notificationsReminderDismissedMessage": "Recordatorio descartado.",
+  "notificationsTitle": "Notificaciones",
+  "oauthRelinkButton": "Vincular {provider}",
+  "@oauthRelinkButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkDeclineButton": "No vincular",
+  "oauthRelinkLinkedMessage": "{provider} ahora está vinculado a tu cuenta.",
+  "@oauthRelinkLinkedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkNotLinkedMessage": "{provider} no se vinculó. Inicia sesión con {provider} cuando quieras para vincularlo.",
+  "@oauthRelinkNotLinkedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkPendingMessage": "{provider} aún debe vincularse a tu cuenta. ¿Vincularlo para que ambos sigan funcionando?",
+  "@oauthRelinkPendingMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkRemovedMessage": "Al iniciar sesión con {signedInWith} se eliminó {provider} de tu cuenta. ¿Vincularlo para que ambos sigan funcionando?",
+  "@oauthRelinkRemovedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      },
+      "signedInWith": {
+        "type": "String",
+        "example": "Apple",
+        "description": "The provider the user just signed in with: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "oauthRelinkTitle": "¿Vincular {provider}?",
+  "@oauthRelinkTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "pageAddLabel": "Agregar",
+  "pageNotificationsLabel": "Notificaciones",
+  "pagerAllOption": "Todas",
+  "@pagerAllOption": {
+    "description": "Choice in the rows-per-page dropdown that shows every row on one page."
+  },
+  "pagerRangeLabel": "{start} a {end} de {total}",
+  "@pagerRangeLabel": {
+    "description": "Shorter text below a table on narrow screens, saying which rows are on the current page. Example: \"1 to 10 of 42\".",
+    "placeholders": {
+      "start": {
+        "type": "int",
+        "example": "1"
+      },
+      "end": {
+        "type": "int",
+        "example": "10"
+      },
+      "total": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  "pagerShowLabel": "Mostrar",
+  "@pagerShowLabel": {
+    "description": "Label before the dropdown that picks how many rows a table shows per page (\"Show [10]\")."
+  },
+  "pagerShowingRangeLabel": "Mostrando {start} a {end} de {total}",
+  "@pagerShowingRangeLabel": {
+    "placeholders": {
+      "start": {
+        "type": "int",
+        "example": "1"
+      },
+      "end": {
+        "type": "int",
+        "example": "10"
+      },
+      "total": {
+        "type": "int",
+        "example": "42"
+      }
+    }
+  },
+  "passwordHideLabel": "Ocultar contraseña",
+  "passwordShowLabel": "Mostrar contraseña",
+  "pickerFromLabel": "Desde",
+  "@pickerFromLabel": {
+    "description": "Label of the start date field in a date range."
+  },
+  "pickerToLabel": "Hasta",
+  "@pickerToLabel": {
+    "description": "Label of the end date field in a date range."
+  },
+  "plannerAssignmentClonedMessage": "Tarea clonada.",
+  "plannerAssignmentCreatedMessage": "Tarea creada.",
+  "plannerAssignmentCreatedOutsideTodosMessage": "Tarea creada. Está fuera de las fechas de tus grupos, por lo que no aparecerá en Pendientes.",
+  "plannerAssignmentDeletedMessage": "Tarea eliminada.",
+  "plannerAssignmentMovedOutsideTodosMessage": "Tarea movida. Está fuera de las fechas de tus grupos, por lo que no aparecerá en Pendientes.",
+  "plannerAssignmentNotFoundMessage": "Tarea no encontrada.",
+  "plannerAssignmentSavedOutsideTodosMessage": "Tarea guardada. Está fuera de las fechas de tus grupos, por lo que no aparecerá en Pendientes.",
+  "plannerChangeViewTooltip": "Cambiar vista",
+  "plannerCloneLabel": "Clonar",
+  "@plannerCloneLabel": {
+    "description": "Spoken name of the button that copies the item."
+  },
+  "plannerCloneOccurrenceLabel": "Clonar esta repetición",
+  "plannerCollapseTooltip": "Contraer",
+  "plannerCompleteItemLabel": "Completar {title}",
+  "@plannerCompleteItemLabel": {
+    "description": "Spoken name of the checkbox that marks an assignment complete.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Lab report",
+        "description": "The assignment's title."
+      }
+    }
+  },
+  "plannerDeletesAttachmentsNoteDetail": "También se eliminarán sus archivos adjuntos y su nota.",
+  "plannerEmailTeacherLabel": "Enviar correo al profesor",
+  "plannerEventClonedMessage": "Evento clonado.",
+  "plannerEventCreatedMessage": "Evento creado.",
+  "plannerEventDeletedMessage": "Evento eliminado.",
+  "plannerFilterOnlyCompleteLabel": "Solo completadas",
+  "@plannerFilterOnlyCompleteLabel": {
+    "description": "Spoken name of the switch that shows only completed assignments (off shows only incomplete)."
+  },
+  "plannerFilterOnlyGradedLabel": "Solo calificadas",
+  "plannerFilterOnlyLabel": "Solo",
+  "@plannerFilterOnlyLabel": {
+    "description": "Label beside the switch that narrows a status filter to one side, such as only complete."
+  },
+  "plannerFilterStatusComplete": "Completadas",
+  "@plannerFilterStatusComplete": {
+    "description": "Planner filter for completed assignments."
+  },
+  "plannerFilterStatusGraded": "Calificadas",
+  "@plannerFilterStatusGraded": {
+    "description": "Planner filter for graded assignments."
+  },
+  "plannerFilterStatusIncomplete": "Incompletas",
+  "@plannerFilterStatusIncomplete": {
+    "description": "Planner filter for incomplete assignments."
+  },
+  "plannerFilterStatusOverdue": "Vencidas",
+  "@plannerFilterStatusOverdue": {
+    "description": "Planner filter for overdue assignments."
+  },
+  "plannerFilterStatusUngraded": "Sin calificar",
+  "@plannerFilterStatusUngraded": {
+    "description": "Planner filter for ungraded assignments."
+  },
+  "plannerFilterTypeAssignments": "Tareas",
+  "plannerFilterTypeClassSchedules": "Horarios de clases",
+  "plannerFilterTypeEvents": "Eventos",
+  "plannerFilterTypeExternalCalendars": "Calendarios externos",
+  "@plannerFilterTypeExternalCalendars": {
+    "description": "Planner filter that shows events from external calendars. External Calendars is a feature name."
+  },
+  "plannerFiltersCategoriesSection": "CATEGORÍAS",
+  "@plannerFiltersCategoriesSection": {
+    "description": "Heading of the filter menu's section for assignment categories. Shown in capitals."
+  },
+  "plannerFiltersClassesSection": "CLASES",
+  "@plannerFiltersClassesSection": {
+    "description": "Heading of the filter menu's section for classes. Shown in capitals."
+  },
+  "plannerFiltersClearAllButton": "Borrar todo",
+  "plannerFiltersExternalCalendarsSection": "CALENDARIOS EXTERNOS",
+  "@plannerFiltersExternalCalendarsSection": {
+    "description": "Heading of the filter menu's section for external calendars. Shown in capitals."
+  },
+  "plannerFiltersStatusSection": "ESTADO",
+  "@plannerFiltersStatusSection": {
+    "description": "Heading of the filter menu's section for assignment status. Shown in capitals."
+  },
+  "plannerFiltersTitle": "Filtros",
+  "plannerFiltersTypesSection": "TIPOS",
+  "@plannerFiltersTypesSection": {
+    "description": "Heading of the filter menu's section for item types. Shown in capitals."
+  },
+  "plannerItemAddClassLabel": "Agregar una clase",
+  "plannerItemAllDayLabel": "Todo el día",
+  "plannerItemAssignmentTooltip": "Tarea",
+  "plannerItemCategoryLabel": "Categoría",
+  "plannerItemClassLabel": "Clase",
+  "plannerItemClassUnavailableMessage": "Esta clase ya no está disponible. Cierra y vuelve a abrir esta tarea.",
+  "plannerItemCompleteLabel": "Completada",
+  "@plannerItemCompleteLabel": {
+    "description": "Checkbox that marks the assignment complete."
+  },
+  "plannerItemDetailsStep": "Detalles",
+  "plannerItemEndDateLabel": "Fecha de finalización",
+  "plannerItemEndTimeLabel": "Hora de finalización",
+  "plannerItemEventTooltip": "Evento",
+  "plannerItemFixFieldsMessage": "Corrige los campos resaltados y vuelve a intentarlo.",
+  "plannerItemGradeHint": "Calificación",
+  "plannerItemNoClassesInfo": "Cuando hayas creado al menos una clase que aparezca en el Planificador, también podrás agregar tareas desde aquí.",
+  "plannerItemPriorityLabel": "Prioridad",
+  "plannerItemResourcesLabel": "Recursos",
+  "plannerItemSelectResourcesButton": "Seleccionar recursos",
+  "plannerItemShowEndLabel": "Mostrar fin",
+  "@plannerItemShowEndLabel": {
+    "description": "Checkbox that shows the item's end date and time fields."
+  },
+  "plannerItemStartDateLabel": "Fecha de inicio",
+  "plannerItemStartTimeLabel": "Hora de inicio",
+  "plannerItemTitleLabel": "Título",
+  "plannerItemUngradedCategoryLabel": "{category} (Sin calificar)",
+  "@plannerItemUngradedCategoryLabel": {
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Reading",
+        "description": "The category's name."
+      }
+    }
+  },
+  "plannerItemWeightedCategoryLabel": "{category} ({weight})",
+  "@plannerItemWeightedCategoryLabel": {
+    "description": "A category in the dropdown, with its share of the class grade.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Homework",
+        "description": "The category's name."
+      },
+      "weight": {
+        "type": "String",
+        "example": "20%",
+        "description": "The category's weight, as a percent."
+      }
+    }
+  },
+  "plannerKeepsRemindersDetail": "Conserva sus recordatorios.",
+  "@plannerKeepsRemindersDetail": {
+    "description": "Explains, in the dialog for changing one occurrence of a repeating item, that the occurrence keeps its reminders."
+  },
+  "plannerLaunchClassWebsiteLabel": "Abrir el sitio web de la clase",
+  "plannerMoreItemsLabel": "+{count} más",
+  "@plannerMoreItemsLabel": {
+    "description": "Link in a busy month-view day that shows the items that don't fit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3",
+        "description": "How many items are hidden."
+      }
+    }
+  },
+  "plannerNextLabel": "Siguiente",
+  "plannerOnlineLabel": "En línea",
+  "plannerPreviousLabel": "Anterior",
+  "plannerShowResourcesTooltip": "Mostrar recursos",
+  "plannerTodayButton": "Hoy",
+  "@plannerTodayButton": {
+    "description": "Button that jumps the Planner to today."
+  },
+  "plannerTooltipExternalCalendarSource": "Calendario externo",
+  "@plannerTooltipExternalCalendarSource": {
+    "description": "Fills in for an external calendar's name when it isn't known. External Calendar is a feature name."
+  },
+  "plannerViewAgenda": "Agenda",
+  "@plannerViewAgenda": {
+    "description": "Name of the Planner view that lists items in date order."
+  },
+  "plannerViewDay": "Día",
+  "@plannerViewDay": {
+    "description": "Name of the Planner view that shows one day."
+  },
+  "plannerViewMonth": "Mes",
+  "@plannerViewMonth": {
+    "description": "Name of the Planner view that shows one month."
+  },
+  "plannerViewThreeDay": "3 días",
+  "plannerViewTodos": "Pendientes",
+  "@plannerViewTodos": {
+    "description": "Name of the Planner view that lists assignments as a to-do list. A feature name."
+  },
+  "plannerViewWeek": "Semana",
+  "@plannerViewWeek": {
+    "description": "Name of the Planner view that shows one week."
+  },
+  "preferencesAtRiskDescription": "Se marcan las clases con una calificación general inferior a este valor",
+  "preferencesAtRiskLabel": "Umbral de riesgo (%)",
+  "preferencesCalendarSection": "CALENDARIO",
+  "@preferencesCalendarSection": {
+    "description": "Heading of the Preferences section for calendar settings. Shown in capitals."
+  },
+  "preferencesCollapseBusyDaysDescription": "Limita los elementos visibles por día en la vista mensual y muestra \"+N más\"",
+  "@preferencesCollapseBusyDaysDescription": {
+    "description": "Help text under the collapse busy days setting. \"+N more\" is the link shown for hidden items."
+  },
+  "preferencesCollapseBusyDaysLabel": "Contraer días ocupados",
+  "preferencesColorByCategoryDescription": "Usar el color de la categoría en lugar del color de la clase",
+  "preferencesColorByCategoryLabel": "Color según la categoría de la tarea",
+  "preferencesDateFormatLabel": "Formato de fecha",
+  "preferencesDefaultReminderLabel": "Recordatorio predeterminado",
+  "preferencesDefaultViewLabel": "Vista predeterminada",
+  "preferencesDisplaySection": "VISUALIZACIÓN",
+  "@preferencesDisplaySection": {
+    "description": "Heading of the Preferences section for colors. Shown in capitals."
+  },
+  "preferencesDragAndDropLabel": "Arrastrar y soltar en dispositivos táctiles",
+  "preferencesEventsColorLabel": "Color de los eventos",
+  "preferencesGeneralSection": "GENERAL",
+  "@preferencesGeneralSection": {
+    "description": "Heading of the first Preferences section. Shown in capitals."
+  },
+  "preferencesGradesColorLabel": "Color de las calificaciones",
+  "preferencesGradesSection": "CALIFICACIONES",
+  "@preferencesGradesSection": {
+    "description": "Heading of the Preferences section for grade settings. Shown in capitals."
+  },
+  "preferencesLanguageLabel": "Idioma",
+  "preferencesNumberFormatLabel": "Formato de número",
+  "preferencesOnTrackDescription": "Cuánto puede desviarse tu trabajo del ritmo y seguir en buen camino, y cuánto por encima del umbral de riesgo una calificación se muestra como advertencia",
+  "@preferencesOnTrackDescription": {
+    "description": "Help text under the on-track tolerance field. On Track is a grade status."
+  },
+  "preferencesOnTrackLabel": "Margen para ir en buen camino (%)",
+  "preferencesPlannerSection": "PLANIFICADOR",
+  "@preferencesPlannerSection": {
+    "description": "Heading of the Preferences section for Planner settings. Shown in capitals."
+  },
+  "preferencesPriorCreditsDescription": "Créditos de antes de empezar a usar Helium, que cuentan en tu promedio general",
+  "@preferencesPriorCreditsDescription": {
+    "description": "Help text under the prior credits field. All GPA is the GPA across all terms."
+  },
+  "preferencesPriorCreditsLabel": "Créditos anteriores",
+  "preferencesPriorGpaDescription": "Tu promedio en esos créditos anteriores",
+  "preferencesPriorGpaLabel": "Promedio anterior",
+  "preferencesRememberFiltersDescription": "Conserva los filtros elegidos en este dispositivo cuando salgas y vuelvas",
+  "preferencesRememberFiltersLabel": "Recordar los filtros seleccionados",
+  "preferencesRemindBeforeLabel": "Valor predeterminado de \"Recordar antes\"",
+  "@preferencesRemindBeforeLabel": {
+    "description": "Label of the default time before an item that its reminder goes off."
+  },
+  "preferencesRemindersSection": "RECORDATORIOS",
+  "@preferencesRemindersSection": {
+    "description": "Heading of the Preferences section for reminder settings. Shown in capitals."
+  },
+  "preferencesResourcesColorLabel": "Color de los recursos",
+  "preferencesShowTooltipsLabel": "Mostrar descripciones emergentes",
+  "preferencesShowWeekNumbersLabel": "Mostrar números de semana",
+  "preferencesTimeFormatLabel": "Formato de hora",
+  "preferencesTimeZoneChangeNotice": "Las tareas y los eventos se ajustarán a la zona horaria {timeZone}. Los horarios de clase se mantienen tal como los ingresaste.",
+  "@preferencesTimeZoneChangeNotice": {
+    "placeholders": {
+      "timeZone": {
+        "type": "String",
+        "example": "Pacific",
+        "description": "The name of the newly chosen time zone."
+      }
+    }
+  },
+  "preferencesTimeZoneLabel": "Zona horaria",
+  "preferencesWeekStartsOnLabel": "La semana comienza el",
+  "printDefaultTitle": "Imprimir",
+  "@printDefaultTitle": {
+    "description": "Title of the print preview when the page has none. Also used, in lowercase, in the PDF's file name."
+  },
+  "printDocumentName": "Documento",
+  "@printDocumentName": {
+    "description": "Name of the print job when the page has no title, shown in the system's print queue."
+  },
+  "printPdfFailedMessage": "No se pudo generar el PDF.",
+  "printPreviewTitle": "Vista previa",
+  "@printPreviewTitle": {
+    "description": "Title of the print preview screen."
+  },
+  "quillSearchCloseLabel": "Cerrar búsqueda",
+  "quillSearchMatchCaseTooltip": "Coincidir mayúsculas y minúsculas",
+  "quillSearchNextTooltip": "Siguiente",
+  "@quillSearchNextTooltip": {
+    "description": "Button that jumps to the next match in note search."
+  },
+  "quillSearchPreviousTooltip": "Anterior",
+  "@quillSearchPreviousTooltip": {
+    "description": "Button that jumps to the previous match in note search."
+  },
+  "quillSearchWholeWordTooltip": "Coincidir palabra completa",
+  "quillToolbarLessTooltip": "Menos",
+  "@quillToolbarLessTooltip": {
+    "description": "Tooltip and spoken name of the button that collapses the note toolbar's extra formatting buttons."
+  },
+  "quillToolbarMoreTooltip": "Más",
+  "@quillToolbarMoreTooltip": {
+    "description": "Tooltip and spoken name of the button that shows the note toolbar's extra formatting buttons."
+  },
+  "recurrenceCustomOption": "Personalizado",
+  "@recurrenceCustomOption": {
+    "description": "Repeat option shown for a repeat pattern made elsewhere that the form can't edit."
+  },
+  "recurrenceCustomSchedule": "Se repite con una frecuencia personalizada",
+  "recurrenceEndAfterOption": "Después de",
+  "@recurrenceEndAfterOption": {
+    "description": "End option for a repeat that stops after a number of occurrences."
+  },
+  "recurrenceEndDateLabel": "Fecha de finalización",
+  "recurrenceEndNeverOption": "Nunca",
+  "recurrenceEndOfClassOption": "Fin de la clase",
+  "@recurrenceEndOfClassOption": {
+    "description": "End option for a repeating assignment that repeats until its class ends."
+  },
+  "recurrenceEndOnDateOption": "En una fecha",
+  "recurrenceEndsLabel": "Termina",
+  "@recurrenceEndsLabel": {
+    "description": "Label of the dropdown that picks when a repeat stops."
+  },
+  "recurrenceEveryLabel": "Cada",
+  "@recurrenceEveryLabel": {
+    "description": "Label of the field for how many days, weeks, months or years apart the item repeats; the unit follows the number."
+  },
+  "recurrenceFrequencyDaily": "Diario",
+  "recurrenceFrequencyMonthly": "Mensual",
+  "recurrenceFrequencyNone": "No se repite",
+  "recurrenceFrequencyWeekly": "Semanal",
+  "recurrenceFrequencyYearly": "Anual",
+  "recurrenceIntervalUnitDays": "{count, plural, =1{día} other{días}}",
+  "@recurrenceIntervalUnitDays": {
+    "description": "The unit after the Every field: every 1 day, every 2 days. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitMonths": "{count, plural, =1{mes} other{meses}}",
+  "@recurrenceIntervalUnitMonths": {
+    "description": "The unit after the Every field: every 1 month, every 2 months. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitWeeks": "{count, plural, =1{semana} other{semanas}}",
+  "@recurrenceIntervalUnitWeeks": {
+    "description": "The unit after the Every field: every 1 week, every 2 weeks. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceIntervalUnitYears": "{count, plural, =1{año} other{años}}",
+  "@recurrenceIntervalUnitYears": {
+    "description": "The unit after the Every field: every 1 year, every 2 years. Only the word, the number is the field.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "recurrenceLastDayOfMonthDescription": "De lo contrario, se omiten los meses que no tienen día {day}.",
+  "@recurrenceLastDayOfMonthDescription": {
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "example": "30",
+        "description": "The day of the month the item starts on."
+      }
+    }
+  },
+  "recurrenceLastDayOfMonthLabel": "El último día del mes",
+  "recurrenceOccurrencesLabel": "Repeticiones",
+  "recurrenceOnDate": "{repeats} el {date}",
+  "@recurrenceOnDate": {
+    "description": "Adds the date, such as March 7, to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "date": {
+        "type": "String",
+        "example": "March 7",
+        "description": "The month and day."
+      }
+    }
+  },
+  "recurrenceOnDay": "{repeats} el día {day}",
+  "@recurrenceOnDay": {
+    "description": "Adds the day of the month to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "day": {
+        "type": "int",
+        "example": "15",
+        "description": "The day of the month."
+      }
+    }
+  },
+  "recurrenceOnLastDay": "{repeats} el último día",
+  "@recurrenceOnLastDay": {
+    "description": "Adds the last day of the month to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      }
+    }
+  },
+  "recurrenceOnLastDayOfMonth": "{repeats} el último día de {month}",
+  "@recurrenceOnLastDayOfMonth": {
+    "description": "Adds the last day of a month to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "month": {
+        "type": "String",
+        "example": "November",
+        "description": "The full month name."
+      }
+    }
+  },
+  "recurrenceOnPositionWeekday": "{repeats} el {position, select, first{primer} second{segundo} third{tercer} fourth{cuarto} last{último} secondToLast{penúltimo} other{{position}}} {weekday}",
+  "@recurrenceOnPositionWeekday": {
+    "description": "Adds a weekday of the month, such as the 2nd Tuesday, to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "position": {
+        "type": "String",
+        "example": "second",
+        "description": "Which weekday of the month: first, second, third, fourth, last or secondToLast."
+      },
+      "weekday": {
+        "type": "String",
+        "example": "Tuesday",
+        "description": "The full weekday name."
+      }
+    }
+  },
+  "recurrenceOnPositionWeekdayOfMonth": "{repeats} el {position, select, first{primer} second{segundo} third{tercer} fourth{cuarto} last{último} secondToLast{penúltimo} other{{position}}} {weekday} de {month}",
+  "@recurrenceOnPositionWeekdayOfMonth": {
+    "description": "Adds a weekday of a month, such as the 4th Thursday of November, to how often an item repeats yearly.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "position": {
+        "type": "String",
+        "example": "second",
+        "description": "Which weekday of the month: first, second, third, fourth, last or secondToLast."
+      },
+      "weekday": {
+        "type": "String",
+        "example": "Tuesday",
+        "description": "The full weekday name."
+      },
+      "month": {
+        "type": "String",
+        "example": "November",
+        "description": "The full month name."
+      }
+    }
+  },
+  "recurrenceOnWeekdays": "{repeats} los {weekdays}",
+  "@recurrenceOnWeekdays": {
+    "description": "Adds the weekdays to how often an item repeats.",
+    "placeholders": {
+      "repeats": {
+        "type": "String",
+        "example": "Repeats weekly",
+        "description": "How often it repeats, from a recurrenceRepeats* message, such as \"Repeats every 2 weeks\"."
+      },
+      "weekdays": {
+        "type": "String",
+        "example": "Mon, Wed",
+        "description": "Short weekday names, joined by commonListJoin."
+      }
+    }
+  },
+  "recurrenceRepeatLabel": "Repetir",
+  "@recurrenceRepeatLabel": {
+    "description": "Label of the dropdown that picks how an item repeats."
+  },
+  "recurrenceRepeatsDaily": "Se repite {interval, plural, =1{diariamente} other{cada {interval} días}}",
+  "@recurrenceRepeatsDaily": {
+    "description": "How often an item repeats, by days. Other messages may add which days and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many days apart."
+      }
+    }
+  },
+  "recurrenceRepeatsMonthly": "Se repite {interval, plural, =1{mensualmente} other{cada {interval} meses}}",
+  "@recurrenceRepeatsMonthly": {
+    "description": "How often an item repeats, by months. Other messages may add which day and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many months apart."
+      }
+    }
+  },
+  "recurrenceRepeatsWeekly": "Se repite {interval, plural, =1{semanalmente} other{cada {interval} semanas}}",
+  "@recurrenceRepeatsWeekly": {
+    "description": "How often an item repeats, by weeks. Other messages may add which days and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many weeks apart."
+      }
+    }
+  },
+  "recurrenceRepeatsYearly": "Se repite {interval, plural, =1{anualmente} other{cada {interval} años}}",
+  "@recurrenceRepeatsYearly": {
+    "description": "How often an item repeats, by years. Other messages may add which day and when it ends.",
+    "placeholders": {
+      "interval": {
+        "type": "int",
+        "example": "2",
+        "description": "How many years apart."
+      }
+    }
+  },
+  "recurrenceScopeAllOption": "Todas las repeticiones",
+  "recurrenceScopeDeleteAssignmentTitle": "Eliminar tarea recurrente",
+  "recurrenceScopeDeleteEventTitle": "Eliminar evento recurrente",
+  "recurrenceScopeEditAssignmentTitle": "Editar tarea recurrente",
+  "recurrenceScopeEditEventTitle": "Editar evento recurrente",
+  "recurrenceScopeMoveAssignmentTitle": "Mover tarea recurrente",
+  "recurrenceScopeMoveButton": "Mover",
+  "recurrenceScopeMoveEventTitle": "Mover evento recurrente",
+  "recurrenceScopeThisOption": "Esta repetición",
+  "recurrenceTimes": "{schedule}, {count, plural, =1{una vez} other{{count} veces}}",
+  "@recurrenceTimes": {
+    "description": "Adds how many times an item repeats before stopping.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "count": {
+        "type": "int",
+        "example": "6",
+        "description": "How many times."
+      }
+    }
+  },
+  "recurrenceTimesUntil": "{schedule}, como máximo {count, plural, =1{una vez} other{{count} veces}} hasta el {date}",
+  "@recurrenceTimesUntil": {
+    "description": "Adds both how many times and the date an item stops repeating, whichever comes first.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "count": {
+        "type": "int",
+        "example": "3",
+        "description": "How many times at most."
+      },
+      "date": {
+        "type": "String",
+        "example": "Dec 31, 2026",
+        "description": "The last date."
+      }
+    }
+  },
+  "recurrenceUntil": "{schedule}, hasta el {date}",
+  "@recurrenceUntil": {
+    "description": "Adds the date an item stops repeating.",
+    "placeholders": {
+      "schedule": {
+        "type": "String",
+        "example": "Repeats weekly on Mon, Wed",
+        "description": "The repeat pattern so far, from a recurrence* message."
+      },
+      "date": {
+        "type": "String",
+        "example": "May 28, 2027",
+        "description": "The last date."
+      }
+    }
+  },
+  "reminderDeletedMessage": "Recordatorio eliminado.",
+  "reminderDialogTitle": "Recordatorio",
+  "reminderEmailSummary": "Correo {offset} antes",
+  "@reminderEmailSummary": {
+    "description": "A reminder in the list: an email sent this long before the item.",
+    "placeholders": {
+      "offset": {
+        "type": "String",
+        "example": "15 minutes",
+        "description": "How long before, such as \"15 minutes\" (reminderOffset* messages)."
+      }
+    }
+  },
+  "reminderMessageLabel": "Mensaje",
+  "reminderOffsetDays": "{count, plural, =1{1 día} other{{count} días}}",
+  "@reminderOffsetDays": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetHours": "{count, plural, =1{1 hora} other{{count} horas}}",
+  "@reminderOffsetHours": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetMinutes": "{count, plural, =1{1 minuto} other{{count} minutos}}",
+  "@reminderOffsetMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderOffsetUnitDays": "Días",
+  "reminderOffsetUnitHours": "Horas",
+  "reminderOffsetUnitMinutes": "Minutos",
+  "reminderOffsetUnitWeeks": "Semanas",
+  "reminderOffsetWeeks": "{count, plural, =1{1 semana} other{{count} semanas}}",
+  "@reminderOffsetWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reminderPushSummary": "Notificación {offset} antes",
+  "@reminderPushSummary": {
+    "description": "A reminder in the list: a push notification sent this long before the item.",
+    "placeholders": {
+      "offset": {
+        "type": "String",
+        "example": "15 minutes",
+        "description": "How long before, such as \"15 minutes\" (reminderOffset* messages)."
+      }
+    }
+  },
+  "reminderRemindBeforeLabel": "Recordar antes",
+  "reminderSavedMessage": "Recordatorio guardado.",
+  "reminderTypeEmail": "Correo electrónico",
+  "@reminderTypeEmail": {
+    "description": "Reminder type that sends an email."
+  },
+  "reminderTypePush": "Notificación",
+  "@reminderTypePush": {
+    "description": "Reminder type that sends a push notification to the user's phone."
+  },
+  "remindersAddLabel": "Agregar recordatorio",
+  "remindersEmptyMessage": "Haz clic en \"+\" para agregar un recordatorio",
+  "remindersTitle": "Recordatorios",
+  "resetPasswordConfirmHint": "Confirmar nueva contraseña",
+  "resetPasswordInstructions": "Introduce tu nueva contraseña a continuación.",
+  "resetPasswordInvalidLinkMessage": "Este enlace de restablecimiento no es válido o caducó. Solicita uno nuevo.",
+  "resetPasswordNewPasswordHint": "Nueva contraseña",
+  "resetPasswordSubmitButton": "Establecer nueva contraseña",
+  "resetPasswordSuccessMessage": "¡Contraseña restablecida! Te damos la bienvenida de nuevo.",
+  "resetPasswordTitle": "Restablecer contraseña",
+  "resourceAddTitle": "Agregar recurso",
+  "resourceClassesLabel": "Clases",
+  "resourceConditionBrandNew": "Nuevo",
+  "@resourceConditionBrandNew": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionBroken": "Roto",
+  "@resourceConditionBroken": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionDigital": "Digital",
+  "@resourceConditionDigital": {
+    "description": "Condition of a resource (a book or material for a class): it's a digital copy, like an e-book, so it has no physical condition."
+  },
+  "resourceConditionLabel": "Condición",
+  "resourceConditionRefurbished": "Reacondicionado",
+  "@resourceConditionRefurbished": {
+    "description": "Condition of a resource (a book or material for a class)."
+  },
+  "resourceConditionUsedAcceptable": "Usado - Aceptable",
+  "@resourceConditionUsedAcceptable": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedGood": "Usado - Buen estado",
+  "@resourceConditionUsedGood": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedLikeNew": "Usado - Como nuevo",
+  "@resourceConditionUsedLikeNew": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedPoor": "Usado - Mal estado",
+  "@resourceConditionUsedPoor": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceConditionUsedVeryGood": "Usado - Muy buen estado",
+  "@resourceConditionUsedVeryGood": {
+    "description": "Condition of a resource (a book or material for a class), graded the way used books are sold."
+  },
+  "resourceCreatedMessage": "Recurso creado.",
+  "resourceDeleteWarning": "También se eliminarán sus archivos adjuntos y su nota.",
+  "resourceDeletedMessage": "Recurso eliminado.",
+  "resourceDetailsStep": "Detalles",
+  "resourceEditTitle": "Editar recurso",
+  "resourceGroupCreatedMessage": "Grupo creado.",
+  "resourceGroupDeleteWarning": "También se eliminará todo lo que haya en este grupo, incluidos los recursos con sus archivos adjuntos y notas.",
+  "resourceGroupDeletedMessage": "Grupo eliminado.",
+  "resourceGroupDialogTitle": "Grupo",
+  "@resourceGroupDialogTitle": {
+    "description": "Title of the dialog for adding or editing a group of resources (books and materials)."
+  },
+  "resourceGroupHideLabel": "Ocultar del Planificador los recursos de este grupo",
+  "resourceGroupLabel": "Grupo",
+  "@resourceGroupLabel": {
+    "description": "Label of the field that picks the group of resources (books and materials) this resource belongs to."
+  },
+  "resourceGroupNotFoundMessage": "Grupo no encontrado.",
+  "resourceGroupTitleLabel": "Título",
+  "resourcePriceLabel": "Precio",
+  "resourceSelectClassesButton": "Seleccionar clases",
+  "resourceStatusDigital": "Digital",
+  "@resourceStatusDigital": {
+    "description": "Status of a resource (a book or material for a class): it's a digital copy, like an e-book."
+  },
+  "resourceStatusLabel": "Estado",
+  "resourceStatusNeeded": "Necesario",
+  "@resourceStatusNeeded": {
+    "description": "Status of a resource (a book or material for a class): the student still needs to get it."
+  },
+  "resourceStatusOrdered": "Pedido",
+  "@resourceStatusOrdered": {
+    "description": "Status of a resource (a book or material for a class): the student has ordered it."
+  },
+  "resourceStatusOwned": "En propiedad",
+  "@resourceStatusOwned": {
+    "description": "Status of a resource (a book or material for a class): the student owns it."
+  },
+  "resourceStatusReceived": "Recibido",
+  "@resourceStatusReceived": {
+    "description": "Status of a resource (a book or material for a class): the student has received it."
+  },
+  "resourceStatusRented": "Alquilado",
+  "@resourceStatusRented": {
+    "description": "Status of a resource (a book or material for a class): the student is renting it."
+  },
+  "resourceStatusShipped": "Enviado",
+  "@resourceStatusShipped": {
+    "description": "Status of a resource (a book or material for a class): it has shipped and is on its way."
+  },
+  "resourceStatusToSell": "Para vender",
+  "@resourceStatusToSell": {
+    "description": "Status of a resource (a book or material for a class): the student plans to sell it."
+  },
+  "resourceTitleLabel": "Título",
+  "resourceWebsiteLabel": "Sitio web",
+  "resourcesCreateGroupFirstMessage": "Primero crea un grupo.",
+  "resourcesMenuLaunchWebsiteLabel": "Abrir el sitio web del recurso",
+  "resourcesMenuTitle": "Recursos",
+  "resourcesNoGroupsMessage": "Haz clic en \"+ Agregar grupo\" para comenzar",
+  "resourcesNoGroupsTitle": "Aún no has agregado ningún grupo",
+  "resourcesNoResourcesInGroupTitle": "Aún no hay recursos en este grupo",
+  "resourcesNoResourcesTitle": "Aún no has agregado ningún recurso",
+  "resourcesShowAllGroup": "Mostrar todos",
+  "@resourcesShowAllGroup": {
+    "description": "Choice in the group list that shows resources from every group."
+  },
+  "scheduleADay": "Día A",
+  "@scheduleADay": {
+    "description": "The A day of an A/B day rotation."
+  },
+  "scheduleAddLabel": "Agregar horario",
+  "scheduleAnchorDayRequired": "Selecciona la fecha del día 1 del ciclo.",
+  "scheduleAnchorWeekRequired": "Selecciona la fecha en que comienza la primera semana.",
+  "scheduleBDay": "Día B",
+  "@scheduleBDay": {
+    "description": "The B day of an A/B day rotation."
+  },
+  "scheduleClassDatesTitle": "Fechas de clase",
+  "scheduleClassDaysTitle": "Días de clase",
+  "scheduleClassTimeTitle": "Hora de clase",
+  "scheduleClassTimesTitle": "Horarios de clase",
+  "scheduleCustomRangeDescription": "Limita este horario a solo una parte del periodo.",
+  "scheduleCustomRangeLabel": "Rango personalizado",
+  "scheduleCycleDayLabel": "Día {day}",
+  "@scheduleCycleDayLabel": {
+    "description": "A numbered day of a rotating class schedule, such as Day 3 of a 6-day cycle.",
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "example": "3",
+        "description": "The day's number in the rotation."
+      }
+    }
+  },
+  "scheduleCycleDayOneLabel": "El día 1 del ciclo cae el",
+  "@scheduleCycleDayOneLabel": {
+    "description": "Label of the date of the rotation's first day."
+  },
+  "scheduleCycleDaysRequired": "Selecciona al menos un día de clase para el ciclo.",
+  "scheduleCycleLengthLabel": "Duración del ciclo (días)",
+  "scheduleDeletedMessage": "Horario eliminado.",
+  "scheduleEditorTitle": "Horario",
+  "scheduleEmptyMessage": "Haz clic en \"+\" para agregar un horario",
+  "scheduleEndLabel": "Fin",
+  "@scheduleEndLabel": {
+    "description": "Label of a meeting's end time."
+  },
+  "scheduleNotFoundMessage": "Horario no encontrado.",
+  "scheduleRotatingOption": "Rotativo",
+  "@scheduleRotatingOption": {
+    "description": "Schedule type: follows a rotation such as A/B days or a 6-day cycle."
+  },
+  "scheduleRotationTitle": "Rotación",
+  "scheduleSavedMessage": "Horario guardado.",
+  "scheduleStartLabel": "Inicio",
+  "@scheduleStartLabel": {
+    "description": "Label of a meeting's start time."
+  },
+  "scheduleSummaryEmptyLabel": "Este horario está vacío",
+  "scheduleTemplateAbDay": "Día A/B",
+  "@scheduleTemplateAbDay": {
+    "description": "Rotating schedule where classes alternate between an A day and a B day."
+  },
+  "scheduleTemplateCustomCycle": "Ciclo de {length} días",
+  "@scheduleTemplateCustomCycle": {
+    "placeholders": {
+      "length": {
+        "type": "int",
+        "example": "3",
+        "description": "How many school days the cycle has."
+      }
+    }
+  },
+  "scheduleTemplateEightDayCycle": "Ciclo de 8 días",
+  "scheduleTemplateSevenDayCycle": "Ciclo de 7 días",
+  "scheduleTemplateSixDayCycle": "Ciclo de 6 días",
+  "scheduleTemplateTenDayCycle": "Ciclo de 10 días",
+  "scheduleTemplateWeekAb": "Semana A/B",
+  "@scheduleTemplateWeekAb": {
+    "description": "Rotating schedule where the class meets every other week."
+  },
+  "scheduleVariesByDayLabel": "Varía según el día",
+  "scheduleWeekA": "Semana A",
+  "@scheduleWeekA": {
+    "description": "Short label for a class that meets in week A of an every-other-week pattern."
+  },
+  "scheduleWeekB": "Semana B",
+  "@scheduleWeekB": {
+    "description": "Short label for a class that meets in week B of an every-other-week pattern."
+  },
+  "scheduleWeekBeginsOnLabel": "La semana {week} comienza el",
+  "@scheduleWeekBeginsOnLabel": {
+    "description": "Label of the date the schedule's first week starts.",
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B for an every-other-week pattern, otherwise a number."
+      }
+    }
+  },
+  "scheduleWeekOption": "Semana {week}",
+  "@scheduleWeekOption": {
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B for an every-other-week pattern, otherwise a number."
+      }
+    }
+  },
+  "scheduleWeekPreview": "Este horario (Semana {week}) tiene clase las semanas de {dates}.",
+  "@scheduleWeekPreview": {
+    "placeholders": {
+      "week": {
+        "type": "String",
+        "example": "A",
+        "description": "The week's name: A or B, or a number."
+      },
+      "dates": {
+        "type": "String",
+        "example": "Sep 7, Sep 21, Oct 5",
+        "description": "The Mondays of the weeks it meets, separated by commas."
+      }
+    }
+  },
+  "scheduleWeeklyOption": "Semanal",
+  "scheduleWhichWeekDescription": "La semana en que se da esta clase: el patrón de semanas A/B o pares/impares, cada dos semanas.",
+  "scheduleWhichWeekLabel": "Qué semana",
+  "securityAccessRevokedMessage": "Acceso revocado.",
+  "securityApiDocsLabel": "Documentación de la API",
+  "securityApiTokenCopiedMessage": "Token de API copiado.",
+  "securityApiTokenCreatedOn": "Creado el {date}",
+  "@securityApiTokenCreatedOn": {
+    "description": "When the user's API token was created.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4, 2026",
+        "description": "The date, in the user's date format."
+      }
+    }
+  },
+  "securityApiTokenDescription": "Accede a la plataforma de Helium desde tus propios scripts y herramientas",
+  "securityApiTokenGeneratedMessage": "Token de API generado.",
+  "securityApiTokenRevealWarning": "Copia tu token ahora; no se volverá a mostrar. Mantenlo en secreto: da acceso completo a tu cuenta.",
+  "securityApiTokenRevokedMessage": "Token de API revocado.",
+  "securityApiTokenTitle": "Token de API",
+  "securityChangePasswordButton": "Cambiar contraseña",
+  "securityConnectedAppLastUsed": "Último uso: {date}",
+  "@securityConnectedAppLastUsed": {
+    "description": "When a connected app last reached the user's account.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Sep 4, 2026",
+        "description": "The date, in the user's date format."
+      }
+    }
+  },
+  "securityConnectedAppNotUsed": "Aún no se ha utilizado",
+  "securityConnectedAppsDescription": "Aplicaciones a las que has permitido acceder a tu cuenta de Helium",
+  "securityConnectedAppsTitle": "Aplicaciones conectadas",
+  "securityGenerateButton": "Generar",
+  "securityInfo": "Gestiona cómo inicias sesión y cómo otras aplicaciones y herramientas acceden a tu cuenta de Helium.",
+  "securityNoApiTokenLabel": "No tienes un token de API.",
+  "securityNoConnectedAppsMessage": "No hay aplicaciones conectadas.",
+  "securityPasswordChangedMessage": "Contraseña cambiada.",
+  "securityPasswordDescription": "Inicia sesión con tu correo electrónico y tu contraseña",
+  "securityPasswordTitle": "Contraseña",
+  "securityPasswordlessDescription": "Agrega una contraseña para iniciar sesión también con tu correo electrónico",
+  "securityRevokeAccessMessage": "{appName} ya no podrá acceder a tu cuenta de Helium. Puedes volver a conectarla más tarde.",
+  "@securityRevokeAccessMessage": {
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The connected app's name."
+      }
+    }
+  },
+  "securityRevokeAccessTitle": "Revocar acceso",
+  "securityRevokeAppLabel": "Revocar {appName}",
+  "@securityRevokeAppLabel": {
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Claude",
+        "description": "The connected app's name."
+      }
+    }
+  },
+  "securityRevokeButton": "Revocar",
+  "securityRevokeTokenMessage": "Todo lo que utilice tu token de API dejará de funcionar. Puedes generar uno nuevo más adelante.",
+  "securityRevokeTokenTitle": "Revocar token de API",
+  "securityRotateButton": "Renovar",
+  "@securityRotateButton": {
+    "description": "Button that replaces the API token with a new one."
+  },
+  "securityRotateTokenMessage": "Al renovarlo, se reemplaza tu token actual, así que todo lo que lo use dejará de funcionar hasta que le des el nuevo.",
+  "securityRotateTokenTitle": "Renovar token de API",
+  "securitySetPasswordButton": "Establecer contraseña",
+  "settingsAccountDeletedMessage": "¡Lamentamos que te vayas! Hemos borrado todo rastro de tu existencia en Helium.",
+  "settingsAllEventsDeletedMessage": "Se eliminaron todos los eventos.",
+  "settingsChangeEmailHint": "Actualiza tu dirección de correo electrónico",
+  "settingsChangeEmailTitle": "Cambiar correo electrónico",
+  "settingsClearExampleDataHint": "Eliminar el horario de ejemplo",
+  "settingsClearExampleDataLabel": "Borrar datos de ejemplo",
+  "settingsCurrentPasswordLabel": "Contraseña actual",
+  "settingsDangerZoneTitle": "Zona de peligro",
+  "@settingsDangerZoneTitle": {
+    "description": "Heading of the settings section with actions that can't be undone."
+  },
+  "settingsDeleteAccountHint": "Eliminar permanentemente tu cuenta",
+  "settingsDeleteAccountPasswordMessage": "Para eliminar permanentemente tu cuenta y todos los datos almacenados en Helium, confirma tu contraseña a continuación. Esta acción es irreversible.",
+  "settingsDeleteAccountPasswordlessMessage": "Para eliminar permanentemente tu cuenta y todos los datos almacenados en Helium, confirma haciendo clic en el botón Eliminar que aparece a continuación. Esta acción es irreversible.",
+  "settingsDeleteAccountTitle": "Eliminar cuenta",
+  "settingsDeleteAllEventsHint": "Eliminar permanentemente todos los eventos",
+  "settingsDeleteAllEventsMessage": "¿Seguro que quieres eliminar todos los eventos? También se eliminará todo lo relacionado con ellos, incluidos archivos adjuntos, notas y otros datos. Esta acción es irreversible.",
+  "settingsDeleteAllEventsTitle": "Eliminar todos los eventos",
+  "settingsEmailChangePendingMessage": "Cambio pendiente: haz clic en el enlace enviado a {email} para verificarlo.",
+  "@settingsEmailChangePendingMessage": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "alex@example.com",
+        "description": "The new email address waiting to be verified."
+      }
+    }
+  },
+  "settingsExampleClearedMessage": "Se borró el horario de ejemplo.",
+  "settingsExternalCalendarsHint": "Trae otros calendarios a Helium",
+  "settingsExternalCalendarsTitle": "Calendarios externos",
+  "@settingsExternalCalendarsTitle": {
+    "description": "Title of the settings screen and item for showing other calendars in Helium. A feature name."
+  },
+  "settingsFeedsHint": "Lleva los calendarios de Helium a otras aplicaciones",
+  "settingsFeedsTitle": "Feeds",
+  "@settingsFeedsTitle": {
+    "description": "Title of the settings screen and item for publishing Helium's calendars to other apps. A feature name."
+  },
+  "settingsGithubLabel": "Código abierto en GitHub",
+  "settingsImportExportHint": "Crea una copia de seguridad, restaura o importa un horario",
+  "settingsImportExportTitle": "Importar/Exportar",
+  "settingsLearnMoreLabel": "Más información",
+  "settingsPasswordLabel": "Contraseña",
+  "settingsPreferencesHint": "Adapta Helium a tus gustos",
+  "settingsPreferencesTitle": "Preferencias",
+  "settingsProviderRemovedMessage": "Se eliminó {provider} de tu cuenta.",
+  "@settingsProviderRemovedMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsRemoveProviderButton": "Eliminar",
+  "settingsRemoveProviderMessage": "Ya no podrás iniciar sesión con {provider}.",
+  "@settingsRemoveProviderMessage": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsRemoveProviderTitle": "¿Eliminar {provider}?",
+  "@settingsRemoveProviderTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "settingsSecurityHint": "Contraseña, token y aplicaciones",
+  "settingsSecurityTitle": "Seguridad y API",
+  "settingsSignOutHint": "Cierra la sesión de tu cuenta",
+  "settingsSignOutLabel": "Cerrar sesión",
+  "settingsSignOutMessage": "¿Seguro que quieres cerrar sesión?",
+  "settingsSignOutTitle": "Cerrar sesión",
+  "settingsThemeDarkTooltip": "Oscuro",
+  "@settingsThemeDarkTooltip": {
+    "description": "Tooltip of the theme button that always uses the dark theme."
+  },
+  "settingsThemeLightTooltip": "Claro",
+  "@settingsThemeLightTooltip": {
+    "description": "Tooltip of the theme button that always uses the light theme."
+  },
+  "settingsThemeSystemTooltip": "Sistema",
+  "@settingsThemeSystemTooltip": {
+    "description": "Tooltip of the theme button that follows the device's light or dark setting."
+  },
+  "settingsTitle": "Ajustes",
+  "settingsTooltip": "Ajustes",
+  "setupAccountPreparingMessage": "Preparando todo...",
+  "setupAccountTimedOutMessage": "Vuelve a iniciar sesión para continuar.",
+  "signInButton": "Iniciar sesión",
+  "signInForgotPasswordLink": "¿Olvidaste tu contraseña?",
+  "signInMethodRemoveLabel": "Eliminar {provider}",
+  "@signInMethodRemoveLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "signInMethodsMenuTitle": "Métodos de inicio de sesión",
+  "signInNeedAccountLink": "¿Necesitas una cuenta?",
+  "signInResendEmailAction": "Reenviar correo electrónico",
+  "signInTitle": "Iniciar sesión",
+  "signInWithProviderButton": "Iniciar sesión con {provider}",
+  "@signInWithProviderButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "signUpButton": "Registrarse",
+  "signUpConfirmPasswordHint": "Confirmar contraseña",
+  "signUpEmailUnavailableMessage": "El registro se realizó correctamente, pero no pudimos cargar tu correo electrónico. Inicia sesión para continuar.",
+  "signUpLegalNotice": "Al registrarte, aceptas los {termsOfService} y la {privacyPolicy} de Helium.",
+  "@signUpLegalNotice": {
+    "description": "Shown under the sign-up button. {termsOfService} and {privacyPolicy} are tappable links, translated on their own.",
+    "placeholders": {
+      "termsOfService": {
+        "type": "String",
+        "example": "Terms of Service",
+        "description": "The Terms of Service link's text."
+      },
+      "privacyPolicy": {
+        "type": "String",
+        "example": "Privacy Policy",
+        "description": "The Privacy Policy link's text."
+      }
+    }
+  },
+  "signUpPrivacyPolicyLink": "Política de privacidad",
+  "signUpTermsOfServiceLink": "Términos del servicio",
+  "signUpTitle": "Crear una cuenta",
+  "signUpVerificationSentMessage": "¡Ya casi está! Revisa tu correo electrónico para obtener un código de verificación.",
+  "signUpWithProviderButton": "Regístrate con {provider}",
+  "@signUpWithProviderButton": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google",
+        "description": "The sign-in provider: Google, Apple or Microsoft."
+      }
+    }
+  },
+  "snackBarClickToCopyHint": "Haz clic para copiar",
+  "@snackBarClickToCopyHint": {
+    "description": "Hint under a cut-off message with a mouse: clicking it copies the full text."
+  },
+  "snackBarCopiedLabel": "Copiado al portapapeles",
+  "snackBarTapToCopyHint": "Toca para copiar",
+  "@snackBarTapToCopyHint": {
+    "description": "Hint under a cut-off message on touch devices: tapping it copies the full text."
+  },
+  "spinnerDecreaseLabel": "Disminuir valor",
+  "spinnerIncreaseLabel": "Aumentar valor",
+  "storageDownloadFailedMessage": "No se pudo descargar \"{filename}\".",
+  "@storageDownloadFailedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileReadErrorMessage": "Se produjo un error al leer el archivo: {filename}",
+  "@storageFileReadErrorMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileSizeLimitMessage": "El tamaño del archivo no puede exceder {megabytes} MB: {filename}",
+  "@storageFileSizeLimitMessage": {
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      },
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileTooLargeMessage": "El tamaño del archivo superó el límite permitido: {filename}",
+  "@storageFileTooLargeMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageFileTypeAlternatives": "{first} o {second}",
+  "@storageFileTypeAlternatives": {
+    "description": "Joins two file types, or a list of them and one more, as alternatives.",
+    "placeholders": {
+      "first": {
+        "type": "String",
+        "example": "JSON"
+      },
+      "second": {
+        "type": "String",
+        "example": "CSV"
+      }
+    }
+  },
+  "storageInvalidFileTypeMessage": "Tipo de archivo no válido",
+  "storageSaveFileSubject": "Guardar {filename}",
+  "@storageSaveFileSubject": {
+    "description": "Subject of the share sheet that saves a downloaded file.",
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "notes.pdf"
+      }
+    }
+  },
+  "storageWrongFileTypeMessage": "Selecciona un archivo {types}",
+  "@storageWrongFileTypeMessage": {
+    "placeholders": {
+      "types": {
+        "type": "String",
+        "example": "JSON",
+        "description": "One or more file types, like \"JSON\" or \"JSON or CSV\"."
+      }
+    }
+  },
+  "supportHeliumKeepFreeCompactHint": "Un proyecto hecho con pasión, gratis para todos, posible gracias a personas como tú que lo apoyan.",
+  "supportHeliumKeepFreeHint": "Un proyecto hecho con pasión, gratis para todos. Es posible gracias a personas como tú que lo apoyan y cubren gastos reales como el alojamiento y las comisiones de las tiendas de aplicaciones.",
+  "supportHeliumKeepFreeTitle": "Mantén Helium gratis",
+  "@supportHeliumKeepFreeTitle": {
+    "description": "Title of the card asking students to support Helium on Patreon, which keeps the app free."
+  },
+  "supportHeliumRateHint": "Ayuda a otros estudiantes a encontrar Helium.",
+  "supportHeliumRateTitle": "Califica Helium",
+  "todosCategoryColumn": "Categoría",
+  "todosClassColumn": "Clase",
+  "todosCompletedColumn": "Completada",
+  "@todosCompletedColumn": {
+    "description": "Column heading (in the CSV export) and spoken name of the header checkbox for whether each assignment is complete."
+  },
+  "todosCsvFilename": "Helium_pendientes_{date}.csv",
+  "@todosCsvFilename": {
+    "description": "File name of the Todos CSV export. Keep the .csv extension and use no spaces.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "2026-11-26",
+        "description": "The export date, as YYYY-MM-DD."
+      }
+    }
+  },
+  "todosCsvNo": "No",
+  "@todosCsvNo": {
+    "description": "CSV export value: the assignment isn't complete."
+  },
+  "todosCsvYes": "Sí",
+  "@todosCsvYes": {
+    "description": "CSV export value: the assignment is complete."
+  },
+  "todosDueColumn": "Fecha de entrega",
+  "@todosDueColumn": {
+    "description": "Todos column heading for the due date, also used in the CSV export."
+  },
+  "todosEmptyTitle": "Aún no has agregado ninguna tarea",
+  "todosExportCsvButton": "Exportar CSV",
+  "todosExportedMessage": "Se exportó {filename}",
+  "@todosExportedMessage": {
+    "placeholders": {
+      "filename": {
+        "type": "String",
+        "example": "Helium_todos_2026-11-25.csv",
+        "description": "The saved file's name."
+      }
+    }
+  },
+  "todosGradeColumn": "Calificación",
+  "todosHasRemindersTooltip": "Tiene recordatorios",
+  "todosNoMatchesMessage": "Ninguna tarea coincide con los filtros o la búsqueda aplicados",
+  "todosNothingExportedMessage": "Nada exportado",
+  "todosPriorityColumn": "Prioridad",
+  "todosResourcesColumn": "Recursos",
+  "todosTitleColumn": "Título",
+  "todosUnknownClassLabel": "Desconocida",
+  "@todosUnknownClassLabel": {
+    "description": "Shown as the class name when an assignment's class can't be found."
+  },
+  "updateRequiredMessage": "¡Es hora de actualizar! Necesitarás la versión más reciente de {appName} para seguir usándola.",
+  "@updateRequiredMessage": {
+    "description": "Shown in place of the app when this version is too old to keep working with Helium's servers.",
+    "placeholders": {
+      "appName": {
+        "type": "String",
+        "example": "Helium",
+        "description": "The app's name, Helium."
+      }
+    }
+  },
+  "updateRequiredUpdateButton": "Actualizar",
+  "@updateRequiredUpdateButton": {
+    "description": "Button that opens the app store to update the app."
+  },
+  "urlOpenEmailFailedMessage": "No se pudo abrir el cliente de correo electrónico.",
+  "urlOpenLinkFailedMessage": "No se pudo abrir el enlace.",
+  "verifyEmailCodeHint": "Código de verificación",
+  "verifyEmailCodeLengthError": "Introduce el código de 6 dígitos",
+  "verifyEmailInstructions": "Introduce el código de verificación que te hemos enviado por correo electrónico para completar tu registro.",
+  "verifyEmailResendButton": "Reenviar correo electrónico de verificación",
+  "verifyEmailSubmitButton": "Verificar e iniciar sesión",
+  "verifyEmailTitle": "Verificar correo electrónico",
+  "whatsNewDismissButton": "¡Adelante!",
+  "whatsNewHomeScreenWidgetsDescription": "Agrega Helium a tu pantalla de inicio para ver qué vence esta semana y marcar tareas como completadas sin abrir la aplicación",
+  "whatsNewHomeScreenWidgetsTitle": "Widgets de la pantalla de inicio",
+  "whatsNewIntro": "Tu compañero de estudio acaba de subir de nivel. Esto es lo que ha cambiado.",
+  "@whatsNewIntro": {
+    "description": "Opening line of the What's New dialog, above the list of new features. \"Study sidekick\" is a playful name for the app."
+  },
+  "whatsNewLetterGradesDescription": "Elige la escala de calificaciones de tu escuela para ver calificaciones con letras y luego agrega créditos a tus clases para seguir tu promedio",
+  "whatsNewLetterGradesTitle": "Calificaciones con letras y promedio",
+  "whatsNewRepeatingDescription": "Ahora las tareas y los eventos pueden repetirse, así que una lectura semanal o una reunión mensual solo hay que agregarla una vez",
+  "whatsNewRepeatingTitle": "Tareas y eventos recurrentes",
+  "whatsNewTitle": "¿Qué hay de nuevo?"
+}
