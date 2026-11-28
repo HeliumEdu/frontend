@@ -660,7 +660,7 @@
   "formInvalidUrlError": "Escribe una URL válida",
   "formPasswordTooShortError": "La contraseña debe tener al menos 8 caracteres",
   "formPasswordsMismatchError": "Las contraseñas no coinciden",
-  "formRequiredFieldError": "Este campo es obligatorio",
+  "formRequiredFieldError": "Este campo es requerido.",
   "gettingStartedClassesDescription": "Consulta Clases para ver cómo se relacionan tus horarios, categorías y tareas. Controla fechas límite, horarios de clase, ubicaciones y Recursos — todo en un solo lugar.",
   "@gettingStartedClassesDescription": {
     "description": "Body of the Getting Started card about classes. \"Classes\" and \"Resources\" are names of tabs in the app (Resources holds textbooks and other materials)."
@@ -1022,7 +1022,7 @@
   "@gradeCalculatorThisCategoryFallback": {
     "description": "Stands in for a category's name when it can't be found, inside a sentence about the category."
   },
-  "gradeCalculatorTitle": "Grade Calculator",
+  "gradeCalculatorTitle": "Calculadora de calificaciones",
   "@gradeCalculatorTitle": {
     "description": "Title of the Grade Calculator dialog. Grade Calculator is a feature name."
   },
@@ -1297,7 +1297,7 @@
   "gradesExpandLabel": "Expandir",
   "gradesGpaAcrossTermsTitle": "Promedio de todos los periodos",
   "gradesGpaMenuTitle": "Promedio",
-  "gradesGradeCalculatorTooltip": "Grade Calculator",
+  "gradesGradeCalculatorTooltip": "Calculadora de calificaciones",
   "@gradesGradeCalculatorTooltip": {
     "description": "Grade Calculator is a feature name."
   },
