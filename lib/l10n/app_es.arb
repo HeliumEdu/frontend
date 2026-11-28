@@ -196,22 +196,11 @@
     }
   },
   "commonAddToGetStartedMessage": "Haz clic en \"+\" para comenzar",
-  "commonBackLabel": "Atrás",
-  "@commonBackLabel": {
-    "description": "Spoken name of the back arrow at the top of a screen or dialog."
-  },
-  "commonCancelButton": "Cancelar",
   "commonClearTooltip": "Borrar",
   "@commonClearTooltip": {
     "description": "Tooltip and spoken name of the X button that empties a search field."
   },
-  "commonCloseLabel": "Cerrar",
-  "@commonCloseLabel": {
-    "description": "Spoken name of the close (X) button at the top of a screen or dialog."
-  },
   "commonColorLabel": "Color",
-  "commonDeleteButton": "Eliminar",
-  "commonDeleteLabel": "Eliminar",
   "commonDismissLabel": "Descartar",
   "commonDownloadLabel": "Descargar",
   "@commonDownloadLabel": {
@@ -243,7 +232,6 @@
   "commonReloadButton": "Recargar",
   "commonRemoveLabel": "Eliminar",
   "commonSearchHint": "Buscar ...",
-  "commonSelectButton": "Aceptar",
   "commonSupportPortalButton": "Portal de soporte",
   "@commonSupportPortalButton": {
     "description": "Button that opens Helium's help website. \"Support Portal\" is the name of that website."
@@ -648,10 +636,6 @@
   "feedsAssignmentsLabel": "Tareas",
   "feedsClassSchedulesCopiedMessage": "Se copió la URL del feed de horarios de clases.",
   "feedsClassSchedulesLabel": "Horarios de clases",
-  "feedsCopyButton": "Copiar",
-  "@feedsCopyButton": {
-    "description": "Button that copies a feed's web address."
-  },
   "feedsDisableAllButton": "Desactivar todo",
   "feedsDisableButton": "Desactivar",
   "feedsDisableMessage": "Desactivar Feeds interrumpirá cualquier integración existente. Si los vuelves a activar más adelante, se generarán nuevas URL y no se restablecerán estas conexiones. Esta acción no se puede deshacer.",
@@ -666,10 +650,6 @@
   },
   "feedsSecretWarning": "Mantén en secreto las URL de los feeds privados. Si desactivas y vuelves a activar un feed, se regenerará su URL.",
   "feedsShareFailedMessage": "No se pudo compartir el enlace.",
-  "feedsShareLabel": "Compartir",
-  "@feedsShareLabel": {
-    "description": "Spoken name of the button that shares a feed's web address."
-  },
   "forgotPasswordCheckEmailMessage": "Busca en tu correo electrónico un enlace para restablecer tu contraseña.",
   "forgotPasswordInstructions": "Escribe el correo electrónico asociado a tu cuenta y te enviaremos un enlace para restablecer la contraseña.",
   "forgotPasswordSendButton": "Enviar enlace de restablecimiento",
@@ -1054,9 +1034,23 @@
   "@gradeCalculatorWhatDoINeedTab": {
     "description": "Grade Calculator tab that works out the score needed for a target."
   },
+  "gradeNotAvailableLabel": "N/D",
+  "@gradeNotAvailableLabel": {
+    "description": "Shown in place of a grade or weight that doesn't exist yet. A short abbreviation for \"not available\"."
+  },
   "gradePointLetterAndPointTooltip": "Letra y puntos de calificación",
   "gradePointLetterTooltip": "Calificación con letra",
   "gradePointPointTooltip": "Puntos de calificación",
+  "gradePointValueLabel": "{gradePoint} pts",
+  "@gradePointValueLabel": {
+    "description": "A grade point, as shown beside a class's grade. GP abbreviates grade point.",
+    "placeholders": {
+      "gradePoint": {
+        "type": "String",
+        "example": "3.30"
+      }
+    }
+  },
   "gradeProjectionAllCaughtUpMessage": "Vuelve a consultar cuando tengas trabajos sin calificar para usar esta función.",
   "gradeProjectionAllCaughtUpTitle": "Todo al día",
   "gradeProjectionGpaStatus": "{changes, select, changed{Promedio proyectado: {gpa} ({change})} other{Promedio proyectado: {gpa}}}",
@@ -1138,10 +1132,6 @@
   "gradeScale433PlusMinus": "4.33 con +/-",
   "@gradeScale433PlusMinus": {
     "description": "Grade scale name: the 4.33 grade point scale with plus and minus letter grades. Keep the numbers as written."
-  },
-  "gradeScaleCloseButton": "Cerrar",
-  "@gradeScaleCloseButton": {
-    "description": "Button that closes the grade scale dialog."
   },
   "gradeScaleCustom": "Personalizada",
   "@gradeScaleCustom": {
@@ -1986,15 +1976,10 @@
   },
   "pageAddLabel": "Agregar",
   "pageNotificationsLabel": "Notificaciones",
-  "pageSaveLabel": "Guardar",
   "pagerAllOption": "Todas",
   "@pagerAllOption": {
     "description": "Choice in the rows-per-page dropdown that shows every row on one page."
   },
-  "pagerFirstPageLabel": "Primera página",
-  "pagerLastPageLabel": "Última página",
-  "pagerNextPageLabel": "Página siguiente",
-  "pagerPreviousPageLabel": "Página anterior",
   "pagerRangeLabel": "{start} a {end} de {total}",
   "@pagerRangeLabel": {
     "description": "Shorter text below a table on narrow screens, saying which rows are on the current page. Example: \"1 to 10 of 42\".",
@@ -2190,10 +2175,6 @@
     "description": "Explains, in the dialog for changing one occurrence of a repeating item, that the occurrence keeps its reminders."
   },
   "plannerLaunchClassWebsiteLabel": "Abrir el sitio web de la clase",
-  "plannerMoreActionsLabel": "Más",
-  "@plannerMoreActionsLabel": {
-    "description": "Spoken name of the button that shows more actions for an item."
-  },
   "plannerMoreItemsLabel": "+{count} más",
   "@plannerMoreItemsLabel": {
     "description": "Link in a busy month-view day that shows the items that don't fit.",
@@ -2208,10 +2189,6 @@
   "plannerNextLabel": "Siguiente",
   "plannerOnlineLabel": "En línea",
   "plannerPreviousLabel": "Anterior",
-  "plannerSearchLabel": "Buscar",
-  "@plannerSearchLabel": {
-    "description": "Name of the Planner's search icon."
-  },
   "plannerShowResourcesTooltip": "Mostrar recursos",
   "plannerTodayButton": "Hoy",
   "@plannerTodayButton": {
@@ -2329,10 +2306,6 @@
   "printPreviewTitle": "Vista previa",
   "@printPreviewTitle": {
     "description": "Title of the print preview screen."
-  },
-  "printShareTooltip": "Compartir",
-  "@printShareTooltip": {
-    "description": "Button that shares the PDF."
   },
   "quillSearchCloseLabel": "Cerrar búsqueda",
   "quillSearchMatchCaseTooltip": "Coincidir mayúsculas y minúsculas",
@@ -2612,7 +2585,6 @@
   "recurrenceScopeMoveAssignmentTitle": "Mover tarea recurrente",
   "recurrenceScopeMoveButton": "Mover",
   "recurrenceScopeMoveEventTitle": "Mover evento recurrente",
-  "recurrenceScopeSaveButton": "Guardar",
   "recurrenceScopeThisOption": "Esta repetición",
   "recurrenceTimes": "{schedule}, {count, plural, =1{una vez} other{{count} veces}}",
   "@recurrenceTimes": {
@@ -3015,10 +2987,6 @@
   "securityConnectedAppNotUsed": "Aún no se ha utilizado",
   "securityConnectedAppsDescription": "Aplicaciones a las que has permitido acceder a tu cuenta de Helium",
   "securityConnectedAppsTitle": "Aplicaciones conectadas",
-  "securityCopyButton": "Copiar",
-  "@securityCopyButton": {
-    "description": "Button that copies the newly generated API token."
-  },
   "securityGenerateButton": "Generar",
   "securityInfo": "Gestiona cómo inicias sesión y cómo otras aplicaciones y herramientas acceden a tu cuenta de Helium.",
   "securityNoApiTokenLabel": "No tienes un token de API.",
@@ -3097,6 +3065,7 @@
   "@settingsFeedsTitle": {
     "description": "Title of the settings screen and item for publishing Helium's calendars to other apps. A feature name."
   },
+  "settingsGithubLabel": "Código abierto en GitHub",
   "settingsImportExportHint": "Crea una copia de seguridad, restaura o importa un horario",
   "settingsImportExportTitle": "Importar/Exportar",
   "settingsLearnMoreLabel": "Más información",
