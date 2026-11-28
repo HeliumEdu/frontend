@@ -207,7 +207,7 @@
     "description": "Spoken name of the button that downloads an attached file."
   },
   "commonEditLabel": "Editar",
-  "commonKeepEditingButton": "Seguir",
+  "commonKeepEditingButton": "Volver",
   "commonLearnMoreTooltip": "Más información",
   "commonListJoin": "{first}, {second}",
   "@commonListJoin": {
@@ -304,6 +304,7 @@
   },
   "conflictChangedTitle": "Modificado en otro dispositivo",
   "conflictDiscardChangesButton": "Descartar cambios",
+  "conflictKeepEditingButton": "Seguir editando",
   "conflictSaveChangesButton": "Guardar cambios",
   "connectAllowButton": "Permitir",
   "connectDenyButton": "Denegar",
@@ -1235,6 +1236,9 @@
     "description": "Grade-trend tooltip: the class grade at this point."
   },
   "gradeTrendOverallSeries": "General",
+  "@gradeTrendOverallSeries": {
+    "description": "Legend name of the overall grade line. The legend is narrow on phones: keep it short."
+  },
   "gradeTrendTermGpaPoint": "Promedio del periodo • {gpa}",
   "@gradeTrendTermGpaPoint": {
     "placeholders": {
@@ -1247,6 +1251,9 @@
     "description": "Grade-trend tooltip: the term GPA at this point."
   },
   "gradeTrendTermGpaSeries": "Promedio",
+  "@gradeTrendTermGpaSeries": {
+    "description": "Legend name of the term GPA line. The legend is narrow on phones: keep it short."
+  },
   "gradesAllGpaSummary": "Total {gpa}",
   "@gradesAllGpaSummary": {
     "description": "The GPA across all terms (All GPA).",
@@ -1305,7 +1312,7 @@
   "gradesGradeTrendTitle": "Tendencia de calificaciones",
   "gradesGradedColumn": "Calif.",
   "@gradesGradedColumn": {
-    "description": "Column for how many of the category's assignments are graded."
+    "description": "Column for how many of the category's assignments are graded. The column is narrow: an abbreviation ending in a period is fine."
   },
   "gradesGradedCount": "{count, plural, =1{1 calificada} other{{count} calificadas}}",
   "@gradesGradedCount": {
@@ -1734,7 +1741,11 @@
   },
   "navGradesLabel": "Calificaciones",
   "@navGradesLabel": {
-    "description": "Name of the grades tab, in the navigation bar and as that screen's title."
+    "description": "Title of the grades screen, also shown in the browser tab."
+  },
+  "navGradesTabLabel": "Calif.",
+  "@navGradesTabLabel": {
+    "description": "Name of the grades tab in the navigation bar and side rail, where space is tight: an abbreviation ending in a period is fine. The screen's title uses the full name."
   },
   "navKeepHeliumFreeTooltip": "Mantén Helium gratis",
   "@navKeepHeliumFreeTooltip": {
@@ -3304,7 +3315,11 @@
   },
   "todosDueColumn": "Fecha de entrega",
   "@todosDueColumn": {
-    "description": "Todos column heading for the due date, also used in the CSV export."
+    "description": "Todos CSV export column heading for the due date."
+  },
+  "todosDueColumnHeader": "Entrega",
+  "@todosDueColumnHeader": {
+    "description": "Todos and Notebook table column heading for the due date. The column is narrow: keep it short."
   },
   "todosEmptyTitle": "Aún no has agregado ninguna tarea",
   "todosExportCsvButton": "Exportar CSV",
@@ -3319,6 +3334,13 @@
     }
   },
   "todosGradeColumn": "Calificación",
+  "@todosGradeColumn": {
+    "description": "Todos CSV export column heading for the grade."
+  },
+  "todosGradeColumnHeader": "Calif.",
+  "@todosGradeColumnHeader": {
+    "description": "Todos table column heading for the grade. The column is narrow: an abbreviation ending in a period is fine."
+  },
   "todosHasRemindersTooltip": "Tiene recordatorios",
   "todosNoMatchesMessage": "Ninguna tarea coincide con los filtros o la búsqueda aplicados",
   "todosNothingExportedMessage": "Nada exportado",
